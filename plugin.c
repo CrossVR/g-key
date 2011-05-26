@@ -220,12 +220,14 @@ int GetLogitechProcessId(DWORD* ProcessId)
 DWORD WINAPI DebugThread(void *pData)
 {
 	DEBUG_EVENT DebugEv; // Buffer for debug messages
-	HANDLE hProcess;
+	HANDLE hProcess; // Handle for the Logitech drivers
 	
 	// Attach debugger to Logitech drivers
 	if(DebugActiveProcess(ProcessId)==0) return 1;
 	
+	// Open a read memory handle to the Logitech drivers
 	hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
+	if(hProcess==NULL) return 1;
 
 	// While the plugin is running
 	while(pluginRunning)
@@ -240,6 +242,9 @@ DWORD WINAPI DebugThread(void *pData)
 				char* DebugStr = (char*)malloc(DebugEv.u.DebugString.nDebugStringLength);
 				ReadProcessMemory(hProcess, DebugEv.u.DebugString.lpDebugStringData, DebugStr, DebugEv.u.DebugString.nDebugStringLength, NULL);
 				
+				// Continue the process
+				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
+
 				// Interpret debug string
 				if(!strcmp(DebugStr, "TS3_PTT_ACTIVATE"))
 				{
@@ -295,12 +300,20 @@ DWORD WINAPI DebugThread(void *pData)
 				// Free the debug string
 				free(DebugStr);
 			}
-			ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
+			else
+			{
+				// Continue the process
+				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
+			}
 		}
 	}
 
 	// Deattach the debugger
 	DebugActiveProcessStop(ProcessId);
+
+	// Close the handle to the Logitech drivers
+	CloseHandle(hProcess);
+
 	return 0;
 }
 
