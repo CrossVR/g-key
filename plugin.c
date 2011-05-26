@@ -1,5 +1,5 @@
 /*
- * TeamSpeak 3 G15 PTT plugin
+ * TeamSpeak 3 G-key plugin
  * Author: Jules Blok (jules@aerix.nl)
  *
  * Copyright (c) 2008-2011 TeamSpeak Systems GmbH
