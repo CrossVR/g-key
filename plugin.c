@@ -11,7 +11,6 @@
 
 #include <Windows.h>
 #include <tlhelp32.h>
-#include "WinDebug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -220,63 +219,63 @@ int GetLogitechProcessId(DWORD* ProcessId)
 
 DWORD WINAPI PushToTalkThread(void *pData)
 {
-	DBWIN_BUFFER buffer; // Buffer for debug messages
+	DEBUG_EVENT DebugEv; // Buffer for debug messages
 
 	// While the plugin is running
 	while(pluginRunning)
 	{
 		// Wait for a debug message
-		if(!WinDebugWaitForMessage(&buffer, WINDEBUG_TIMEOUT))
+		if(WaitForDebugEvent(&DebugEv, WINDEBUG_TIMEOUT))
 		{
 			// If the debug message is from the logitech driver
-			if(buffer.dwProcessId == ProcessId)
+			if(DebugEv.dwDebugEventCode == OUTPUT_DEBUG_STRING_EVENT)
 			{
 				// Interpret command
-				if(!strcmp(buffer.data, "TS3_PTT_ACTIVATE"))
+				if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_PTT_ACTIVATE"))
 				{
 					SetPushToTalk(TRUE);
 				}
-				else if(!strcmp(buffer.data, "TS3_PTT_DEACTIVATE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_PTT_DEACTIVATE"))
 				{
 					SetPushToTalk(FALSE);
 				}
-				else if(!strcmp(buffer.data, "TS3_INPUT_MUTE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_INPUT_MUTE"))
 				{
 					SetInputMute(TRUE);
 				}
-				else if(!strcmp(buffer.data, "TS3_INPUT_UNMUTE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_INPUT_UNMUTE"))
 				{
 					SetInputMute(FALSE);
 				}
-				else if(!strcmp(buffer.data, "TS3_INPUT_TOGGLE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_INPUT_TOGGLE"))
 				{
 					int muted;
 					ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
 					SetInputMute(!muted);
 				}
-				else if(!strcmp(buffer.data, "TS3_OUTPUT_MUTE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_OUTPUT_MUTE"))
 				{
 					SetOutputMute(TRUE);
 				}
-				else if(!strcmp(buffer.data, "TS3_OUTPUT_UNMUTE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_OUTPUT_UNMUTE"))
 				{
 					SetOutputMute(FALSE);
 				}
-				else if(!strcmp(buffer.data, "TS3_OUTPUT_TOGGLE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_OUTPUT_TOGGLE"))
 				{
 					int muted;
 					ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
 					SetOutputMute(!muted);
 				}
-				else if(!strcmp(buffer.data, "TS3_AWAY_ZZZ"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_AWAY_ZZZ"))
 				{
 					SetAway(TRUE);
 				}
-				else if(!strcmp(buffer.data, "TS3_AWAY_NONE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_AWAY_NONE"))
 				{
 					SetAway(FALSE);
 				}
-				else if(!strcmp(buffer.data, "TS3_AWAY_TOGGLE"))
+				else if(!strcmp(DebugEv.u.DebugString.lpDebugStringData, "TS3_AWAY_TOGGLE"))
 				{
 					int away;
 					ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
@@ -284,6 +283,7 @@ DWORD WINAPI PushToTalkThread(void *pData)
 				}
 			}
 		}
+		ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
 	}
 	return 0;
 }
@@ -331,7 +331,7 @@ int ts3plugin_init() {
 	// Get process id of the logitech driver
 	if(GetLogitechProcessId(&ProcessId)!=0) return 1;
 	// Open Windows Debugger handles
-	if(WinDebugInitialize()!=0) return 1;
+	if(DebugActiveProcess(ProcessId)==0) return 1;
 
 	// Start the plugin thread
 	pluginRunning = TRUE;
@@ -350,7 +350,7 @@ void ts3plugin_shutdown() {
 	// Wait for the thread to stop
 	WaitForSingleObject(pluginThread, WINDEBUG_TIMEOUT);
 	// Close Windows Debugger handles
-	WinDebugUnintialize();
+	DebugActiveProcessStop(ProcessId);
 
 	/*
 	 * Note:
