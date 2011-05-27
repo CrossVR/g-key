@@ -14,15 +14,9 @@
     <ClCompile Include="plugin.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WinDebug.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="plugin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WinDebug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\clientlib_publicdefinitions.h">

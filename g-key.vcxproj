@@ -190,7 +190,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="plugin.c" />
-    <ClCompile Include="WinDebug.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\clientlib_publicdefinitions.h" />
@@ -201,7 +200,6 @@
     <ClInclude Include="include\public_rare_definitions.h" />
     <ClInclude Include="include\ts3_functions.h" />
     <ClInclude Include="plugin.h" />
-    <ClInclude Include="WinDebug.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
