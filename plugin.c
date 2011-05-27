@@ -295,9 +295,12 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 				}
 				else if(DebugEv.dwDebugEventCode == EXIT_PROCESS_DEBUG_EVENT)
 				{
-					// Continue the process
-					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
-
+					// The process is shutting down, exit the debugger
+					return;
+				}
+				else if(DebugEv.dwDebugEventCode == EXCEPTION_DEBUG_EVENT && DebugEv.u.Exception.ExceptionRecord.ExceptionCode != STATUS_BREAKPOINT)
+				{
+					// The process has crashed, exit the debugger
 					return;
 				}
 				else ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE); // Continue the process
