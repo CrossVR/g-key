@@ -45,7 +45,6 @@ static struct TS3Functions ts3Functions;
 static char* pluginID = NULL;
 static HANDLE pluginThread = NULL;
 static BOOL pluginRunning = FALSE;
-static DWORD ProcessId = NULL;
 static uint64 scHandlerID = NULL;
 static char* vadSet = NULL;
 
@@ -217,17 +216,9 @@ int GetLogitechProcessId(DWORD* ProcessId)
 	return 1; // No processes found
 }
 
-DWORD WINAPI DebugThread(void *pData)
+void DebugMain(DWORD ProcessId, HANDLE hProcess)
 {
 	DEBUG_EVENT DebugEv; // Buffer for debug messages
-	HANDLE hProcess; // Handle for the Logitech drivers
-	
-	// Attach debugger to Logitech drivers
-	if(DebugActiveProcess(ProcessId)==0) return 1;
-	
-	// Open a read memory handle to the Logitech drivers
-	hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
-	if(hProcess==NULL) return 1;
 
 	// While the plugin is running
 	while(pluginRunning)
@@ -235,70 +226,85 @@ DWORD WINAPI DebugThread(void *pData)
 		// Wait for a debug message
 		if(WaitForDebugEvent(&DebugEv, WINDEBUG_TIMEOUT))
 		{
-			// If this is a debug message and it uses ANSI
-			if(DebugEv.dwDebugEventCode == OUTPUT_DEBUG_STRING_EVENT && !DebugEv.u.DebugString.fUnicode)
+			if(DebugEv.dwProcessId == ProcessId)
 			{
-				// Retrieve debug string
-				char* DebugStr = (char*)malloc(DebugEv.u.DebugString.nDebugStringLength);
-				ReadProcessMemory(hProcess, DebugEv.u.DebugString.lpDebugStringData, DebugStr, DebugEv.u.DebugString.nDebugStringLength, NULL);
-				
-				// Continue the process
-				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
+				// If this is a debug message and it uses ANSI
+				if(DebugEv.dwDebugEventCode == OUTPUT_DEBUG_STRING_EVENT && !DebugEv.u.DebugString.fUnicode)
+				{
+					// Retrieve debug string
+					char* DebugStr = (char*)malloc(DebugEv.u.DebugString.nDebugStringLength);
+					ReadProcessMemory(hProcess, DebugEv.u.DebugString.lpDebugStringData, DebugStr, DebugEv.u.DebugString.nDebugStringLength, NULL);
+					
+					// Continue the process
+					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
 
-				// Interpret debug string
-				if(!strcmp(DebugStr, "TS3_PTT_ACTIVATE"))
-				{
-					SetPushToTalk(TRUE);
-				}
-				else if(!strcmp(DebugStr, "TS3_PTT_DEACTIVATE"))
-				{
-					SetPushToTalk(FALSE);
-				}
-				else if(!strcmp(DebugStr, "TS3_INPUT_MUTE"))
-				{
-					SetInputMute(TRUE);
-				}
-				else if(!strcmp(DebugStr, "TS3_INPUT_UNMUTE"))
-				{
-					SetInputMute(FALSE);
-				}
-				else if(!strcmp(DebugStr, "TS3_INPUT_TOGGLE"))
-				{
-					int muted;
-					ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
-					SetInputMute(!muted);
-				}
-				else if(!strcmp(DebugStr, "TS3_OUTPUT_MUTE"))
-				{
-					SetOutputMute(TRUE);
-				}
-				else if(!strcmp(DebugStr, "TS3_OUTPUT_UNMUTE"))
-				{
-					SetOutputMute(FALSE);
-				}
-				else if(!strcmp(DebugStr, "TS3_OUTPUT_TOGGLE"))
-				{
-					int muted;
-					ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
-					SetOutputMute(!muted);
-				}
-				else if(!strcmp(DebugStr, "TS3_AWAY_ZZZ"))
-				{
-					SetAway(TRUE);
-				}
-				else if(!strcmp(DebugStr, "TS3_AWAY_NONE"))
-				{
-					SetAway(FALSE);
-				}
-				else if(!strcmp(DebugStr, "TS3_AWAY_TOGGLE"))
-				{
-					int away;
-					ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
-					SetAway(!away);
-				}
+					// Interpret debug string
+					if(!strcmp(DebugStr, "TS3_PTT_ACTIVATE"))
+					{
+						SetPushToTalk(TRUE);
+					}
+					else if(!strcmp(DebugStr, "TS3_PTT_DEACTIVATE"))
+					{
+						SetPushToTalk(FALSE);
+					}
+					else if(!strcmp(DebugStr, "TS3_INPUT_MUTE"))
+					{
+						SetInputMute(TRUE);
+					}
+					else if(!strcmp(DebugStr, "TS3_INPUT_UNMUTE"))
+					{
+						SetInputMute(FALSE);
+					}
+					else if(!strcmp(DebugStr, "TS3_INPUT_TOGGLE"))
+					{
+						int muted;
+						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
+						SetInputMute(!muted);
+					}
+					else if(!strcmp(DebugStr, "TS3_OUTPUT_MUTE"))
+					{
+						SetOutputMute(TRUE);
+					}
+					else if(!strcmp(DebugStr, "TS3_OUTPUT_UNMUTE"))
+					{
+						SetOutputMute(FALSE);
+					}
+					else if(!strcmp(DebugStr, "TS3_OUTPUT_TOGGLE"))
+					{
+						int muted;
+						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
+						SetOutputMute(!muted);
+					}
+					else if(!strcmp(DebugStr, "TS3_AWAY_ZZZ"))
+					{
+						SetAway(TRUE);
+					}
+					else if(!strcmp(DebugStr, "TS3_AWAY_NONE"))
+					{
+						SetAway(FALSE);
+					}
+					else if(!strcmp(DebugStr, "TS3_AWAY_TOGGLE"))
+					{
+						int away;
+						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
+						SetAway(!away);
+					}
 
-				// Free the debug string
-				free(DebugStr);
+					// Free the debug string
+					free(DebugStr);
+				}
+				else if(DebugEv.dwDebugEventCode == EXIT_PROCESS_DEBUG_EVENT)
+				{
+					// Continue the process
+					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
+
+					return;
+				}
+				else
+				{
+					// Continue the process
+					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
+				}
 			}
 			else
 			{
@@ -307,12 +313,34 @@ DWORD WINAPI DebugThread(void *pData)
 			}
 		}
 	}
+}
 
-	// Deattach the debugger
-	DebugActiveProcessStop(ProcessId);
+DWORD WINAPI DebugThread(void *pData)
+{
+	DWORD ProcessId; // Process ID for the Logitech drivers
+	HANDLE hProcess; // Handle for the Logitech drivers
+	
+	while(pluginRunning)
+	{
+		// Get process id of the logitech driver
+		if(!GetLogitechProcessId(&ProcessId))
+		{
+			// Open a read memory handle to the Logitech drivers
+			hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
+			if(hProcess!=NULL)
+			{
+				// Attach debugger to Logitech drivers
+				if(DebugActiveProcess(ProcessId)) DebugMain(ProcessId, hProcess);
 
-	// Close the handle to the Logitech drivers
-	CloseHandle(hProcess);
+				// Deattach the debugger
+				DebugActiveProcessStop(ProcessId);
+
+				// Close the handle to the Logitech drivers
+				CloseHandle(hProcess);
+			}
+		}
+		else Sleep(WINDEBUG_TIMEOUT);
+	}
 
 	return 0;
 }
@@ -357,8 +385,8 @@ void ts3plugin_setFunctionPointers(const struct TS3Functions funcs) {
  * If the function returns 1 on failure, the plugin will be unloaded again.
  */
 int ts3plugin_init() {
-	// Get process id of the logitech driver
-	if(GetLogitechProcessId(&ProcessId)!=0) return 1;
+	// Get first connection handler
+	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
 
 	// Start the plugin thread
 	pluginRunning = TRUE;
@@ -373,9 +401,17 @@ int ts3plugin_init() {
 
 /* Custom code called right before the plugin is unloaded */
 void ts3plugin_shutdown() {
+	// Stop the plugin thread
 	pluginRunning = FALSE;
 	// Wait for the thread to stop
 	WaitForSingleObject(pluginThread, WINDEBUG_TIMEOUT);
+
+	// Release resources
+	if(vadSet != NULL)
+	{
+		ts3Functions.freeMemory(vadSet);
+		vadSet = NULL;
+	}
 
 	/*
 	 * Note:
