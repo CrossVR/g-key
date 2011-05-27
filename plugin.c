@@ -226,6 +226,7 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 		// Wait for a debug message
 		if(WaitForDebugEvent(&DebugEv, WINDEBUG_TIMEOUT))
 		{
+			// If the debug message is from the logitech driver
 			if(DebugEv.dwProcessId == ProcessId)
 			{
 				// If this is a debug message and it uses ANSI
