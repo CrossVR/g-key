@@ -310,7 +310,7 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 	}
 }
 
-DWORD WINAPI DebugThread(void *pData)
+DWORD WINAPI DebugThread(LPVOID pData)
 {
 	DWORD ProcessId; // Process ID for the Logitech drivers
 	HANDLE hProcess; // Handle for the Logitech drivers
