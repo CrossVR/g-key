@@ -300,17 +300,9 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 
 					return;
 				}
-				else
-				{
-					// Continue the process
-					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
-				}
+				else ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE); // Continue the process
 			}
-			else
-			{
-				// Continue the process
-				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
-			}
+			else ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE); // Continue the process
 		}
 	}
 }
@@ -320,6 +312,11 @@ DWORD WINAPI DebugThread(void *pData)
 	DWORD ProcessId; // Process ID for the Logitech drivers
 	HANDLE hProcess; // Handle for the Logitech drivers
 	
+	/*
+	 * NOTE: Never let this thread sleep longer than WINDEBUG_TIMEOUT per iteration,
+	 * as the shutdown function will not wait that long for the thread to exit.
+	 */
+
 	while(pluginRunning)
 	{
 		// Get process id of the logitech driver
