@@ -162,27 +162,48 @@ int SetOutputMute(BOOL shouldMute)
 int SetAway(BOOL isAway)
 {
 	unsigned int error;
+	uint64* servers;
+	uint64 HandlerID;
+	int i;
 
-	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, 
-		isAway ? AWAY_ZZZ : AWAY_NONE)) != ERROR_ok)
+	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error toggling away status: %s\n", errorMsg);
+			printf("Error retrieving list of servers: %s\n", errorMsg);
 			ts3Functions.freeMemory(errorMsg);
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID) != ERROR_ok)
+
+	HandlerID = servers[0];
+	for(i = 1; HandlerID != NULL; i++)
 	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		if((error = ts3Functions.setClientSelfVariableAsInt(HandlerID, CLIENT_AWAY, 
+			isAway ? AWAY_ZZZ : AWAY_NONE)) != ERROR_ok)
 		{
-			printf("Error flushing after toggling away status: %s\n", errorMsg);
-			ts3Functions.freeMemory(errorMsg);
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+			{
+				printf("Error toggling away status: %s\n", errorMsg);
+				ts3Functions.freeMemory(errorMsg);
+			}
 		}
+		if(ts3Functions.flushClientSelfUpdates(HandlerID) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+			{
+				printf("Error flushing after toggling away status: %s\n", errorMsg);
+				ts3Functions.freeMemory(errorMsg);
+			}
+		}
+		HandlerID = servers[i];
 	}
+
+	ts3Functions.freeMemory(servers);
+
 	return 0;
 }
 
