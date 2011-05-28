@@ -201,6 +201,11 @@
     <ClInclude Include="include\ts3_functions.h" />
     <ClInclude Include="plugin.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.odt" />
+    <None Include="scripts\all_commands.lua" />
+    <None Include="scripts\ptt.lua" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

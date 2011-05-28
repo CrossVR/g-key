@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="LUA Scripts">
+      <UniqueIdentifier>{06b2ee07-99fe-4d99-8f01-b9b16de20b05}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="plugin.c">
@@ -40,5 +43,14 @@
     <ClInclude Include="include\ts3_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="scripts\ptt.lua">
+      <Filter>LUA Scripts</Filter>
+    </None>
+    <None Include="scripts\all_commands.lua">
+      <Filter>LUA Scripts</Filter>
+    </None>
+    <None Include="ReadMe.odt" />
   </ItemGroup>
 </Project>
