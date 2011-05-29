@@ -59,7 +59,19 @@ int SetPushToTalk(BOOL shouldTalk)
 
 	// Get the current VAD setting, we shouldn't do this while PTT is active,
 	// but in that case vadSet is not NULL.
-	if(vadSet == NULL) ts3Functions.getPreProcessorConfigValue(scHandlerID, "vad", &vadSet);
+	if(vadSet == NULL)
+	{
+		if(ts3Functions.getPreProcessorConfigValue(scHandlerID, "vad", &vadSet) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+			{
+				printf("Error retrieving vad setting: %s\n", errorMsg);
+				ts3Functions.freeMemory(errorMsg);
+			}
+			return 1;
+		}
+	}
 	
 	// If VAD is on, toggle VAD
 	if((error = ts3Functions.setPreProcessorConfigValue(scHandlerID, "vad",
