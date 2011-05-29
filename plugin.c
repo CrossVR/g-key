@@ -61,7 +61,7 @@ int SetPushToTalk(BOOL shouldTalk)
 	// but in that case vadSet is not NULL.
 	if(vadSet == NULL)
 	{
-		if(ts3Functions.getPreProcessorConfigValue(scHandlerID, "vad", &vadSet) != ERROR_ok)
+		if((error = ts3Functions.getPreProcessorConfigValue(scHandlerID, "vad", &vadSet)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
