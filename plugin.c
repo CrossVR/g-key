@@ -43,7 +43,8 @@ static struct TS3Functions ts3Functions;
 #define WINDEBUG_TIMEOUT 1000
 
 static char* pluginID = NULL;
-static HANDLE pluginThread = NULL;
+static HANDLE debugThread = NULL;
+static HANDLE mailThread = NULL;
 static BOOL pluginRunning = FALSE;
 static uint64 scHandlerID = NULL;
 static char* vadSet = NULL;
@@ -51,7 +52,7 @@ static char* vadSet = NULL;
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
 
-/*********************************** Plugin functions ************************************/
+/*********************************** TeamSpeak functions ************************************/
 
 int SetPushToTalk(BOOL shouldTalk)
 {
@@ -219,6 +220,63 @@ int SetAway(BOOL isAway)
 	return 0;
 }
 
+/*********************************** Plugin functions ************************************/
+
+void ParseCommand(char* cmd)
+{
+	// Interpret command string
+	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
+	{
+		SetPushToTalk(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
+	{
+		SetPushToTalk(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
+	{
+		SetInputMute(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_UNMUTE"))
+	{
+		SetInputMute(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
+	{
+		int muted;
+		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
+		SetInputMute(!muted);
+	}
+	else if(!strcmp(cmd, "TS3_OUTPUT_MUTE"))
+	{
+		SetOutputMute(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_OUTPUT_UNMUTE"))
+	{
+		SetOutputMute(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
+	{
+		int muted;
+		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
+		SetOutputMute(!muted);
+	}
+	else if(!strcmp(cmd, "TS3_AWAY_ZZZ"))
+	{
+		SetAway(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_AWAY_NONE"))
+	{
+		SetAway(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_AWAY_TOGGLE"))
+	{
+		int away;
+		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
+		SetAway(!away);
+	}
+}
+
 int GetLogitechProcessId(DWORD* ProcessId)
 {
 	PROCESSENTRY32 entry;
@@ -272,57 +330,8 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 					// Continue the process
 					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
 
-					// Interpret debug string
-					if(!strcmp(DebugStr, "TS3_PTT_ACTIVATE"))
-					{
-						SetPushToTalk(TRUE);
-					}
-					else if(!strcmp(DebugStr, "TS3_PTT_DEACTIVATE"))
-					{
-						SetPushToTalk(FALSE);
-					}
-					else if(!strcmp(DebugStr, "TS3_INPUT_MUTE"))
-					{
-						SetInputMute(TRUE);
-					}
-					else if(!strcmp(DebugStr, "TS3_INPUT_UNMUTE"))
-					{
-						SetInputMute(FALSE);
-					}
-					else if(!strcmp(DebugStr, "TS3_INPUT_TOGGLE"))
-					{
-						int muted;
-						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
-						SetInputMute(!muted);
-					}
-					else if(!strcmp(DebugStr, "TS3_OUTPUT_MUTE"))
-					{
-						SetOutputMute(TRUE);
-					}
-					else if(!strcmp(DebugStr, "TS3_OUTPUT_UNMUTE"))
-					{
-						SetOutputMute(FALSE);
-					}
-					else if(!strcmp(DebugStr, "TS3_OUTPUT_TOGGLE"))
-					{
-						int muted;
-						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
-						SetOutputMute(!muted);
-					}
-					else if(!strcmp(DebugStr, "TS3_AWAY_ZZZ"))
-					{
-						SetAway(TRUE);
-					}
-					else if(!strcmp(DebugStr, "TS3_AWAY_NONE"))
-					{
-						SetAway(FALSE);
-					}
-					else if(!strcmp(DebugStr, "TS3_AWAY_TOGGLE"))
-					{
-						int away;
-						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
-						SetAway(!away);
-					}
+					// Parse debug string
+					ParseCommand(DebugStr);
 
 					// Free the debug string
 					free(DebugStr);
@@ -391,7 +400,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.3";
+    return "0.4";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */
@@ -424,8 +433,8 @@ int ts3plugin_init() {
 
 	// Start the plugin thread
 	pluginRunning = TRUE;
-	pluginThread=CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
-	if(pluginThread==NULL) return 1;
+	debugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
+	if(debugThread==NULL) return 1;
 
 	/* Initialize return codes array for requestClientMove */
 	memset(requestClientMoveReturnCodes, 0, REQUESTCLIENTMOVERETURNCODES_SLOTS * RETURNCODE_BUFSIZE);
@@ -438,7 +447,7 @@ void ts3plugin_shutdown() {
 	// Stop the plugin thread
 	pluginRunning = FALSE;
 	// Wait for the thread to stop
-	WaitForSingleObject(pluginThread, WINDEBUG_TIMEOUT);
+	WaitForSingleObject(debugThread, WINDEBUG_TIMEOUT);
 
 	// Release resources
 	if(vadSet != NULL)
