@@ -1,6 +1,7 @@
 #include "mailslot.h"
 #include <Windows.h>
 #include <stdio.h>
+#include <string.h>
 
 wchar_t* Slot = L"\\\\.\\mailslot\\teamspeak3";
 
@@ -19,7 +20,7 @@ BOOL WINAPI MakeSlot(LPHANDLE hSlot)
     return TRUE; 
 }
 
-BOOL ReadSlot(HANDLE hSlot, LPTSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
+BOOL ReadSlot(HANDLE hSlot, LPSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
 { 
     DWORD cbMessage, cMessage, cbRead; 
     BOOL fResult;
@@ -54,14 +55,14 @@ BOOL ReadSlot(HANDLE hSlot, LPTSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMillise
     return TRUE; 
 }
 
-BOOL WriteSlot(HANDLE hSlot, LPTSTR lpszMessage)
+BOOL WriteSlot(HANDLE hSlot, LPSTR lpszMessage)
 {
 	BOOL fResult;
 	DWORD cbWritten;
 
 	fResult = WriteFile(hSlot,
 		lpszMessage,
-		(DWORD) (lstrlen(lpszMessage)+1)*sizeof(TCHAR),
+		(DWORD) (strlen(lpszMessage)+1)*sizeof(CHAR),
 		&cbWritten,
 		NULL);
 
