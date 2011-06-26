@@ -6,7 +6,7 @@
 wchar_t* Slot = L"\\\\.\\mailslot\\teamspeak3";
 
 BOOL MakeSlot(LPHANDLE hSlot)
-{ 
+{
     *hSlot = CreateMailslot(Slot, 
         0,                             // no maximum message size 
         MAILSLOT_WAIT_FOREVER,         // no time-out for operations 
@@ -34,8 +34,7 @@ BOOL OpenSlot(LPHANDLE hSlot)
      
      if(*hSlot == INVALID_HANDLE_VALUE) 
      {
-          printf("\nError occurred while connecting" 
-                 " to the server: %d", GetLastError()); 
+          printf("CreateFile failed with %d.\n", GetLastError()); 
           return FALSE;  //Error
      }
 
