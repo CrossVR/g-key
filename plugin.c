@@ -20,6 +20,7 @@
 #include "ts3_functions.h"
 #include "plugin_events.h"
 #include "plugin.h"
+#include "mailslot.h"
 
 static struct TS3Functions ts3Functions;
 

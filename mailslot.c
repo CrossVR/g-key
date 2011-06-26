@@ -1,9 +1,10 @@
+#include "mailslot.h"
 #include <Windows.h>
 #include <stdio.h>
 
 wchar_t* Slot = L"\\\\.\\mailslot\\teamspeak3";
 
-BOOL WINAPI MakeSlot(LPHANDLE hSlot) 
+BOOL WINAPI MakeSlot(LPHANDLE hSlot)
 { 
     *hSlot = CreateMailslot(Slot, 
         0,                             // no maximum message size 
@@ -18,7 +19,7 @@ BOOL WINAPI MakeSlot(LPHANDLE hSlot)
     return TRUE; 
 }
 
-BOOL ReadSlot(LPHANDLE hSlot, LPTSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds) 
+BOOL ReadSlot(LPHANDLE hSlot, LPTSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
 { 
     DWORD cbMessage, cMessage, cbRead; 
     BOOL fResult;
