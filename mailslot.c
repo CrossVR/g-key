@@ -5,7 +5,7 @@
 
 wchar_t* Slot = L"\\\\.\\mailslot\\teamspeak3";
 
-BOOL WINAPI MakeSlot(LPHANDLE hSlot)
+BOOL MakeSlot(LPHANDLE hSlot)
 { 
     *hSlot = CreateMailslot(Slot, 
         0,                             // no maximum message size 
@@ -18,6 +18,28 @@ BOOL WINAPI MakeSlot(LPHANDLE hSlot)
         return FALSE;
     }
     return TRUE; 
+}
+
+BOOL ConnectSlot(LPHANDLE hSlot)
+{ 
+    *hSlot = CreateFile(
+		Slot,
+		GENERIC_WRITE,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+
+     
+     if(*hSlot == INVALID_HANDLE_VALUE) 
+     {
+          printf("\nError occurred while connecting" 
+                 " to the server: %d", GetLastError()); 
+          return FALSE;  //Error
+     }
+
+	 return TRUE;
 }
 
 BOOL ReadSlot(HANDLE hSlot, LPSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
