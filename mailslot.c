@@ -20,7 +20,7 @@ BOOL MakeSlot(LPHANDLE hSlot)
     return TRUE; 
 }
 
-BOOL ConnectSlot(LPHANDLE hSlot)
+BOOL OpenSlot(LPHANDLE hSlot)
 { 
     *hSlot = CreateFile(
 		Slot,
