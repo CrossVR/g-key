@@ -19,7 +19,7 @@ BOOL WINAPI MakeSlot(LPHANDLE hSlot)
     return TRUE; 
 }
 
-BOOL ReadSlot(LPHANDLE hSlot, LPTSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
+BOOL ReadSlot(HANDLE hSlot, LPTSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
 { 
     DWORD cbMessage, cMessage, cbRead; 
     BOOL fResult;
