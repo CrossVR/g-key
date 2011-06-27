@@ -1,97 +1,91 @@
-#include "mailslot.h"
+#include "ipc.h"
 #include <Windows.h>
 #include <stdio.h>
 #include <string.h>
 
-wchar_t* Slot = L"\\\\.\\mailslot\\teamspeak3";
+#define BUF_SIZE 1024
 
-BOOL MakeSlot(LPHANDLE hSlot)
+wchar_t* szName = L"ts3_gkey";
+
+BOOL IpcCreate(LPHANDLE hMapFile)
 {
-    *hSlot = CreateMailslot(Slot, 
-        0,                             // no maximum message size 
-        MAILSLOT_WAIT_FOREVER,         // no time-out for operations 
-        (LPSECURITY_ATTRIBUTES) NULL); // default security
-	
-    if (hSlot == INVALID_HANDLE_VALUE)
-    {
-        printf("CreateMailslot failed with %d\n", GetLastError());
-        return FALSE;
-    }
-    return TRUE; 
+	*hMapFile = CreateFileMapping(
+		INVALID_HANDLE_VALUE,    // use paging file
+		NULL,                    // default security 
+		PAGE_READWRITE,          // read/write access
+		0,                       // maximum object size (high-order DWORD) 
+		BUF_SIZE,                // maximum object size (low-order DWORD)  
+		szName);                 // name of mapping object\
+
+	if (hMapFile == NULL) 
+	{ 
+		printf("Could not create file mapping object (%d).\n", 
+				GetLastError());
+		return FALSE;
+	}
 }
 
-BOOL OpenSlot(LPHANDLE hSlot)
-{ 
-    *hSlot = CreateFile(
-		Slot,
-		GENERIC_WRITE,
-		FILE_SHARE_READ,
-		NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
-
-     
-     if(*hSlot == INVALID_HANDLE_VALUE) 
-     {
-          printf("CreateFile failed with %d.\n", GetLastError()); 
-          return FALSE;  //Error
-     }
-
-	 return TRUE;
-}
-
-BOOL ReadSlot(HANDLE hSlot, LPSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
-{ 
-    DWORD cbMessage, cMessage, cbRead; 
-    BOOL fResult;
-	
-    fResult = GetMailslotInfo(hSlot,
-		&sizeBuffer,
-        &cbMessage,
-        &cMessage,
-        &dwMilliseconds);
+BOOL IpcOpen(LPHANDLE hMapFile)
+{
+	*hMapFile = OpenFileMapping(
+		FILE_MAP_ALL_ACCESS,   // read/write access
+		FALSE,                 // do not inherit the name
+		szName);               // name of mapping object 
  
-    if(!fResult)
-    {
-        printf("GetMailslotInfo failed with %d.\n", GetLastError());
-        return FALSE;
-    }
-	
-    if(cbMessage == MAILSLOT_NO_MESSAGE)
-        return FALSE;
-
-    fResult = ReadFile(hSlot,
-		lpszBuffer,
-		cbMessage,
-		&cbRead,
-		NULL);
-	
-    if (!fResult)
-    {
-        printf("ReadFile failed with %d.\n", GetLastError());
-        return FALSE;
-    }
-
-    return TRUE; 
+	if (hMapFile == NULL) 
+	{ 
+		printf("Could not open file mapping object (%d).\n", 
+				GetLastError());
+		return 1;
+	} 
 }
 
-BOOL WriteSlot(HANDLE hSlot, LPSTR lpszMessage)
+BOOL IpcRead(HANDLE hMapFile, LPSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
 {
-	BOOL fResult;
-	DWORD cbWritten;
+	LPCTSTR pBuf;
 
-	fResult = WriteFile(hSlot,
-		lpszMessage,
-		(DWORD) (strlen(lpszMessage)+1)*sizeof(CHAR),
-		&cbWritten,
-		NULL);
+	pBuf = (LPTSTR) MapViewOfFile(hMapFile, // handle to map object
+               FILE_MAP_ALL_ACCESS,  // read/write permission
+               0,                    
+               0,                    
+               BUF_SIZE);                   
+ 
+	if (pBuf == NULL) 
+	{ 
+		printf("Could not map view of file (%d).\n", 
+				GetLastError()); 
 
-	if(!fResult)
-	{
-		printf("WriteFile failed with %d.\n", GetLastError());
+		CloseHandle(hMapFile);
+
+		return 1;
+	}
+
+	// Read
+
+	UnmapViewOfFile(pBuf);
+}
+
+BOOL IpcWrite(HANDLE hMapFile, LPSTR lpszMessage)
+{
+	LPCTSTR pBuf;
+
+	pBuf = (LPTSTR) MapViewOfFile(hMapFile,   // handle to map object
+						FILE_MAP_ALL_ACCESS, // read/write permission
+						0,                   
+						0,                   
+						BUF_SIZE);           
+ 
+	if (pBuf == NULL) 
+	{ 
+		printf("Could not map view of file (%d).\n", 
+				GetLastError());
+
 		return FALSE;
 	}
 
-	return TRUE;
+	//Write
+
+	memcpy((PVOID)pBuf, szMsg, (_tcslen(szMsg) * sizeof(TCHAR)));
+
+	UnmapViewOfFile(pBuf);
 }
