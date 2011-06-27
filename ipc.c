@@ -45,24 +45,26 @@ BOOL IpcRead(HANDLE hMapFile, LPSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMillis
 	LPCTSTR pBuf;
 
 	pBuf = (LPTSTR) MapViewOfFile(hMapFile, // handle to map object
-               FILE_MAP_ALL_ACCESS,  // read/write permission
-               0,                    
-               0,                    
-               BUF_SIZE);                   
+		FILE_MAP_READ,  // read permission
+		0,
+		0,
+		BUF_SIZE);
  
 	if (pBuf == NULL) 
 	{ 
-		printf("Could not map view of file (%d).\n", 
-				GetLastError()); 
+		printf("Could not map view of file (%d).\n",
+				GetLastError());
 
 		CloseHandle(hMapFile);
 
 		return 1;
 	}
 
-	// Read
+	// TODO: Read
 
 	UnmapViewOfFile(pBuf);
+
+	return TRUE;
 }
 
 BOOL IpcWrite(HANDLE hMapFile, LPSTR lpszMessage)
@@ -70,22 +72,24 @@ BOOL IpcWrite(HANDLE hMapFile, LPSTR lpszMessage)
 	LPCTSTR pBuf;
 
 	pBuf = (LPTSTR) MapViewOfFile(hMapFile,   // handle to map object
-						FILE_MAP_ALL_ACCESS, // read/write permission
-						0,                   
-						0,                   
-						BUF_SIZE);           
+		FILE_MAP_WRITE, // write permission
+		0,
+		0,
+		BUF_SIZE);
  
 	if (pBuf == NULL) 
 	{ 
-		printf("Could not map view of file (%d).\n", 
+		printf("Could not map view of file (%d).\n",
 				GetLastError());
 
 		return FALSE;
 	}
 
-	//Write
+	// TODO: Write
 
-	memcpy((PVOID)pBuf, szMsg, (_tcslen(szMsg) * sizeof(TCHAR)));
+	memcpy((PVOID)pBuf, lpszMessage, (strlen(lpszMessage) * sizeof(TCHAR)));
 
 	UnmapViewOfFile(pBuf);
+
+	return TRUE;
 }
