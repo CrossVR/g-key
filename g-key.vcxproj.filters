@@ -17,7 +17,7 @@
     <ClCompile Include="plugin.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mailslot.c">
+    <ClCompile Include="ipc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -46,7 +46,7 @@
     <ClInclude Include="include\ts3_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mailslot.h">
+    <ClInclude Include="ipc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
