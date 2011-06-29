@@ -188,7 +188,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ipc.c" />
+    <ClCompile Include="mailslot.c" />
     <ClCompile Include="plugin.c" />
   </ItemGroup>
   <ItemGroup>
@@ -199,7 +199,7 @@
     <ClInclude Include="include\public_errors.h" />
     <ClInclude Include="include\public_rare_definitions.h" />
     <ClInclude Include="include\ts3_functions.h" />
-    <ClInclude Include="ipc.h" />
+    <ClInclude Include="mailslot.h" />
     <ClInclude Include="plugin.h" />
   </ItemGroup>
   <ItemGroup>
