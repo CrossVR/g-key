@@ -3,13 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
-wchar_t* Slot = L"\\\\.\\mailslot\\teamspeak3";
+char* Slot = "\\\\.\\mailslot\\teamspeak3";
 
-BOOL MakeSlot(LPHANDLE hSlot)
+BOOL MakeSlot(LPHANDLE hSlot, DWORD sizeMessage, DWORD dwMilliseconds)
 {
-    *hSlot = CreateMailslot(Slot, 
-        0,                             // no maximum message size 
-        MAILSLOT_WAIT_FOREVER,         // no time-out for operations 
+    *hSlot = CreateMailslotA(Slot, 
+        sizeMessage,
+        dwMilliseconds,
         (LPSECURITY_ATTRIBUTES) NULL); // default security
 	
     if (hSlot == INVALID_HANDLE_VALUE)
@@ -22,7 +22,7 @@ BOOL MakeSlot(LPHANDLE hSlot)
 
 BOOL OpenSlot(LPHANDLE hSlot)
 { 
-    *hSlot = CreateFile(
+    *hSlot = CreateFileA(
 		Slot,
 		GENERIC_WRITE,
 		FILE_SHARE_READ,
@@ -41,9 +41,9 @@ BOOL OpenSlot(LPHANDLE hSlot)
 	 return TRUE;
 }
 
-BOOL ReadSlot(HANDLE hSlot, LPSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMilliseconds)
+BOOL ReadSlot(HANDLE hSlot, LPSTR lpszBuffer)
 { 
-    DWORD cbMessage, cMessage, cbRead; 
+    DWORD cbMessage, cMessage, cbRead, dwMilliseconds, sizeBuffer; 
     BOOL fResult;
 	
     fResult = GetMailslotInfo(hSlot,
@@ -73,7 +73,7 @@ BOOL ReadSlot(HANDLE hSlot, LPSTR lpszBuffer, DWORD sizeBuffer, DWORD dwMillisec
         return FALSE;
     }
 
-    return TRUE; 
+    return TRUE;
 }
 
 BOOL WriteSlot(HANDLE hSlot, LPSTR lpszMessage)
@@ -85,7 +85,7 @@ BOOL WriteSlot(HANDLE hSlot, LPSTR lpszMessage)
 		lpszMessage,
 		(DWORD) (strlen(lpszMessage)+1)*sizeof(CHAR),
 		&cbWritten,
-		NULL);
+		(LPOVERLAPPED) NULL); // Synchronous operation
 
 	if(!fResult)
 	{
