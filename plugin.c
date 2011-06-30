@@ -20,7 +20,7 @@
 #include "ts3_functions.h"
 #include "plugin_events.h"
 #include "plugin.h"
-#include "mailslot.h"
+#include "ipc.h"
 
 static struct TS3Functions ts3Functions;
 
@@ -41,7 +41,7 @@ static struct TS3Functions ts3Functions;
 #define RETURNCODE_BUFSIZE 128
 #define REQUESTCLIENTMOVERETURNCODES_SLOTS 5
 
-#define WINDEBUG_TIMEOUT 1000
+#define PLUGINTHREAD_TIMEOUT 1000
 
 static char* pluginID = NULL;
 static HANDLE debugThread = NULL;
@@ -316,7 +316,7 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 	while(pluginRunning)
 	{
 		// Wait for a debug message
-		if(WaitForDebugEvent(&DebugEv, WINDEBUG_TIMEOUT))
+		if(WaitForDebugEvent(&DebugEv, PLUGINTHREAD_TIMEOUT))
 		{
 			// If the debug message is from the logitech driver
 			if(DebugEv.dwProcessId == ProcessId)
@@ -360,7 +360,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	HANDLE hProcess; // Handle for the Logitech drivers
 	
 	/*
-	 * NOTE: Never let this thread sleep longer than WINDEBUG_TIMEOUT per iteration,
+	 * NOTE: Never let this thread sleep longer than PLUGINTHREAD_TIMEOUT per iteration,
 	 * as the shutdown function will not wait that long for the thread to exit.
 	 */
 
@@ -383,7 +383,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 				CloseHandle(hProcess);
 			}
 		}
-		else Sleep(WINDEBUG_TIMEOUT);
+		else Sleep(PLUGINTHREAD_TIMEOUT);
 	}
 
 	return 0;
@@ -448,7 +448,7 @@ void ts3plugin_shutdown() {
 	// Stop the plugin thread
 	pluginRunning = FALSE;
 	// Wait for the thread to stop
-	WaitForSingleObject(debugThread, WINDEBUG_TIMEOUT);
+	WaitForSingleObject(debugThread, PLUGINTHREAD_TIMEOUT);
 
 	// Release resources
 	if(vadSet != NULL)
