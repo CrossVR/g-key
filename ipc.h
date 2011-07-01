@@ -7,6 +7,7 @@ typedef struct
 	char message[IPC_BUFSIZE];
 } IpcMessage;
 
-BOOL IpcInit(LPHANDLE hSlot);
-BOOL IpcRead(HANDLE hMapFile, IpcMessage* message, DWORD dwMilliseconds);
-BOOL IpcWrite(HANDLE hMapFile, IpcMessage* message, DWORD dwMilliseconds);
+BOOL IpcInit(void);
+BOOL IpcRead(IpcMessage* message, DWORD dwMilliseconds);
+BOOL IpcWrite(IpcMessage* message, DWORD dwMilliseconds);
+BOOL IpcClose(void);
