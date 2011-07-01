@@ -44,8 +44,8 @@ static struct TS3Functions ts3Functions;
 #define PLUGINTHREAD_TIMEOUT 1000
 
 static char* pluginID = NULL;
-static HANDLE debugThread = NULL;
-static HANDLE mailThread = NULL;
+static HANDLE hDebugThread = NULL;
+static HANDLE hIPCThread = NULL;
 static BOOL pluginRunning = FALSE;
 static uint64 scHandlerID = NULL;
 static char* vadSet = NULL;
@@ -389,6 +389,31 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	return 0;
 }
 
+DWORD WINAPI IPCThread(LPVOID pData)
+{
+	IpcMessage msg; // Buffer for the message
+	HANDLE hMapFile; // Handle for the shared memmory
+	
+	/*
+	 * NOTE: Never let this thread sleep longer than PLUGINTHREAD_TIMEOUT per iteration,
+	 * as the shutdown function will not wait that long for the thread to exit.
+	 */
+
+	if(!IpcInit()) return 1;
+
+	while(pluginRunning)
+	{
+		if(IpcRead(&msg, PLUGINTHREAD_TIMEOUT))
+		{
+			ParseCommand(msg.message);
+		}
+	}
+
+	IpcClose();
+
+	return 0;
+}
+
 /*********************************** Required functions ************************************/
 /*
  * If any of these required functions is not implemented, TS3 will refuse to load the plugin
@@ -432,10 +457,16 @@ int ts3plugin_init() {
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
 
-	// Start the plugin thread
+	// Start the plugin threads
 	pluginRunning = TRUE;
-	debugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
-	if(debugThread==NULL) return 1;
+
+	// Debug thread
+	hDebugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
+	if(hDebugThread==NULL) return 1;
+	
+	// IPC thread
+	hIPCThread = CreateThread(NULL, NULL, IPCThread, 0, 0, NULL);
+	if(hIPCThread==NULL) return 1;
 
 	/* Initialize return codes array for requestClientMove */
 	memset(requestClientMoveReturnCodes, 0, REQUESTCLIENTMOVERETURNCODES_SLOTS * RETURNCODE_BUFSIZE);
@@ -445,10 +476,21 @@ int ts3plugin_init() {
 
 /* Custom code called right before the plugin is unloaded */
 void ts3plugin_shutdown() {
-	// Stop the plugin thread
+	// Compile array of thread handles
+	HANDLE threads[] = {
+		hDebugThread,
+		hIPCThread
+	};
+
+	// Stop the plugin threads
 	pluginRunning = FALSE;
+
 	// Wait for the thread to stop
-	WaitForSingleObject(debugThread, PLUGINTHREAD_TIMEOUT);
+	WaitForMultipleObjects(
+		2,						// Number of threads
+		threads,				// Array of thread handles
+		TRUE,					// Wait for all threads
+		PLUGINTHREAD_TIMEOUT);	// Timeout
 
 	// Release resources
 	if(vadSet != NULL)
