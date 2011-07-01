@@ -1,3 +1,6 @@
+#ifndef GKEY_IPC
+#define GKEY_IPC
+
 #include <Windows.h>
 
 #define IPC_BUFSIZE 256
@@ -11,3 +14,5 @@ BOOL IpcInit(void);
 BOOL IpcRead(IpcMessage* message, DWORD dwMilliseconds);
 BOOL IpcWrite(IpcMessage* message, DWORD dwMilliseconds);
 BOOL IpcClose(void);
+
+#endif
