@@ -10,7 +10,7 @@ wchar_t* DataReadyEvent = L"TS3GKEY_DATA_READY";
 HANDLE hBufferReadyEvent;
 HANDLE hDataReadyEvent;
 
-BOOL IpcCreate(LPHANDLE hMapFile)
+BOOL IpcInit(LPHANDLE hMapFile)
 {
 	*hMapFile = CreateFileMapping(
 		INVALID_HANDLE_VALUE,	// use paging file
@@ -56,50 +56,10 @@ BOOL IpcCreate(LPHANDLE hMapFile)
 	return TRUE;
 }
 
-BOOL IpcOpen(LPHANDLE hMapFile)
-{
-	*hMapFile = OpenFileMapping(
-		FILE_MAP_ALL_ACCESS,	// read/write access
-		FALSE,					// do not inherit the name
-		Path);					// name of mapping object 
-
-	if (hMapFile == NULL)
-	{
-		printf("Could not open file mapping object (%d).\n", 
-				GetLastError());
-		return FALSE;
-	}
-	
-	hBufferReadyEvent = OpenEvent(
-		EVENT_MODIFY_STATE,	// modify access
-		FALSE,				// do not inherit the handle
-		BufferReadyEvent);	// name of the event
-	
-	if (hBufferReadyEvent == NULL)
-	{
-		printf("Could not open buffer ready event (%d).\n", 
-				GetLastError());
-		return FALSE;
-	}
-
-	hDataReadyEvent = OpenEvent(
-		EVENT_MODIFY_STATE,	// modify access
-		FALSE,				// do not inherit the handle
-		DataReadyEvent);	// name of the event
-	
-	if (hDataReadyEvent == NULL)
-	{
-		printf("Could not open data ready event (%d).\n", 
-				GetLastError());
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
 BOOL IpcRead(HANDLE hMapFile, IpcMessage* message, DWORD dwMilliseconds)
 {
 	LPCTSTR pBuf;
+	int ret;
 
 	pBuf = (LPTSTR) MapViewOfFile(hMapFile, // handle to map object
 		FILE_MAP_READ,  // read permission
@@ -116,8 +76,10 @@ BOOL IpcRead(HANDLE hMapFile, IpcMessage* message, DWORD dwMilliseconds)
 
 		return 1;
 	}
+	
+	ret = WaitForSingleObject(hDataReadyEvent, dwMilliseconds);
 
-	WaitForSingleObject(hDataReadyEvent, dwMilliseconds);
+	if(ret != WAIT_OBJECT_0) return FALSE;
 	
 	memcpy(&message, (PVOID)pBuf, sizeof(IpcMessage));
 
@@ -128,9 +90,10 @@ BOOL IpcRead(HANDLE hMapFile, IpcMessage* message, DWORD dwMilliseconds)
 	return TRUE;
 }
 
-BOOL IpcWrite(HANDLE hMapFile, IpcMessage message, DWORD dwMilliseconds)
+BOOL IpcWrite(HANDLE hMapFile, IpcMessage* message, DWORD dwMilliseconds)
 {
 	LPCTSTR pBuf;
+	int ret;
 
 	pBuf = (LPTSTR) MapViewOfFile(hMapFile,   // handle to map object
 		FILE_MAP_WRITE, // write permission
@@ -146,7 +109,9 @@ BOOL IpcWrite(HANDLE hMapFile, IpcMessage message, DWORD dwMilliseconds)
 		return FALSE;
 	}
 
-	WaitForSingleObject(hBufferReadyEvent, dwMilliseconds);
+	ret = WaitForSingleObject(hBufferReadyEvent, dwMilliseconds);
+
+	if(ret != WAIT_OBJECT_0) return FALSE;
 
 	memcpy((PVOID)pBuf, &message, sizeof(IpcMessage));
 
