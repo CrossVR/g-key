@@ -51,103 +51,42 @@
 #include <windows.h>
 #include <shellapi.h>				// support shell execution
 #include "GkeyImplementation.h"
+#include "../ipc.h"
 
 // This is an action conmmand list supported by this application 
 // module in English language.
 // A NUll terminated list must be placed at the end of a command list.
 //
-static WCHAR* EnglishCmdList[] =	{ L"Calculator",
-									  L"Solitaire Game",
-							          L"Pinball Game",
-							          NULL
-							        };
+static WCHAR* EnglishCmdList[] = {
+	L"Activate Push-to-talk",
+	L"Deactivate Push-to-talk",
+	L"Mute the Microphone",
+	L"Unmute the Microphone",
+	L"Toggle Microphone mute on/off",
+	L"Mute the Speakers/Headphones",
+	L"Unmute the Speakers/Headphones",
+	L"Toggle Speakers/Headphones mute on/off",
+	L"Turn on globally away status",
+	L"Turn off globally away status",
+	L"Toggle globally away status on/off",
+	NULL
+};
 
-//-----------------------------------------------------------------
-// DebugTRACE
-//		This function is used to print a debug information. The
-//      function is a local to this module.
-//
-// Parameters:
-//	pszFormat - an output format string likes the format use in the 
-//              printf() statement
-//  ...       - the parameter(s) whose value will be output based on
-//              the specified format.(optional)
-//        
-//-----------------------------------------------------------------
-
-#ifdef _DEBUG
-void DebugTRACE(LPTSTR pszFormat, ...)
-{
-	WCHAR szBuffer[1024];
-	va_list pArgList;
-
-	va_start(pArgList, pszFormat);
-	_vsntprintf(szBuffer, sizeof(szBuffer) / sizeof(WCHAR), pszFormat, pArgList);
-	va_end(pArgList);
-
-	OutputDebugString(szBuffer);
-}
-#endif
-
-//---------------------------------------------------------------------
-// ExecuteCmd - This function is a local to this module.
-//		This function uses a Windows ShellExecute function to execute a
-//		requested command.
-//
-// Parameters:
-//		szCmdPath - a command line to be passed to the ShellExecute
-//                  function.
-//      szPars - additional parameters string to the ShellExecution 
-//               function.               
-//---------------------------------------------------------------------
-void ExecuteCmd(const WCHAR* szCmdPath, const WCHAR* szPars)
-{
-	HINSTANCE hInst = ::ShellExecute(NULL, L"open", szCmdPath, szPars, 0, SW_SHOWNORMAL);
-}
-
-//---------------------------------------------------------------------
-// LaunchPinball - This function is a local to this module.
-//		This function calls a ExecuteCmd function to launch a pin ball 
-//      game. Assume that the game is installed in a location:
-//      C:\Program Files\Windows NT\Pinball\PINBALL.EXE in a system. 
-//      If the game does not exist, the execution will fail and user
-//
-//      will not see the action.
-// Parameters:
-//	none
-//---------------------------------------------------------------------
-void LaunchPinball(void)
-{
-	ExecuteCmd(L"C:\\Program Files\\Windows NT\\Pinball\\PINBALL.EXE", NULL);
-}
-
-//---------------------------------------------------------------------
-// LaunchCal - This function is a local to this module.
-//	This function calls a ExecuteCmd function to launch a calculator.
-//  Assume that a Windows calculator is installed in a location:
-//  C:\WINDOWS\system32\calc.exe.
-//
-// Parameters:
-//	none
-//---------------------------------------------------------------------
-void LaunchCal(void)
-{
-	ExecuteCmd(L"C:\\WINDOWS\\system32\\calc.exe", NULL);
-}
-
-//---------------------------------------------------------------------
-// LaunchSolitaire	- This function is a local to this module.
-//	This function calls a ExecuteCmd function to launch a Solitaire game.
-//  Assume that a Windows calculator is installed in a location:
-//  C:\WINDOWS\system32\calc.exe. 
-//
-// Parameters:
-//	none
-//---------------------------------------------------------------------
-void LaunchSolitaire(void)
-{
-	ExecuteCmd(L"C:\\WINDOWS\\system32\\sol.exe", NULL);
-}
+// This is the G-Key plugin command list corresponding with the
+// EnglishCmdList
+static char* GKeyCmdList[] = {
+	"TS3_PTT_ACTIVATE",
+	"TS3_PTT_DEACTIVATE",
+	"TS3_INPUT_MUTE",
+	"TS3_INPUT_UNMUTE",
+	"TS3_INPUT_TOGGLE",
+	"TS3_OUTPUT_MUTE",
+	"TS3_OUTPUT_UNMUTE",
+	"TS3_OUTPUT_TOGGLE",
+	"TS3_AWAY_ZZZ",
+	"TS3_AWAY_NONE",
+	"TS3_AWAY_TOGGLE"
+};
 
 //---------------------------------------------------------------------
 // GetGkeyCommandList - This function interfaces with the Logitech 
@@ -186,17 +125,6 @@ void LaunchSolitaire(void)
 //--------------------------------------------------------------------- 
 WCHAR** GetGkeyCommandList(unsigned int languageCode)
 {
-	if (languageCode == 1033) {
-#ifdef _DEBUG
-		DebugTRACE(_T("GetGkeyCommandList() languageCode=%d is English\n"), languageCode);
-#endif
-	}
-	else {
-#ifdef _DEBUG
-		DebugTRACE(_T("GetGkeyCommandList() languageCode=%d other than English\n"), languageCode);
-#endif
-	}
-
 	return EnglishCmdList;  // This application only support English language.
 }
 
@@ -214,23 +142,7 @@ WCHAR** GetGkeyCommandList(unsigned int languageCode)
 //---------------------------------------------------------------------
 BOOL RunGkeyCommand (unsigned int commandID)
 {
-	BOOL retVal = TRUE;
-
-	switch (commandID)
-	{
-	case 0: LaunchCal();
-		break;
-	case 1: LaunchSolitaire();
-		break;
-	case 2: LaunchPinball();
-		break;
-	default:
-#ifdef _DEBUG
-		DebugTRACE(_T("Unsupported commnad code: %d.\n"), commandID);
-#endif
-		retVal = FALSE;
-		break;
-	};
-
-	return retVal;
+	IpcMessage msg;
+	strcpy(msg.message, GKeyCmdList[commandID]);
+	return IpcWrite(&msg, 1000);
 }

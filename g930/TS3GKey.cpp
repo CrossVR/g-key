@@ -18,7 +18,7 @@
 
 ****************************************************************************/
 #include "stdafx.h"
-
+#include "../ipc.h"
 
 #ifdef _MANAGED
 #pragma managed(push, off)
@@ -31,6 +31,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 {
 	// Any initialization and setup go here
 	//
+	IpcInit();
+
     return TRUE;
 }
 
