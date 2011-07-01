@@ -12,8 +12,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D22D7279-8FAA-474F-ABEF-D1940B53FE15}</ProjectGuid>
-    <RootNamespace>GKeyAppSample1</RootNamespace>
+    <RootNamespace>TS3GKey</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <ProjectName>TS3GKey</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -88,7 +89,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GKeyDLLSample1.cpp" />
+    <ClCompile Include="..\ipc.c" />
+    <ClCompile Include="TS3GKey.cpp" />
     <ClCompile Include="GkeyImplementation.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -96,10 +98,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="GKeyDLLSample1.def" />
+    <None Include="TS3GKey.def" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ipc.h" />
     <ClInclude Include="GkeyImplementation.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
