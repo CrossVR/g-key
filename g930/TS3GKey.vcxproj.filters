@@ -21,10 +21,10 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ipc.c">
+    <ClCompile Include="TS3GKey.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TS3GKey.cpp">
+    <ClCompile Include="ipc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,7 +41,7 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ipc.h">
+    <ClInclude Include="ipc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

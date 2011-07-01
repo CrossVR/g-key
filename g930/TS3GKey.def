@@ -1,7 +1,7 @@
 
 ;/****************************************************************************
 ;
-; Module:	GKeyDLLSample1.def
+; Module:	TS3GKey.def
 ;
 ; Created 02/27/2010 by Len Chau
 ; 
@@ -17,7 +17,7 @@
 ; including partial copies or modified versions thereof.
 ;
 ;****************************************************************************/
-LIBRARY	"GKeyDLLSample1"
+LIBRARY	"TS3GKey"
 
 EXPORTS
 	; Explicit exporting functions. These are the main library interface functions.
