@@ -62,7 +62,7 @@ BOOL IpcRead(IpcMessage* message, DWORD dwMilliseconds)
 	void* pBuf;
 	int ret;
 
-	pBuf = (LPTSTR) MapViewOfFile(hMapFile, // handle to map object
+	pBuf = MapViewOfFile(hMapFile, // handle to map object
 		FILE_MAP_READ,  // read permission
 		0,
 		0,
