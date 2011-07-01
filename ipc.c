@@ -82,7 +82,7 @@ BOOL IpcRead(IpcMessage* message, DWORD dwMilliseconds)
 
 	if(ret != WAIT_OBJECT_0) return FALSE;
 	
-	memcpy(&message, pBuf, sizeof(IpcMessage));
+	memcpy(message, pBuf, sizeof(IpcMessage));
 
 	SetEvent(hBufferReadyEvent);
 
@@ -114,7 +114,7 @@ BOOL IpcWrite(IpcMessage* message, DWORD dwMilliseconds)
 
 	if(ret != WAIT_OBJECT_0) return FALSE;
 
-	memcpy(pBuf, &message, sizeof(IpcMessage));
+	memcpy(pBuf, message, sizeof(IpcMessage));
 
 	SetEvent(hDataReadyEvent);
 
