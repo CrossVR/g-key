@@ -424,7 +424,7 @@ DWORD WINAPI IPCThread(LPVOID pData)
 
 	if(!IpcInit())
 	{
-		// Could not attach debugger, exit debug thread
+		// Could not initialise interprocess communication
 		ts3Functions.logMessage("Failed to allocate shared memory, some devices may not function.", LogLevel_ERROR, "G-Key Plugin", 0);
 		return 1;
 	}
