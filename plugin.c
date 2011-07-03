@@ -48,7 +48,9 @@ static HANDLE hDebugThread = NULL;
 static HANDLE hIPCThread = NULL;
 static BOOL pluginRunning = FALSE;
 static uint64 scHandlerID = NULL;
-static char* vadSet = NULL;
+static BOOL vadActive = FALSE;
+static BOOL inputActive = FALSE;
+static BOOL pttActive = FALSE;
 
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
@@ -59,11 +61,12 @@ int SetPushToTalk(BOOL shouldTalk)
 {
 	unsigned int error;
 
-	// Get the current VAD setting, we shouldn't do this while PTT is active,
-	// but in that case vadSet is not NULL.
-	if(vadSet == NULL)
+	// If PTT is inactive, retrieve some client settings to see how PTT should behave
+	if(!inputActive)
 	{
-		if((error = ts3Functions.getPreProcessorConfigValue(scHandlerID, "vad", &vadSet)) != ERROR_ok)
+		// Get the current VAD setting
+		char* temp;
+		if((error = ts3Functions.getPreProcessorConfigValue(scHandlerID, "vad", &temp)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -73,11 +76,26 @@ int SetPushToTalk(BOOL shouldTalk)
 			}
 			return 1;
 		}
+		vadActive = !strcmp(temp, "true");
+		ts3Functions.freeMemory(temp);
+		
+		// Get the current input setting, this will indicate whether
+		// VAD is being used in combination with PTT.
+		if((error = ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, &pttActive)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+			{
+				printf("Error retrieving input setting: %s\n", errorMsg);
+				ts3Functions.freeMemory(errorMsg);
+			}
+			return 1;
+		}
 	}
 	
-	// If VAD is on, toggle VAD
+	// Temporarily disable VAD if it is not used in combination with PTT.
 	if((error = ts3Functions.setPreProcessorConfigValue(scHandlerID, "vad",
-		shouldTalk ? "false" : vadSet)) != ERROR_ok)
+		(shouldTalk && (vadActive && !pttActive)) ? "false" : (vadActive)?"true":"false")) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -87,9 +105,10 @@ int SetPushToTalk(BOOL shouldTalk)
 		}
 		return 1;
 	}
-	// If VAD is off, toggle PTT
+
+	// Toggle input, it should always be on if PTT is inactive.
 	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, 
-		(shouldTalk || !strcmp(vadSet, "true")) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
+		(shouldTalk || !pttActive) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -99,6 +118,8 @@ int SetPushToTalk(BOOL shouldTalk)
 		}
 		return 1;
 	}
+
+	// Update the client
 	if(ts3Functions.flushClientSelfUpdates(scHandlerID) != ERROR_ok)
 	{
 		char* errorMsg;
@@ -109,12 +130,8 @@ int SetPushToTalk(BOOL shouldTalk)
 		}
 	}
 
-	// If PTT is inactive, clear the memorized VAD setting.
-	if(!shouldTalk)
-	{
-		ts3Functions.freeMemory(vadSet);
-		vadSet = NULL;
-	}
+	// Commit the change
+	inputActive = shouldTalk;
 
 	return 0;
 }
@@ -492,19 +509,11 @@ void ts3plugin_shutdown() {
 		TRUE,					// Wait for all threads
 		PLUGINTHREAD_TIMEOUT);	// Timeout
 
-	// Release resources
-	if(vadSet != NULL)
-	{
-		ts3Functions.freeMemory(vadSet);
-		vadSet = NULL;
-	}
-
 	/*
 	 * Note:
 	 * If your plugin implements a settings dialog, it must be closed and deleted here, else the
 	 * TeamSpeak client will most likely crash (DLL removed but dialog from DLL code still open).
 	 */
-
 
 	/* Free pluginID if we registered it */
 	if(pluginID) {
