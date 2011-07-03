@@ -422,7 +422,12 @@ DWORD WINAPI IPCThread(LPVOID pData)
 	 * as the shutdown function will not wait that long for the thread to exit.
 	 */
 
-	if(!IpcInit()) return 1;
+	if(!IpcInit())
+	{
+		// Could not attach debugger, exit debug thread
+		ts3Functions.logMessage("Failed to allocate shared memory, some devices may not function.", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
+	}
 
 	while(pluginRunning)
 	{
