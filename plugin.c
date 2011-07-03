@@ -104,9 +104,9 @@ int SetPushToTalk(BOOL shouldTalk)
 		return 1;
 	}
 
-	// Toggle input, it should always be active if VAD is active without PTT
+	// Toggle input, it should always be if PTT is inactive
 	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, 
-		(shouldTalk || (vadActive && !pttActive)) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
+		(shouldTalk || !pttActive) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
