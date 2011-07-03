@@ -382,6 +382,12 @@ DWORD WINAPI DebugThread(LPVOID pData)
 			{
 				// Attach debugger to Logitech drivers
 				if(DebugActiveProcess(ProcessId)) DebugMain(ProcessId, hProcess);
+				else 
+				{
+					// Could not attach debugger, exit plugin
+					ts3Functions.logMessage("Failed to attach debugger, are you using the correct version for your platform?", LogLevel_ERROR, "G-Key Plugin", 0);
+					return 1;
+				}
 
 				// Deattach the debugger
 				DebugActiveProcessStop(ProcessId);
