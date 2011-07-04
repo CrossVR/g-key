@@ -27,22 +27,6 @@
 //	BOOL		RunGkeyCommand (unsigned int commandID)
 //
 // All other functions are local to the library. 
-// 
-// Action commands for this DLL
-//	
-//	1) Launch a Windows calculator if it is installed and find in
-//     the system at the following file path.
-//     C:\WINDOWS\system32\calc.exe
-//	2) Launch a Windows Solitaire game if it is installed and find 
-//     in the system at the following file path.
-//     C:\WINDOWS\system32\sol.exe
-//	3) Launches a Windows Pinball game if it is installed and find
-//     in the system at the following file path.
-//		C:\Program Files\Windows NT\Pinball\PINBALL.EXE
-//     
-//     The file path for the applications are hardcoded in this sample
-//     project and if it does not exist at the expected path, the user
-//     will not see an action for that Gkey command.
 //
 //=========================================================================
 
