@@ -58,7 +58,9 @@
 // A NUll terminated list must be placed at the end of a command list.
 //
 static WCHAR* EnglishCmdList[] = {
-	L"Push-to-talk (toggle)",
+	L"Activate Push-to-talk",
+	L"Deactivate Push-to-talk",
+	L"Toggle Push-to-talk",
 	L"Mute the Microphone",
 	L"Unmute the Microphone",
 	L"Toggle Microphone mute on/off",
@@ -76,6 +78,7 @@ static WCHAR* EnglishCmdList[] = {
 static char* GKeyCmdList[] = {
 	"TS3_PTT_ACTIVATE",
 	"TS3_PTT_DEACTIVATE",
+	"TS3_PTT_TOGGLE",
 	"TS3_INPUT_MUTE",
 	"TS3_INPUT_UNMUTE",
 	"TS3_INPUT_TOGGLE",
@@ -86,8 +89,6 @@ static char* GKeyCmdList[] = {
 	"TS3_AWAY_NONE",
 	"TS3_AWAY_TOGGLE"
 };
-
-BOOL pttActive = FALSE;
 
 //---------------------------------------------------------------------
 // GetGkeyCommandList - This function interfaces with the Logitech 
@@ -144,22 +145,6 @@ WCHAR** GetGkeyCommandList(unsigned int languageCode)
 BOOL RunGkeyCommand (unsigned int commandID)
 {
 	IpcMessage msg;
-
-	if(commandID>9) return FALSE; // Invalid command ID
-
-	switch(commandID)
-	{
-		case 0:
-			strcpy(msg.message, GKeyCmdList[(pttActive)?0:1]);
-			pttActive = !pttActive;
-		break;
-		default:
-			strcpy(msg.message, GKeyCmdList[commandID+1]);
-		break;
-
-	}
-
-	IpcWrite(&msg, 1000);
-
-	return TRUE;
+	strcpy(msg.message, GKeyCmdList[commandID]);
+	return IpcWrite(&msg, 1000);
 }

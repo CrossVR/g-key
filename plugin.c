@@ -251,6 +251,10 @@ void ParseCommand(char* cmd)
 	{
 		SetPushToTalk(FALSE);
 	}
+	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
+	{
+		SetPushToTalk(!inputActive);
+	}
 	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
 	{
 		SetInputMute(TRUE);
