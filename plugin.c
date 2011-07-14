@@ -92,6 +92,7 @@ int SetPushToTalk(BOOL shouldTalk)
 	}
 	
 	// Temporarily disable VAD if it is not used in combination with PTT.
+	// Restore the previous VAD setting afterwards.
 	if((error = ts3Functions.setPreProcessorConfigValue(scHandlerID, "vad",
 		(shouldTalk && (vadActive && !pttActive)) ? "false" : (vadActive)?"true":"false")) != ERROR_ok)
 	{
@@ -105,6 +106,7 @@ int SetPushToTalk(BOOL shouldTalk)
 	}
 
 	// Toggle input, it should always be on if PTT is inactive.
+	// (In the case of VAD or CT)
 	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, 
 		(shouldTalk || !pttActive) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
 	{
