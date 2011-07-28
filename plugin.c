@@ -299,6 +299,10 @@ void ParseCommand(char* cmd)
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
 		SetAway(!away);
 	}
+	else
+	{
+		ts3Functions.logMessage("Command not recognized", LogLevel_DEBUG, "G-Key Plugin", 0);
+	}
 }
 
 int GetLogitechProcessId(DWORD* ProcessId)
@@ -397,7 +401,12 @@ DWORD WINAPI DebugThread(LPVOID pData)
 			if(hProcess!=NULL)
 			{
 				// Attach debugger to Logitech drivers
-				if(DebugActiveProcess(ProcessId)) DebugMain(ProcessId, hProcess);
+				if(DebugActiveProcess(ProcessId))
+				{
+					ts3Functions.logMessage("Debugger attached", LogLevel_DEBUG, "G-Key Plugin", 0);
+
+					DebugMain(ProcessId, hProcess);
+				}
 				else 
 				{
 					// Could not attach debugger, exit debug thread
@@ -407,6 +416,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 
 				// Deattach the debugger
 				DebugActiveProcessStop(ProcessId);
+				ts3Functions.logMessage("Debugger detached", LogLevel_DEBUG, "G-Key Plugin", 0);
 
 				// Close the handle to the Logitech drivers
 				CloseHandle(hProcess);
@@ -431,8 +441,12 @@ DWORD WINAPI IPCThread(LPVOID pData)
 	if(!IpcInit())
 	{
 		// Could not initialise interprocess communication
-		ts3Functions.logMessage("Failed to allocate shared memory, some devices may not function.", LogLevel_ERROR, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Failed to allocate shared memory, some devices may not function", LogLevel_ERROR, "G-Key Plugin", 0);
 		return 1;
+	}
+	else
+	{
+		ts3Functions.logMessage("Allocated shared memory", LogLevel_DEBUG, "G-Key Plugin", 0);
 	}
 
 	while(pluginRunning)
