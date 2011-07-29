@@ -393,7 +393,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	HANDLE hProcess; // Handle for the Logitech drivers
 
 	// Get process id of the logitech driver
-	if(!GetLogitechProcessId(&ProcessId))
+	if(GetLogitechProcessId(&ProcessId))
 	{
 		ts3Functions.logMessage("Could not find Logitech software, are you sure it's running?", LogLevel_ERROR, "G-Key Plugin", 0);
 		return 1;
