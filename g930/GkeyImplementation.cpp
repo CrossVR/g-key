@@ -42,36 +42,36 @@
 // A NUll terminated list must be placed at the end of a command list.
 //
 static WCHAR* EnglishCmdList[] = {
+	L"Toggle Push-to-talk",
 	L"Activate Push-to-talk",
 	L"Deactivate Push-to-talk",
-	L"Toggle Push-to-talk",
+	L"Toggle Microphone mute on/off",
 	L"Mute the Microphone",
 	L"Unmute the Microphone",
-	L"Toggle Microphone mute on/off",
+	L"Toggle Speakers/Headphones mute on/off",
 	L"Mute the Speakers/Headphones",
 	L"Unmute the Speakers/Headphones",
-	L"Toggle Speakers/Headphones mute on/off",
+	L"Toggle globally away status on/off",
 	L"Turn on globally away status",
 	L"Turn off globally away status",
-	L"Toggle globally away status on/off",
 	NULL
 };
 
 // This is the G-Key plugin command list corresponding with the
 // EnglishCmdList
 static char* GKeyCmdList[] = {
+	"TS3_PTT_TOGGLE",
 	"TS3_PTT_ACTIVATE",
 	"TS3_PTT_DEACTIVATE",
-	"TS3_PTT_TOGGLE",
+	"TS3_INPUT_TOGGLE",
 	"TS3_INPUT_MUTE",
 	"TS3_INPUT_UNMUTE",
-	"TS3_INPUT_TOGGLE",
+	"TS3_OUTPUT_TOGGLE",
 	"TS3_OUTPUT_MUTE",
 	"TS3_OUTPUT_UNMUTE",
-	"TS3_OUTPUT_TOGGLE",
+	"TS3_AWAY_TOGGLE",
 	"TS3_AWAY_ZZZ",
-	"TS3_AWAY_NONE",
-	"TS3_AWAY_TOGGLE"
+	"TS3_AWAY_NONE"
 };
 
 //---------------------------------------------------------------------
