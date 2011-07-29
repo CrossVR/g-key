@@ -381,49 +381,49 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 	}
 }
 
+/*********************************** Plugin threads ************************************/
+/*
+ * NOTE: Never let threads sleep longer than PLUGINTHREAD_TIMEOUT per iteration,
+ * the shutdown procedure will not wait that long for the thread to exit.
+ */
+
 DWORD WINAPI DebugThread(LPVOID pData)
 {
 	DWORD ProcessId; // Process ID for the Logitech drivers
 	HANDLE hProcess; // Handle for the Logitech drivers
-	
-	/*
-	 * NOTE: Never let this thread sleep longer than PLUGINTHREAD_TIMEOUT per iteration,
-	 * as the shutdown function will not wait that long for the thread to exit.
-	 */
 
-	while(pluginRunning)
+	// Get process id of the logitech driver
+	if(!GetLogitechProcessId(&ProcessId))
 	{
-		// Get process id of the logitech driver
-		if(!GetLogitechProcessId(&ProcessId))
-		{
-			// Open a read memory handle to the Logitech drivers
-			hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
-			if(hProcess!=NULL)
-			{
-				// Attach debugger to Logitech drivers
-				if(DebugActiveProcess(ProcessId))
-				{
-					ts3Functions.logMessage("Debugger attached", LogLevel_DEBUG, "G-Key Plugin", 0);
-
-					DebugMain(ProcessId, hProcess);
-				}
-				else 
-				{
-					// Could not attach debugger, exit debug thread
-					ts3Functions.logMessage("Failed to attach debugger, are you using the correct version for your platform?", LogLevel_ERROR, "G-Key Plugin", 0);
-					return 1;
-				}
-
-				// Deattach the debugger
-				DebugActiveProcessStop(ProcessId);
-				ts3Functions.logMessage("Debugger detached", LogLevel_DEBUG, "G-Key Plugin", 0);
-
-				// Close the handle to the Logitech drivers
-				CloseHandle(hProcess);
-			}
-		}
-		else Sleep(PLUGINTHREAD_TIMEOUT);
+		ts3Functions.logMessage("Could not find Logitech software, are you sure it's running?", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
 	}
+
+	// Open a read memory handle to the Logitech drivers
+	hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
+	if(hProcess==NULL)
+	{
+		ts3Functions.logMessage("Failed to open Logitech software", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
+	}
+
+	// Attach debugger to Logitech drivers
+	if(!DebugActiveProcess(ProcessId))
+	{
+		// Could not attach debugger, exit debug thread
+		ts3Functions.logMessage("Failed to attach debugger, are you using the correct version for your platform?", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
+	}
+
+	ts3Functions.logMessage("Debugger attached to Logitech software", LogLevel_DEBUG, "G-Key Plugin", 0);
+	DebugMain(ProcessId, hProcess);
+
+	// Deattach the debugger
+	DebugActiveProcessStop(ProcessId);
+	ts3Functions.logMessage("Debugger detached from Logitech software", LogLevel_DEBUG, "G-Key Plugin", 0);
+
+	// Close the handle to the Logitech drivers
+	CloseHandle(hProcess);
 
 	return 0;
 }
@@ -432,15 +432,10 @@ DWORD WINAPI IPCThread(LPVOID pData)
 {
 	IpcMessage msg; // Buffer for the message
 	HANDLE hMapFile; // Handle for the shared memmory
-	
-	/*
-	 * NOTE: Never let this thread sleep longer than PLUGINTHREAD_TIMEOUT per iteration,
-	 * as the shutdown function will not wait that long for the thread to exit.
-	 */
 
 	if(!IpcInit())
 	{
-		// Could not initialise interprocess communication
+		// Could not initialize interprocess communication
 		ts3Functions.logMessage("Failed to allocate shared memory, some devices may not function", LogLevel_ERROR, "G-Key Plugin", 0);
 		return 1;
 	}
