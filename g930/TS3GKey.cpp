@@ -31,7 +31,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 {
 	// Any initialization and setup go here
 	//
-	IpcInit();
+	switch(ul_reason_for_call)
+	{
+		case DLL_PROCESS_ATTACH: IpcInit(); break;
+		case DLL_PROCESS_DETACH: IpcClose(); break;
+	}
 
     return TRUE;
 }
