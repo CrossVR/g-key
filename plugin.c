@@ -464,7 +464,7 @@ DWORD WINAPI IPCThread(LPVOID pData)
 
 /* Unique name identifying this plugin */
 const char* ts3plugin_name() {
-    return "G-key Plugin";
+    return "G-Key Plugin";
 }
 
 /* Plugin version */
