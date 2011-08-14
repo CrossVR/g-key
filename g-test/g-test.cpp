@@ -17,4 +17,6 @@ int main(int argc, char* argv[])
 		}
 		cout << "Message written succesfully" << endl;
 	}
+
+	IpcClose();
 }
