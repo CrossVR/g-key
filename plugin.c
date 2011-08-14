@@ -30,7 +30,7 @@ static struct TS3Functions ts3Functions;
 #define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
 #endif
 
-#define PLUGIN_API_VERSION 13
+#define PLUGIN_API_VERSION 11
 
 #define PATH_BUFSIZE 512
 #define COMMAND_BUFSIZE 128
@@ -120,7 +120,7 @@ int SetPushToTalk(BOOL shouldTalk)
 	}
 
 	// Update the client
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -151,7 +151,7 @@ int SetInputMute(BOOL shouldMute)
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -178,7 +178,7 @@ int SetOutputMute(BOOL shouldMute)
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -221,7 +221,7 @@ int SetAway(BOOL isAway)
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
-		if(ts3Functions.flushClientSelfUpdates(HandlerID, "g-key") != ERROR_ok)
+		if(ts3Functions.flushClientSelfUpdates(HandlerID) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -416,7 +416,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.5";
+    return "0.4";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */

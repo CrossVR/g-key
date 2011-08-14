@@ -89,9 +89,9 @@ struct TS3Functions {
 	unsigned int (*requestSendServerTextMsg)(uint64 serverConnectionHandlerID, const char* message, const char* returnCode);
 	unsigned int (*requestConnectionInfo)(uint64 serverConnectionHandlerID, anyID clientID, const char* returnCode);
 	unsigned int (*requestClientSetWhisperList)(uint64 serverConnectionHandlerID, anyID clientID, const uint64* targetChannelIDArray, const anyID* targetClientIDArray, const char* returnCode);
-	unsigned int (*requestChannelSubscribe)(uint64 serverConnectionHandlerID, const uint64* channelIDArray, const char* returnCode);
+	unsigned int (*requestChannelSubscribe)(uint64 serverConnectionHandlerID, uint64 channelID, const char* returnCode);
 	unsigned int (*requestChannelSubscribeAll)(uint64 serverConnectionHandlerID, const char* returnCode);
-	unsigned int (*requestChannelUnsubscribe)(uint64 serverConnectionHandlerID, const uint64* channelIDArray, const char* returnCode);
+	unsigned int (*requestChannelUnsubscribe)(uint64 serverConnectionHandlerID, uint64 channelID, const char* returnCode);
 	unsigned int (*requestChannelUnsubscribeAll)(uint64 serverConnectionHandlerID, const char* returnCode);
 	unsigned int (*requestChannelDescription)(uint64 serverConnectionHandlerID, uint64 channelID, const char* returnCode);
 	unsigned int (*requestMuteClients)(uint64 serverConnectionHandlerID, const anyID* clientIDArray, const char* returnCode);
@@ -110,7 +110,7 @@ struct TS3Functions {
 	unsigned int (*getClientSelfVariableAsString)(uint64 serverConnectionHandlerID, size_t flag, char** result);
 	unsigned int (*setClientSelfVariableAsInt)(uint64 serverConnectionHandlerID, size_t flag, int value);
 	unsigned int (*setClientSelfVariableAsString)(uint64 serverConnectionHandlerID, size_t flag, const char* value);
-	unsigned int (*flushClientSelfUpdates)(uint64 serverConnectionHandlerID, const char* returnCode);
+	unsigned int (*flushClientSelfUpdates)(uint64 serverConnectionHandlerID);
 	unsigned int (*getClientVariableAsInt)(uint64 serverConnectionHandlerID, anyID clientID, size_t flag, int* result);
 	unsigned int (*getClientVariableAsUInt64)(uint64 serverConnectionHandlerID, anyID clientID, size_t flag, uint64* result);
 	unsigned int (*getClientVariableAsString)(uint64 serverConnectionHandlerID, anyID clientID, size_t flag, char** result);
@@ -182,10 +182,6 @@ struct TS3Functions {
 	unsigned int (*requestMessageList)(uint64 serverConnectionHandlerID, const char* returnCode);
 	unsigned int (*requestMessageUpdateFlag)(uint64 serverConnectionHandlerID, uint64 messageID, int flag, const char* returnCode);
 
-	/* Interacting with the server - confirming passwords */
-	unsigned int (*verifyServerPassword)(uint64 serverConnectionHandlerID, const char* serverPassword, const char* returnCode);
-	unsigned int (*verifyChannelPassword)(uint64 serverConnectionHandlerID, uint64 channelID, const char* channelPassword, const char* returnCode);
-
 	/* Interacting with the server - banning */
 	unsigned int (*banclient)(uint64 serverConnectionHandlerID, anyID clientID, uint64 timeInSeconds, const char* banReason, const char* returnCode);
 	unsigned int (*banadd)(uint64 serverConnectionHandlerID, const char* ipRegExp, const char* nameRegexp, const char* uniqueIdentity, uint64 timeInSeconds, const char* banReason, const char* returnCode);
@@ -230,11 +226,6 @@ struct TS3Functions {
 	unsigned int (*requestPermissionList)(uint64 serverConnectionHandler, const char* returnCode);
 	unsigned int (*requestPermissionOverview)(uint64 serverConnectionHandler, uint64 clientDBID, uint64 channelID, const char* returnCode);
 
-	/* Helper Functions */
-	unsigned int (*clientPropertyStringToFlag)(const char* clientPropertyString, size_t* resultFlag);
-	unsigned int (*channelPropertyStringToFlag)(const char* channelPropertyString, size_t* resultFlag);
-	unsigned int (*serverPropertyStringToFlag)(const char* serverPropertyString, size_t* resultFlag);
-
 	/* Client functions */
 	int          (*getAPIVersion)();
 	void         (*getAppPath)(char* path, size_t maxLen);
@@ -245,16 +236,12 @@ struct TS3Functions {
 	void         (*printMessage)(uint64 serverConnectionHandlerID, const char* message, enum PluginMessageTarget messageTarget);
 	void         (*printMessageToCurrentTab)(const char* message);
 	void         (*urlsToBB)(const char* text, char* result, size_t maxLen);
-	void         (*sendPluginCommand)(uint64 serverConnectionHandlerID, const char* pluginID, const char* command, int targetMode, const anyID* targetIDs, const char* returnCode);
+	void         (*sendPluginCommand)(uint64 serverConnectionHandlerID, const char* pluginID, const char* command, int targetMode, const anyID* targetIDs);
 	void         (*getDirectories)(const char* path, char* result, size_t maxLen);
 	unsigned int (*getServerConnectInfo)(uint64 scHandlerID, char* host, unsigned short* port, char* password, size_t maxLen);
 	unsigned int (*getChannelConnectInfo)(uint64 scHandlerID, uint64 channelID, char* path, char* password, size_t maxLen);
 	void         (*createReturnCode)(const char* pluginID, char* returnCode, size_t maxLen);
 	unsigned int (*requestInfoUpdate)(uint64 scHandlerID, enum PluginItemType itemType, uint64 itemID);
-	int          (*getServerVersion)(uint64 scHandlerID);
-	unsigned int (*isWhispering)(uint64 scHandlerID, anyID clientID, int* result);
-	unsigned int (*isReceivingWhisper)(uint64 scHandlerID, anyID clientID, int* result);
-	unsigned int (*getAvatar)(uint64 scHandlerID, anyID clientID, char* result, size_t maxLen);
 };
 
 #ifdef __cplusplus

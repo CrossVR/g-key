@@ -100,7 +100,6 @@ const unsigned int ERROR_sound_invalid_channel_count            = 0x0913;
 const unsigned int ERROR_sound_read_wave                        = 0x0914;
 const unsigned int ERROR_sound_need_more_data                   = 0x0915; //for internal purposes only
 const unsigned int ERROR_sound_device_busy                      = 0x0916; //for internal purposes only
-const unsigned int ERROR_sound_no_data                          = 0x0917; //for internal purposes only
 
 //accounting
 const unsigned int ERROR_accounting_virtualserver_limit_reached = 0x0b00;
