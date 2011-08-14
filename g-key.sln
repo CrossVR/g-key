@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "g-key", "g-key.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TS3GKey", "g930\TS3GKey.vcxproj", "{D22D7279-8FAA-474F-ABEF-D1940B53FE15}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "g-test", "g-test\g-test.vcxproj", "{04E7BF4F-3295-4D52-B8EB-8471CCA4FC57}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -32,6 +34,12 @@ Global
 		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Release|Win32.Build.0 = Release|Win32
 		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Release|x64.ActiveCfg = Release|Win32
 		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Release|x64.Build.0 = Release|Win32
+		{04E7BF4F-3295-4D52-B8EB-8471CCA4FC57}.Debug|Win32.ActiveCfg = Debug|Win32
+		{04E7BF4F-3295-4D52-B8EB-8471CCA4FC57}.Debug|Win32.Build.0 = Debug|Win32
+		{04E7BF4F-3295-4D52-B8EB-8471CCA4FC57}.Debug|x64.ActiveCfg = Debug|Win32
+		{04E7BF4F-3295-4D52-B8EB-8471CCA4FC57}.Release|Win32.ActiveCfg = Release|Win32
+		{04E7BF4F-3295-4D52-B8EB-8471CCA4FC57}.Release|Win32.Build.0 = Release|Win32
+		{04E7BF4F-3295-4D52-B8EB-8471CCA4FC57}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
