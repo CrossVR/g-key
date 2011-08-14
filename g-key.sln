@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "g-key", "g-key.vcxproj", "{5EB079AF-C975-40EA-A34F-F631CD6069F2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TS3GKey", "g930\TS3GKey.vcxproj", "{D22D7279-8FAA-474F-ABEF-D1940B53FE15}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -23,6 +25,13 @@ Global
 		{5EB079AF-C975-40EA-A34F-F631CD6069F2}.Release|Win32.Build.0 = Release|Win32
 		{5EB079AF-C975-40EA-A34F-F631CD6069F2}.Release|x64.ActiveCfg = Release|x64
 		{5EB079AF-C975-40EA-A34F-F631CD6069F2}.Release|x64.Build.0 = Release|x64
+		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Debug|Win32.Build.0 = Debug|Win32
+		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Debug|x64.ActiveCfg = Debug|Win32
+		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Release|Win32.ActiveCfg = Release|Win32
+		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Release|Win32.Build.0 = Release|Win32
+		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Release|x64.ActiveCfg = Release|Win32
+		{D22D7279-8FAA-474F-ABEF-D1940B53FE15}.Release|x64.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

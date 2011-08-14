@@ -160,8 +160,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>COPY /Y "$(TargetPath)" "C:\Program Files (x86)\TeamSpeak 3 Client\plugins\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -189,6 +188,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ipc.c" />
     <ClCompile Include="plugin.c" />
   </ItemGroup>
   <ItemGroup>
@@ -199,6 +199,7 @@
     <ClInclude Include="include\public_errors.h" />
     <ClInclude Include="include\public_rare_definitions.h" />
     <ClInclude Include="include\ts3_functions.h" />
+    <ClInclude Include="ipc.h" />
     <ClInclude Include="plugin.h" />
   </ItemGroup>
   <ItemGroup>

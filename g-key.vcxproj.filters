@@ -17,6 +17,9 @@
     <ClCompile Include="plugin.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ipc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="plugin.h">
@@ -41,6 +44,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\ts3_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ipc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -20,6 +20,7 @@
 #include "ts3_functions.h"
 #include "plugin_events.h"
 #include "plugin.h"
+#include "ipc.h"
 
 static struct TS3Functions ts3Functions;
 
@@ -40,10 +41,11 @@ static struct TS3Functions ts3Functions;
 #define RETURNCODE_BUFSIZE 128
 #define REQUESTCLIENTMOVERETURNCODES_SLOTS 5
 
-#define WINDEBUG_TIMEOUT 1000
+#define PLUGINTHREAD_TIMEOUT 1000
 
 static char* pluginID = NULL;
-static HANDLE pluginThread = NULL;
+static HANDLE hDebugThread = NULL;
+static HANDLE hIPCThread = NULL;
 static BOOL pluginRunning = FALSE;
 static uint64 scHandlerID = NULL;
 static BOOL vadActive = FALSE;
@@ -53,7 +55,7 @@ static BOOL pttActive = FALSE;
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
 
-/*********************************** Plugin functions ************************************/
+/*********************************** TeamSpeak functions ************************************/
 
 int SetPushToTalk(BOOL shouldTalk)
 {
@@ -91,8 +93,8 @@ int SetPushToTalk(BOOL shouldTalk)
 		}
 	}
 	
-	// Temporarily disable VAD if it is not used in combination with PTT.
-	// Restore the previous VAD setting afterwards.
+	// Temporarily disable VAD if it is not used in combination with
+	// PTT, restore the VAD setting afterwards.
 	if((error = ts3Functions.setPreProcessorConfigValue(scHandlerID, "vad",
 		(shouldTalk && (vadActive && !pttActive)) ? "false" : (vadActive)?"true":"false")) != ERROR_ok)
 	{
@@ -106,7 +108,7 @@ int SetPushToTalk(BOOL shouldTalk)
 	}
 
 	// Toggle input, it should always be on if PTT is inactive.
-	// (In the case of VAD or CT)
+	// (in the case of VAD or CT)
 	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, 
 		(shouldTalk || !pttActive) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
 	{
@@ -238,6 +240,71 @@ int SetAway(BOOL isAway)
 	return 0;
 }
 
+/*********************************** Plugin functions ************************************/
+
+void ParseCommand(char* cmd)
+{
+	// Interpret command string
+	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
+	{
+		SetPushToTalk(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
+	{
+		SetPushToTalk(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
+	{
+		SetPushToTalk(!inputActive);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
+	{
+		SetInputMute(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_UNMUTE"))
+	{
+		SetInputMute(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
+	{
+		int muted;
+		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
+		SetInputMute(!muted);
+	}
+	else if(!strcmp(cmd, "TS3_OUTPUT_MUTE"))
+	{
+		SetOutputMute(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_OUTPUT_UNMUTE"))
+	{
+		SetOutputMute(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
+	{
+		int muted;
+		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
+		SetOutputMute(!muted);
+	}
+	else if(!strcmp(cmd, "TS3_AWAY_ZZZ"))
+	{
+		SetAway(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_AWAY_NONE"))
+	{
+		SetAway(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_AWAY_TOGGLE"))
+	{
+		int away;
+		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
+		SetAway(!away);
+	}
+	else
+	{
+		ts3Functions.logMessage("Command not recognized", LogLevel_DEBUG, "G-Key Plugin", 0);
+	}
+}
+
 int GetLogitechProcessId(DWORD* ProcessId)
 {
 	PROCESSENTRY32 entry;
@@ -276,7 +343,7 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 	while(pluginRunning)
 	{
 		// Wait for a debug message
-		if(WaitForDebugEvent(&DebugEv, WINDEBUG_TIMEOUT))
+		if(WaitForDebugEvent(&DebugEv, PLUGINTHREAD_TIMEOUT))
 		{
 			// If the debug message is from the logitech driver
 			if(DebugEv.dwProcessId == ProcessId)
@@ -291,57 +358,8 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 					// Continue the process
 					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
 
-					// Interpret debug string
-					if(!strcmp(DebugStr, "TS3_PTT_ACTIVATE"))
-					{
-						SetPushToTalk(TRUE);
-					}
-					else if(!strcmp(DebugStr, "TS3_PTT_DEACTIVATE"))
-					{
-						SetPushToTalk(FALSE);
-					}
-					else if(!strcmp(DebugStr, "TS3_INPUT_MUTE"))
-					{
-						SetInputMute(TRUE);
-					}
-					else if(!strcmp(DebugStr, "TS3_INPUT_UNMUTE"))
-					{
-						SetInputMute(FALSE);
-					}
-					else if(!strcmp(DebugStr, "TS3_INPUT_TOGGLE"))
-					{
-						int muted;
-						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
-						SetInputMute(!muted);
-					}
-					else if(!strcmp(DebugStr, "TS3_OUTPUT_MUTE"))
-					{
-						SetOutputMute(TRUE);
-					}
-					else if(!strcmp(DebugStr, "TS3_OUTPUT_UNMUTE"))
-					{
-						SetOutputMute(FALSE);
-					}
-					else if(!strcmp(DebugStr, "TS3_OUTPUT_TOGGLE"))
-					{
-						int muted;
-						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
-						SetOutputMute(!muted);
-					}
-					else if(!strcmp(DebugStr, "TS3_AWAY_ZZZ"))
-					{
-						SetAway(TRUE);
-					}
-					else if(!strcmp(DebugStr, "TS3_AWAY_NONE"))
-					{
-						SetAway(FALSE);
-					}
-					else if(!strcmp(DebugStr, "TS3_AWAY_TOGGLE"))
-					{
-						int away;
-						ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
-						SetAway(!away);
-					}
+					// Parse debug string
+					ParseCommand(DebugStr);
 
 					// Free the debug string
 					free(DebugStr);
@@ -363,43 +381,78 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 	}
 }
 
+/*********************************** Plugin threads ************************************/
+/*
+ * NOTE: Never let threads sleep longer than PLUGINTHREAD_TIMEOUT per iteration,
+ * the shutdown procedure will not wait that long for the thread to exit.
+ */
+
 DWORD WINAPI DebugThread(LPVOID pData)
 {
 	DWORD ProcessId; // Process ID for the Logitech drivers
 	HANDLE hProcess; // Handle for the Logitech drivers
-	
-	/*
-	 * NOTE: Never let this thread sleep longer than WINDEBUG_TIMEOUT per iteration,
-	 * as the shutdown function will not wait that long for the thread to exit.
-	 */
+
+	// Get process id of the logitech driver
+	if(GetLogitechProcessId(&ProcessId))
+	{
+		ts3Functions.logMessage("Could not find Logitech software, are you sure it's running?", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
+	}
+
+	// Open a read memory handle to the Logitech drivers
+	hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
+	if(hProcess==NULL)
+	{
+		ts3Functions.logMessage("Failed to open Logitech software", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
+	}
+
+	// Attach debugger to Logitech drivers
+	if(!DebugActiveProcess(ProcessId))
+	{
+		// Could not attach debugger, exit debug thread
+		ts3Functions.logMessage("Failed to attach debugger, are you using the correct version for your platform?", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
+	}
+
+	ts3Functions.logMessage("Debugger attached to Logitech software", LogLevel_DEBUG, "G-Key Plugin", 0);
+	DebugMain(ProcessId, hProcess);
+
+	// Deattach the debugger
+	DebugActiveProcessStop(ProcessId);
+	ts3Functions.logMessage("Debugger detached from Logitech software", LogLevel_DEBUG, "G-Key Plugin", 0);
+
+	// Close the handle to the Logitech drivers
+	CloseHandle(hProcess);
+
+	return 0;
+}
+
+DWORD WINAPI IPCThread(LPVOID pData)
+{
+	IpcMessage msg; // Buffer for the message
+	HANDLE hMapFile; // Handle for the shared memmory
+
+	if(!IpcInit())
+	{
+		// Could not initialize interprocess communication
+		ts3Functions.logMessage("Failed to allocate shared memory, some devices may not function", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
+	}
+	else
+	{
+		ts3Functions.logMessage("Allocated shared memory", LogLevel_DEBUG, "G-Key Plugin", 0);
+	}
 
 	while(pluginRunning)
 	{
-		// Get process id of the logitech driver
-		if(!GetLogitechProcessId(&ProcessId))
+		if(IpcRead(&msg, PLUGINTHREAD_TIMEOUT))
 		{
-			// Open a read memory handle to the Logitech drivers
-			hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
-			if(hProcess!=NULL)
-			{
-				// Attach debugger to Logitech drivers
-				if(DebugActiveProcess(ProcessId)) DebugMain(ProcessId, hProcess);
-				else 
-				{
-					// Could not attach debugger, exit debug thread
-					ts3Functions.logMessage("Failed to attach debugger, are you using the correct version for your platform?", LogLevel_ERROR, "G-Key Plugin", 0);
-					return 1;
-				}
-
-				// Deattach the debugger
-				DebugActiveProcessStop(ProcessId);
-
-				// Close the handle to the Logitech drivers
-				CloseHandle(hProcess);
-			}
+			ParseCommand(msg.message);
 		}
-		else Sleep(WINDEBUG_TIMEOUT);
 	}
+
+	IpcClose();
 
 	return 0;
 }
@@ -411,7 +464,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 
 /* Unique name identifying this plugin */
 const char* ts3plugin_name() {
-    return "G-key Plugin";
+    return "G-Key Plugin";
 }
 
 /* Plugin version */
@@ -447,10 +500,16 @@ int ts3plugin_init() {
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
 
-	// Start the plugin thread
+	// Start the plugin threads
 	pluginRunning = TRUE;
-	pluginThread=CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
-	if(pluginThread==NULL) return 1;
+
+	// Debug thread
+	hDebugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
+	if(hDebugThread==NULL) return 1;
+	
+	// IPC thread
+	hIPCThread = CreateThread(NULL, NULL, IPCThread, 0, 0, NULL);
+	if(hIPCThread==NULL) return 1;
 
 	/* Initialize return codes array for requestClientMove */
 	memset(requestClientMoveReturnCodes, 0, REQUESTCLIENTMOVERETURNCODES_SLOTS * RETURNCODE_BUFSIZE);
@@ -460,10 +519,21 @@ int ts3plugin_init() {
 
 /* Custom code called right before the plugin is unloaded */
 void ts3plugin_shutdown() {
-	// Stop the plugin thread
+	// Compile array of thread handles
+	HANDLE threads[] = {
+		hDebugThread,
+		hIPCThread
+	};
+
+	// Stop the plugin threads
 	pluginRunning = FALSE;
+
 	// Wait for the thread to stop
-	WaitForSingleObject(pluginThread, WINDEBUG_TIMEOUT);
+	WaitForMultipleObjects(
+		2,						// Number of threads
+		threads,				// Array of thread handles
+		TRUE,					// Wait for all threads
+		PLUGINTHREAD_TIMEOUT);	// Timeout
 
 	/*
 	 * Note:
