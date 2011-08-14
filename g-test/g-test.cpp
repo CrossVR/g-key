@@ -9,11 +9,12 @@ int main(int argc, char* argv[])
 
 	while(true)
 	{
+		cout << "Message: ";
 		cin >> msg.message;
 		if(!IpcWrite(&msg, 1000))
 		{
-			cout << "Failed to write message";
+			cout << "Failed to write message" << endl;
 		}
-		cout << "Message written succesfully";
+		cout << "Message written succesfully" << endl;
 	}
 }

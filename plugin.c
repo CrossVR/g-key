@@ -31,7 +31,7 @@ static struct TS3Functions ts3Functions;
 #define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
 #endif
 
-#define PLUGIN_API_VERSION 11
+#define PLUGIN_API_VERSION 13
 
 #define PATH_BUFSIZE 512
 #define COMMAND_BUFSIZE 128
@@ -122,7 +122,7 @@ int SetPushToTalk(BOOL shouldTalk)
 	}
 
 	// Update the client
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID) != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -153,7 +153,7 @@ int SetInputMute(BOOL shouldMute)
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID) != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -180,7 +180,7 @@ int SetOutputMute(BOOL shouldMute)
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID) != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -223,7 +223,7 @@ int SetAway(BOOL isAway)
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
-		if(ts3Functions.flushClientSelfUpdates(HandlerID) != ERROR_ok)
+		if(ts3Functions.flushClientSelfUpdates(HandlerID, "g-key") != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -395,7 +395,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	// Get process id of the logitech driver
 	if(GetLogitechProcessId(&ProcessId))
 	{
-		ts3Functions.logMessage("Could not find Logitech software, are you sure it's running?", LogLevel_ERROR, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Could not find Logitech keyboard drivers", LogLevel_INFO, "G-Key Plugin", 0);
 		return 1;
 	}
 
@@ -403,7 +403,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
 	if(hProcess==NULL)
 	{
-		ts3Functions.logMessage("Failed to open Logitech software", LogLevel_ERROR, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Failed to open Logitech keyboard drivers", LogLevel_ERROR, "G-Key Plugin", 0);
 		return 1;
 	}
 
@@ -415,12 +415,12 @@ DWORD WINAPI DebugThread(LPVOID pData)
 		return 1;
 	}
 
-	ts3Functions.logMessage("Debugger attached to Logitech software", LogLevel_DEBUG, "G-Key Plugin", 0);
+	ts3Functions.logMessage("Debugger attached to Logitech keyboard drivers", LogLevel_DEBUG, "G-Key Plugin", 0);
 	DebugMain(ProcessId, hProcess);
 
 	// Deattach the debugger
 	DebugActiveProcessStop(ProcessId);
-	ts3Functions.logMessage("Debugger detached from Logitech software", LogLevel_DEBUG, "G-Key Plugin", 0);
+	ts3Functions.logMessage("Debugger detached from Logitech keyboard drivers", LogLevel_DEBUG, "G-Key Plugin", 0);
 
 	// Close the handle to the Logitech drivers
 	CloseHandle(hProcess);
