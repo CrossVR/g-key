@@ -31,7 +31,7 @@
   <ItemGroup>
     <None Include="ReadMe.txt" />
     <None Include="TS3GKey.def">
-      <Filter>Source Files</Filter>
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -65,7 +65,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>GKeyDLLSample1.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>TS3GKey.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
