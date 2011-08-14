@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectName>g-key</ProjectName>
     <ProjectGuid>{5EB079AF-C975-40EA-A34F-F631CD6069F2}</ProjectGuid>
-    <RootNamespace>test_plugin</RootNamespace>
+    <RootNamespace>gkey</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <SccProjectName>Svn</SccProjectName>
     <SccAuxPath>Svn</SccAuxPath>
