@@ -122,7 +122,7 @@ int SetPushToTalk(BOOL shouldTalk)
 	}
 
 	// Update the client
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "") != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -153,7 +153,7 @@ int SetInputMute(BOOL shouldMute)
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "") != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -180,7 +180,7 @@ int SetOutputMute(BOOL shouldMute)
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "g-key") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "") != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -223,7 +223,7 @@ int SetAway(BOOL isAway)
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
-		if(ts3Functions.flushClientSelfUpdates(HandlerID, "g-key") != ERROR_ok)
+		if(ts3Functions.flushClientSelfUpdates(HandlerID, "") != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
