@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\ipc.c">
+    <ClCompile Include="g-test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="g-test.cpp">
+    <ClCompile Include="ipc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

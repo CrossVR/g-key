@@ -74,8 +74,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\ipc.c" />
     <ClCompile Include="g-test.cpp" />
+    <ClCompile Include="ipc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ipc.h" />
