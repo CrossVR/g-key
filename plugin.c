@@ -122,7 +122,7 @@ int SetPushToTalk(BOOL shouldTalk)
 	}
 
 	// Update the client
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, NULL) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -153,7 +153,7 @@ int SetInputMute(BOOL shouldMute)
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, NULL) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -180,7 +180,7 @@ int SetOutputMute(BOOL shouldMute)
 		}
 		return 1;
 	}
-	if(ts3Functions.flushClientSelfUpdates(scHandlerID, "") != ERROR_ok)
+	if(ts3Functions.flushClientSelfUpdates(scHandlerID, NULL) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
