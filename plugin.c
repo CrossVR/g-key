@@ -313,7 +313,8 @@ void ParseCommand(char* cmd)
 	}
 	else
 	{
-		ts3Functions.logMessage("Command not recognized", LogLevel_DEBUG, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Command not recognized:", LogLevel_DEBUG, "G-Key Plugin", 0);
+		ts3Functions.logMessage(cmd, LogLevel_DEBUG, "G-Key Plugin", 0);
 	}
 }
 
