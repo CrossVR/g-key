@@ -71,7 +71,8 @@ int SetPushToTalk(BOOL shouldTalk)
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 			{
-				printf("Error retrieving vad setting: %s\n", errorMsg);
+				ts3Functions.logMessage("Error retrieving vad setting:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
 			return 1;
@@ -86,7 +87,8 @@ int SetPushToTalk(BOOL shouldTalk)
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 			{
-				printf("Error retrieving input setting: %s\n", errorMsg);
+				ts3Functions.logMessage("Error retrieving input setting:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
 			return 1;
@@ -101,7 +103,8 @@ int SetPushToTalk(BOOL shouldTalk)
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error toggling vad: %s\n", errorMsg);
+			ts3Functions.logMessage("Error toggling vad:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
 		return 1;
@@ -115,7 +118,8 @@ int SetPushToTalk(BOOL shouldTalk)
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error toggling push-to-talk: %s\n", errorMsg);
+			ts3Functions.logMessage("Error toggling push-to-talk:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
 		return 1;
@@ -127,7 +131,8 @@ int SetPushToTalk(BOOL shouldTalk)
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error flushing after toggling push-to-talk: %s\n", errorMsg);
+			ts3Functions.logMessage("Error flushing after toggling push-to-talk:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
 	}
@@ -148,7 +153,8 @@ int SetInputMute(BOOL shouldMute)
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error toggling input mute: %s\n", errorMsg);
+			ts3Functions.logMessage("Error toggling input mute:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
 		return 1;
@@ -158,7 +164,8 @@ int SetInputMute(BOOL shouldMute)
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error flushing after toggling input mute: %s\n", errorMsg);
+			ts3Functions.logMessage("Error flushing after toggling input mute:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
 	}
@@ -175,7 +182,8 @@ int SetOutputMute(BOOL shouldMute)
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error toggling output mute: %s\n", errorMsg);
+			ts3Functions.logMessage("Error toggling output mute:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
 		return 1;
@@ -185,7 +193,8 @@ int SetOutputMute(BOOL shouldMute)
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error flushing after toggling output mute: %s\n", errorMsg);
+			ts3Functions.logMessage("Error flushing after toggling output mute:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
 	}
@@ -204,7 +213,8 @@ int SetAway(BOOL isAway)
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 		{
-			printf("Error retrieving list of servers: %s\n", errorMsg);
+			ts3Functions.logMessage("Error retrieving list of servers:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
 		return 1;
@@ -219,7 +229,8 @@ int SetAway(BOOL isAway)
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 			{
-				printf("Error toggling away status: %s\n", errorMsg);
+				ts3Functions.logMessage("Error flushing after toggling away status:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
@@ -228,7 +239,8 @@ int SetAway(BOOL isAway)
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
 			{
-				printf("Error flushing after toggling away status: %s\n", errorMsg);
+				ts3Functions.logMessage("Error flushing after toggling away status:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
@@ -395,7 +407,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	// Get process id of the logitech driver
 	if(GetLogitechProcessId(&ProcessId))
 	{
-		ts3Functions.logMessage("Could not find Logitech keyboard drivers", LogLevel_INFO, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Could not find Logitech keyboard drivers", LogLevel_WARNING, "G-Key Plugin", 0);
 		return 1;
 	}
 
@@ -415,12 +427,12 @@ DWORD WINAPI DebugThread(LPVOID pData)
 		return 1;
 	}
 
-	ts3Functions.logMessage("Debugger attached to Logitech keyboard drivers", LogLevel_DEBUG, "G-Key Plugin", 0);
+	ts3Functions.logMessage("Debugger attached to Logitech keyboard drivers", LogLevel_INFO, "G-Key Plugin", 0);
 	DebugMain(ProcessId, hProcess);
 
 	// Deattach the debugger
 	DebugActiveProcessStop(ProcessId);
-	ts3Functions.logMessage("Debugger detached from Logitech keyboard drivers", LogLevel_DEBUG, "G-Key Plugin", 0);
+	ts3Functions.logMessage("Debugger detached from Logitech keyboard drivers", LogLevel_INFO, "G-Key Plugin", 0);
 
 	// Close the handle to the Logitech drivers
 	CloseHandle(hProcess);
@@ -436,12 +448,12 @@ DWORD WINAPI IPCThread(LPVOID pData)
 	if(!IpcInit())
 	{
 		// Could not initialize interprocess communication
-		ts3Functions.logMessage("Failed to allocate shared memory, some devices may not function", LogLevel_ERROR, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Failed to initialize interprocess communication, some devices may not function", LogLevel_WARNING, "G-Key Plugin", 0);
 		return 1;
 	}
 	else
 	{
-		ts3Functions.logMessage("Allocated shared memory", LogLevel_DEBUG, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Interprocess communication initialized", LogLevel_INFO, "G-Key Plugin", 0);
 	}
 
 	while(pluginRunning)
@@ -555,7 +567,6 @@ void ts3plugin_shutdown() {
 
 /* Tell client if plugin offers a configuration window. If this function is not implemented, it's an assumed "does not offer" (PLUGIN_OFFERS_NO_CONFIGURE). */
 int ts3plugin_offersConfigure() {
-	printf("PLUGIN: offersConfigure\n");
 	/*
 	 * Return values:
 	 * PLUGIN_OFFERS_NO_CONFIGURE         - Plugin does not implement ts3plugin_configure
