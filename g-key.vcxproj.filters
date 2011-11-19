@@ -49,6 +49,9 @@
     <ClInclude Include="ipc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\public_errors_rare.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\ptt.lua">
@@ -58,5 +61,6 @@
       <Filter>LUA Scripts</Filter>
     </None>
     <None Include="ReadMe.odt" />
+    <None Include="package.ini" />
   </ItemGroup>
 </Project>

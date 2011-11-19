@@ -5,33 +5,36 @@
  * Copyright (c) 2008-2011 TeamSpeak Systems GmbH
  */
 
-#ifdef WINDOWS
+#ifdef _WIN32
 #pragma warning (disable : 4100)  /* Disable Unreferenced parameter warning */
+#include <Windows.h>
 #endif
 
-#include <Windows.h>
-#include <tlhelp32.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "public_errors.h"
+#include "public_errors_rare.h"
 #include "public_definitions.h"
 #include "public_rare_definitions.h"
 #include "ts3_functions.h"
 #include "plugin_events.h"
 #include "plugin.h"
+
+#include <Windows.h>
+#include <TlHelp32.h>
 #include "ipc.h"
 
 static struct TS3Functions ts3Functions;
 
-#ifdef WINDOWS
+#ifdef _WIN32
 #define _strcpy(dest, destSize, src) strcpy_s(dest, destSize, src)
 #define snprintf sprintf_s
 #else
 #define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
 #endif
 
-#define PLUGIN_API_VERSION 13
+#define PLUGIN_API_VERSION 14
 
 #define PATH_BUFSIZE 512
 #define COMMAND_BUFSIZE 128
@@ -234,7 +237,7 @@ int SetAway(BOOL isAway)
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
-		if(ts3Functions.flushClientSelfUpdates(HandlerID, "") != ERROR_ok)
+		if(ts3Functions.flushClientSelfUpdates(HandlerID, NULL) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -254,7 +257,7 @@ int SetAway(BOOL isAway)
 
 /*********************************** Plugin functions ************************************/
 
-void ParseCommand(char* cmd)
+BOOL ParseCommand(char* cmd)
 {
 	// Interpret command string
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
@@ -313,9 +316,9 @@ void ParseCommand(char* cmd)
 	}
 	else
 	{
-		ts3Functions.logMessage("Command not recognized:", LogLevel_DEBUG, "G-Key Plugin", 0);
-		ts3Functions.logMessage(cmd, LogLevel_DEBUG, "G-Key Plugin", 0);
+		return FALSE;
 	}
+	return TRUE;
 }
 
 int GetLogitechProcessId(DWORD* ProcessId)
@@ -372,7 +375,11 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
 
 					// Parse debug string
-					ParseCommand(DebugStr);
+					if(!ParseCommand(DebugStr))
+					{
+						ts3Functions.logMessage("Debug command not recognized:", LogLevel_DEBUG, "G-Key Plugin", 0);
+						ts3Functions.logMessage(DebugStr, LogLevel_DEBUG, "G-Key Plugin", 0);
+					}
 
 					// Free the debug string
 					free(DebugStr);
@@ -449,7 +456,7 @@ DWORD WINAPI IPCThread(LPVOID pData)
 	if(!IpcInit())
 	{
 		// Could not initialize interprocess communication
-		ts3Functions.logMessage("Failed to initialize interprocess communication, some devices may not function", LogLevel_WARNING, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Failed to initialize interprocess communication, some devices may not function", LogLevel_ERROR, "G-Key Plugin", 0);
 		return 1;
 	}
 	else
@@ -461,7 +468,11 @@ DWORD WINAPI IPCThread(LPVOID pData)
 	{
 		if(IpcRead(&msg, PLUGINTHREAD_TIMEOUT))
 		{
-			ParseCommand(msg.message);
+			if(!ParseCommand(msg.message))
+			{
+				ts3Functions.logMessage("Interprocess command not recognized:", LogLevel_DEBUG, "G-Key Plugin", 0);
+				ts3Functions.logMessage(msg.message, LogLevel_DEBUG, "G-Key Plugin", 0);
+			}
 		}
 	}
 
@@ -482,7 +493,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.4.1";
+    return "0.4.2";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */
@@ -497,7 +508,7 @@ const char* ts3plugin_author() {
 
 /* Plugin description */
 const char* ts3plugin_description() {
-    return "This plugin allows you to use the macro G-keys on any Logitech device to control TeamSpeak 3 without rebinding them to other keys.";
+    return "This plugin allows you to use the macro G-keys on any Logitech device to control TeamSpeak 3 without rebinding them to other keys.\n\nPlease read the ReadMe included with the plugin for instructions, also available at http://jules.aerix.nl/g-key";
 }
 
 /* Set TeamSpeak 3 callback functions */
@@ -518,11 +529,15 @@ int ts3plugin_init() {
 
 	// Debug thread
 	hDebugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
-	if(hDebugThread==NULL) return 1;
 	
 	// IPC thread
 	hIPCThread = CreateThread(NULL, NULL, IPCThread, 0, 0, NULL);
-	if(hIPCThread==NULL) return 1;
+
+	if(hIPCThread==NULL || hDebugThread==NULL)
+	{
+		ts3Functions.logMessage("Failed to start threads, unloading plugin", LogLevel_ERROR, "G-Key Plugin", 0);
+		return 1;
+	}
 
 	/* Initialize return codes array for requestClientMove */
 	memset(requestClientMoveReturnCodes, 0, REQUESTCLIENTMOVERETURNCODES_SLOTS * RETURNCODE_BUFSIZE);

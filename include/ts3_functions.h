@@ -12,6 +12,7 @@ extern "C" {
 /* Functions exported to plugin from main binary */
 struct TS3Functions {
 	unsigned int (*getClientLibVersion)(char** result);
+	unsigned int (*getClientLibVersionNumber)(uint64* result);
 	unsigned int (*spawnNewServerConnectionHandler)(int port, uint64* result);
 	unsigned int (*destroyServerConnectionHandler)(uint64 serverConnectionHandlerID);
 
@@ -251,7 +252,7 @@ struct TS3Functions {
 	unsigned int (*getChannelConnectInfo)(uint64 scHandlerID, uint64 channelID, char* path, char* password, size_t maxLen);
 	void         (*createReturnCode)(const char* pluginID, char* returnCode, size_t maxLen);
 	unsigned int (*requestInfoUpdate)(uint64 scHandlerID, enum PluginItemType itemType, uint64 itemID);
-	int          (*getServerVersion)(uint64 scHandlerID);
+	uint64       (*getServerVersion)(uint64 scHandlerID);
 	unsigned int (*isWhispering)(uint64 scHandlerID, anyID clientID, int* result);
 	unsigned int (*isReceivingWhisper)(uint64 scHandlerID, anyID clientID, int* result);
 	unsigned int (*getAvatar)(uint64 scHandlerID, anyID clientID, char* result, size_t maxLen);
