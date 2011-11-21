@@ -24,8 +24,7 @@ BOOL IpcInit(void)
 
 	if (hMapFile == NULL)
 	{
-		printf("Could not create file mapping object (%d).\n", 
-				GetLastError());
+		// Could not create file mapping object
 		return FALSE;
 	}
 	
@@ -37,8 +36,7 @@ BOOL IpcInit(void)
 	
 	if (hBufferReadyEvent == NULL)
 	{
-		printf("Could not create buffer ready event (%d).\n", 
-				GetLastError());
+		// Could not create buffer ready event
 		return FALSE;
 	}
 
@@ -50,8 +48,7 @@ BOOL IpcInit(void)
 	
 	if (hDataReadyEvent == NULL)
 	{
-		printf("Could not create data ready event (%d).\n", 
-				GetLastError());
+		// Could not create data ready event
 		return FALSE;
 	}
 
@@ -71,17 +68,17 @@ BOOL IpcRead(IpcMessage* message, DWORD dwMilliseconds)
  
 	if (pBuf == NULL) 
 	{ 
-		printf("Could not map view of file (%d).\n",
-				GetLastError());
-
-		CloseHandle(hMapFile);
-
-		return 1;
+		// Could not map view of file
+		return FALSE;
 	}
 	
 	ret = WaitForSingleObject(hDataReadyEvent, dwMilliseconds);
 
-	if(ret != WAIT_OBJECT_0) return FALSE;
+	if(ret != WAIT_OBJECT_0)
+	{
+		// Wait timed-out
+		return FALSE;
+	}
 	
 	memcpy(message, pBuf, sizeof(IpcMessage));
 
@@ -105,15 +102,16 @@ BOOL IpcWrite(IpcMessage* message, DWORD dwMilliseconds)
 
 	if(pBuf == NULL)
 	{
-		printf("Could not map view of file (%d).\n",
-				GetLastError());
-
+		// Could not map view of file
 		return FALSE;
 	}
 
 	ret = WaitForSingleObject(hBufferReadyEvent, dwMilliseconds);
 
-	if(ret != WAIT_OBJECT_0) return FALSE;
+	if(ret != WAIT_OBJECT_0)
+	{
+		return FALSE;
+	}
 
 	memcpy(pBuf, message, sizeof(IpcMessage));
 
@@ -128,22 +126,19 @@ BOOL IpcClose(void)
 {
 	if(!CloseHandle(hMapFile))
 	{
-		printf("Could not close file mapping object (%d).\n", 
-				GetLastError());
+		// Could not close file mapping object
 		return FALSE;
 	}
 
 	if(!CloseHandle(hBufferReadyEvent))
 	{
-		printf("Could not close buffer ready event (%d).\n", 
-				GetLastError());
+		// Could not close buffer ready event
 		return FALSE;
 	}
 	
 	if(!CloseHandle(hDataReadyEvent))
 	{
-		printf("Could not close data ready event (%d).\n", 
-				GetLastError());
+		// Could not close data ready event
 		return FALSE;
 	}
 
