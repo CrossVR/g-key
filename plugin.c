@@ -433,12 +433,12 @@ DWORD WINAPI DebugThread(LPVOID pData)
 		return 1;
 	}
 
-	ts3Functions.logMessage("Debugger attached to Logitech keyboard drivers", LogLevel_INFO, "G-Key Plugin", 0);
+	ts3Functions.logMessage("Debugger attached to Logitech software", LogLevel_INFO, "G-Key Plugin", 0);
 	DebugMain(ProcessId, hProcess);
 
 	// Deattach the debugger
 	DebugActiveProcessStop(ProcessId);
-	ts3Functions.logMessage("Debugger detached from Logitech keyboard drivers", LogLevel_INFO, "G-Key Plugin", 0);
+	ts3Functions.logMessage("Debugger detached from Logitech software", LogLevel_INFO, "G-Key Plugin", 0);
 
 	// Close the handle to the Logitech drivers
 	CloseHandle(hProcess);
