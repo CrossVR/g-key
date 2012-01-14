@@ -160,10 +160,8 @@ enum VirtualServerPropertiesRare {
 	VIRTUALSERVER_PRIORITY_SPEAKER_DIMM_MODIFICATOR,           //available when connected, always up-to-date
 	VIRTUALSERVER_ID,                                          //available when connected
 	VIRTUALSERVER_ANTIFLOOD_POINTS_TICK_REDUCE,                //only available on request (=> requestServerVariables)
-	VIRTUALSERVER_ANTIFLOOD_POINTS_NEEDED_WARNING,             //only available on request (=> requestServerVariables)
-	VIRTUALSERVER_ANTIFLOOD_POINTS_NEEDED_KICK,                //only available on request (=> requestServerVariables)
-	VIRTUALSERVER_ANTIFLOOD_POINTS_NEEDED_BAN,                 //only available on request (=> requestServerVariables)
-	VIRTUALSERVER_ANTIFLOOD_POINTS_BAN_TIME,                   //only available on request (=> requestServerVariables)
+	VIRTUALSERVER_ANTIFLOOD_POINTS_NEEDED_COMMAND_BLOCK,       //only available on request (=> requestServerVariables)
+	VIRTUALSERVER_ANTIFLOOD_POINTS_NEEDED_IP_BLOCK,            //only available on request (=> requestServerVariables)
 	VIRTUALSERVER_CLIENT_CONNECTIONS,                          //only available on request (=> requestServerVariables)
 	VIRTUALSERVER_QUERY_CLIENT_CONNECTIONS,                    //only available on request (=> requestServerVariables)
 	VIRTUALSERVER_HOSTBUTTON_TOOLTIP,                          //available when connected, always up-to-date 

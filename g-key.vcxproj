@@ -209,7 +209,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="package.ini" />
-    <None Include="ReadMe.odt" />
+    <None Include="G-Key_ReadMe.odt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

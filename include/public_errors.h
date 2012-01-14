@@ -24,6 +24,7 @@ const unsigned int ERROR_client_already_subscribed              = 0x0205;
 const unsigned int ERROR_client_not_logged_in                   = 0x0206;
 const unsigned int ERROR_client_could_not_validate_identity     = 0x0207;
 const unsigned int ERROR_client_version_outdated                = 0x020a;
+const unsigned int ERROR_client_is_flooding                     = 0x020c;
 
 //channel
 const unsigned int ERROR_channel_invalid_id                     = 0x0300;

@@ -77,7 +77,7 @@ const unsigned int ERROR_tts_unable_to_initialize               = 0x0e00;
 const unsigned int ERROR_privilege_key_invalid                  = 0x0f00;
 
 //voip
-const unsigned int ERROR_voip_ts3pjsua                          = 0x1000;
+const unsigned int ERROR_voip_pjsua                             = 0x1000;
 const unsigned int ERROR_voip_already_initialized               = 0x1001;
 const unsigned int ERROR_voip_too_many_accounts                 = 0x1002;
 const unsigned int ERROR_voip_invalid_account                   = 0x1003;

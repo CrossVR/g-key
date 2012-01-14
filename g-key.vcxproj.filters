@@ -45,7 +45,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ReadMe.odt" />
     <None Include="package.ini" />
+    <None Include="G-Key_ReadMe.odt" />
   </ItemGroup>
 </Project>

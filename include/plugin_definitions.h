@@ -14,9 +14,24 @@ enum PluginMessageTarget {
 };
 
 enum PluginItemType {
-	PLUGIN_SERVER,
+	PLUGIN_SERVER = 0,
 	PLUGIN_CHANNEL,
 	PLUGIN_CLIENT
+};
+
+enum PluginMenuType {
+	PLUGIN_MENU_TYPE_GLOBAL = 0,
+	PLUGIN_MENU_TYPE_CHANNEL,
+	PLUGIN_MENU_TYPE_CLIENT
+};
+
+#define PLUGIN_MENU_BUFSZ 128
+
+struct PluginMenuItem {
+	enum PluginMenuType type;
+	int id;
+	char text[PLUGIN_MENU_BUFSZ];
+	char icon[PLUGIN_MENU_BUFSZ];
 };
 
 #endif
