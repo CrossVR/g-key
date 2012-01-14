@@ -448,39 +448,6 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	return 0;
 }
 
-DWORD WINAPI IPCThread(LPVOID pData)
-{
-	IpcMessage msg; // Buffer for the message
-	HANDLE hMapFile; // Handle for the shared memmory
-
-	if(!IpcInit())
-	{
-		// Could not initialize interprocess communication
-		ts3Functions.logMessage("Failed to initialize interprocess communication, some devices may not function", LogLevel_ERROR, "G-Key Plugin", 0);
-		return 1;
-	}
-	else
-	{
-		ts3Functions.logMessage("Interprocess communication initialized", LogLevel_INFO, "G-Key Plugin", 0);
-	}
-
-	while(pluginRunning)
-	{
-		if(IpcRead(&msg, PLUGINTHREAD_TIMEOUT))
-		{
-			if(!ParseCommand(msg.message))
-			{
-				ts3Functions.logMessage("Interprocess command not recognized:", LogLevel_DEBUG, "G-Key Plugin", 0);
-				ts3Functions.logMessage(msg.message, LogLevel_DEBUG, "G-Key Plugin", 0);
-			}
-		}
-	}
-
-	IpcClose();
-
-	return 0;
-}
-
 /*********************************** Required functions ************************************/
 /*
  * If any of these required functions is not implemented, TS3 will refuse to load the plugin
@@ -529,9 +496,6 @@ int ts3plugin_init() {
 
 	// Debug thread
 	hDebugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
-	
-	// IPC thread
-	hIPCThread = CreateThread(NULL, NULL, IPCThread, 0, 0, NULL);
 
 	if(hIPCThread==NULL || hDebugThread==NULL)
 	{
@@ -549,8 +513,7 @@ int ts3plugin_init() {
 void ts3plugin_shutdown() {
 	// Compile array of thread handles
 	HANDLE threads[] = {
-		hDebugThread,
-		hIPCThread
+		hDebugThread
 	};
 
 	// Stop the plugin threads

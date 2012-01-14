@@ -194,7 +194,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ipc.c" />
     <ClCompile Include="plugin.c" />
   </ItemGroup>
   <ItemGroup>
@@ -206,14 +205,11 @@
     <ClInclude Include="include\public_errors_rare.h" />
     <ClInclude Include="include\public_rare_definitions.h" />
     <ClInclude Include="include\ts3_functions.h" />
-    <ClInclude Include="ipc.h" />
     <ClInclude Include="plugin.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="package.ini" />
     <None Include="ReadMe.odt" />
-    <None Include="scripts\all_commands.lua" />
-    <None Include="scripts\ptt.lua" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
