@@ -509,20 +509,11 @@ int ts3plugin_init() {
 
 /* Custom code called right before the plugin is unloaded */
 void ts3plugin_shutdown() {
-	// Compile array of thread handles
-	HANDLE threads[] = {
-		hDebugThread
-	};
-
 	// Stop the plugin threads
 	pluginRunning = FALSE;
 
 	// Wait for the thread to stop
-	WaitForMultipleObjects(
-		2,						// Number of threads
-		threads,				// Array of thread handles
-		TRUE,					// Wait for all threads
-		PLUGINTHREAD_TIMEOUT);	// Timeout
+	WaitForSingleObject(hDebugThread, PLUGINTHREAD_TIMEOUT);
 
 	/*
 	 * Note:
