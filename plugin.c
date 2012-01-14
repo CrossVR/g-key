@@ -23,7 +23,6 @@
 
 #include <Windows.h>
 #include <TlHelp32.h>
-#include "ipc.h"
 
 static struct TS3Functions ts3Functions;
 
