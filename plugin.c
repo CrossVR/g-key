@@ -47,7 +47,6 @@ static struct TS3Functions ts3Functions;
 
 static char* pluginID = NULL;
 static HANDLE hDebugThread = NULL;
-static HANDLE hIPCThread = NULL;
 static BOOL pluginRunning = FALSE;
 static uint64 scHandlerID = NULL;
 static BOOL vadActive = FALSE;
