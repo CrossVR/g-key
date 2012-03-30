@@ -18,7 +18,6 @@
 #include "public_definitions.h"
 #include "public_rare_definitions.h"
 #include "ts3_functions.h"
-#include "plugin_events.h"
 #include "plugin.h"
 
 #include <Windows.h>
@@ -33,7 +32,7 @@ static struct TS3Functions ts3Functions;
 #define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
 #endif
 
-#define PLUGIN_API_VERSION 15
+#define PLUGIN_API_VERSION 16
 
 #define PATH_BUFSIZE 512
 #define COMMAND_BUFSIZE 128
@@ -458,7 +457,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.4.3";
+    return "0.4.4";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */

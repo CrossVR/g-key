@@ -34,4 +34,11 @@ struct PluginMenuItem {
 	char icon[PLUGIN_MENU_BUFSZ];
 };
 
+#define PLUGIN_HOTKEY_BUFSZ 128
+
+struct PluginHotkey {
+	char keyword[PLUGIN_HOTKEY_BUFSZ];
+	char description[PLUGIN_HOTKEY_BUFSZ];
+};
+
 #endif

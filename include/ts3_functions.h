@@ -98,6 +98,7 @@ struct TS3Functions {
 	unsigned int (*requestMuteClients)(uint64 serverConnectionHandlerID, const anyID* clientIDArray, const char* returnCode);
 	unsigned int (*requestUnmuteClients)(uint64 serverConnectionHandlerID, const anyID* clientIDArray, const char* returnCode);
 	unsigned int (*requestClientPoke)(uint64 serverConnectionHandlerID, anyID clientID, const char* message, const char* returnCode);
+	unsigned int (*requestClientIDs)(uint64 serverConnectionHandlerID, const char* clientUniqueIdentifier, const char* returnCode);
 	unsigned int (*clientChatClosed)(uint64 serverConnectionHandlerID, const char* clientUniqueIdentifier, anyID clientID, const char* returnCode);
 	unsigned int (*clientChatComposing)(uint64 serverConnectionHandlerID, anyID clientID, const char* returnCode);
 
@@ -238,7 +239,6 @@ struct TS3Functions {
 	unsigned int (*serverPropertyStringToFlag)(const char* serverPropertyString, size_t* resultFlag);
 
 	/* Client functions */
-	int          (*getAPIVersion)();
 	void         (*getAppPath)(char* path, size_t maxLen);
 	void         (*getResourcesPath)(char* path, size_t maxLen);
 	void         (*getConfigPath)(char* path, size_t maxLen);
@@ -257,6 +257,10 @@ struct TS3Functions {
 	unsigned int (*isWhispering)(uint64 scHandlerID, anyID clientID, int* result);
 	unsigned int (*isReceivingWhisper)(uint64 scHandlerID, anyID clientID, int* result);
 	unsigned int (*getAvatar)(uint64 scHandlerID, anyID clientID, char* result, size_t maxLen);
+	void         (*setPluginMenuEnabled)(const char* pluginID, int menuID, int enabled);
+	void         (*showHotkeySetup)();
+	void         (*requestHotkeyInputDialog)(const char* pluginID, const char* keyword, void* qParentWindow);
+	unsigned int (*getHotkeyFromKeyword)(const char* pluginID, const char** keywords, char** hotkeys, size_t arrayLen, size_t hotkeyBufSize);
 };
 
 #ifdef __cplusplus

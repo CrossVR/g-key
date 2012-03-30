@@ -121,4 +121,19 @@ const unsigned int ERROR_accounting_already_started             = 0x0b0c;
 const unsigned int ERROR_accounting_not_started                 = 0x0b0d;
 const unsigned int ERROR_accounting_to_many_starts              = 0x0b0e;
 
+//provisioning server
+const unsigned int ERROR_provisioning_invalid_password          = 0x1100;
+const unsigned int ERROR_provisioning_invalid_request           = 0x1101;
+const unsigned int ERROR_provisioning_no_slots_available        = 0x1102;
+const unsigned int ERROR_provisioning_pool_missing              = 0x1103;
+const unsigned int ERROR_provisioning_pool_unknown              = 0x1104;
+const unsigned int ERROR_provisioning_unknown_ip_location       = 0x1105;
+const unsigned int ERROR_provisioning_internal_tries_exceeded   = 0x1106;
+const unsigned int ERROR_provisioning_too_many_slots_requested  = 0x1107;
+const unsigned int ERROR_provisioning_too_many_reserved         = 0x1108;
+const unsigned int ERROR_provisioning_could_not_connect         = 0x1109;
+const unsigned int ERROR_provisioning_auth_server_not_connected = 0x1110;
+const unsigned int ERROR_provisioning_auth_data_too_large       = 0x1111;
+
+
 #endif
