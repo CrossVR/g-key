@@ -493,7 +493,7 @@ int ts3plugin_init() {
 	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
 	ts3Functions.getConfigPath(whisperFile, MAX_PATH);
 	strcat_s(whisperFile, MAX_PATH, "whisper.ini");
-	GetPrivateProfileStringA("Profiles", "ConfigFileVersion", "0", version, 1, configFile); // Test read
+	GetPrivateProfileStringA("Profiles", "ConfigFileVersion", "0", version, 10, configFile); // Test read
 	ts3Functions.logMessage(version, LogLevel_DEBUG, "G-Key Plugin", 0);
 
 	// Get first connection handler
