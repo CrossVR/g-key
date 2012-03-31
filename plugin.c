@@ -44,6 +44,8 @@ static struct TS3Functions ts3Functions;
 
 #define PLUGINTHREAD_TIMEOUT 1000
 
+#define TIMER_MSEC 10000
+
 static char* pluginID = NULL;
 static HANDLE hDebugThread = NULL;
 static HANDLE hPTTDelayThread = NULL;
@@ -53,7 +55,8 @@ static BOOL vadActive = FALSE;
 static BOOL inputActive = FALSE;
 static BOOL pttActive = FALSE;
 static char configFile[MAX_PATH];
-static DWORD delayPtt = 0;
+static HANDLE hPttTimer = NULL;
+static LARGE_INTEGER dueTime;
 
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
@@ -257,22 +260,34 @@ int SetAway(BOOL isAway)
 
 /*********************************** Plugin functions ************************************/
 
+VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowValue,DWORD dwTimerHighValue)
+{
+	SetPushToTalk(FALSE);
+}
+
 BOOL ParseCommand(char* cmd)
 {
 	// Interpret command string
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
-		delayPtt = 0;
+		CancelWaitableTimer(hPttTimer);
 		SetPushToTalk(TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
 	{
 		char str[10];
+		int delay;
 		GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
 		if(!strcmp(str, "true"))
 		{
 			GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "0", str, 10, configFile);
-			delayPtt = GetTickCount() + atol(str);
+			delay = -atoi(str);
+
+			// Copy the relative time into a LARGE_INTEGER.
+			dueTime.LowPart  = (DWORD) ( delay & 0xFFFFFFFF );
+			dueTime.HighPart = (LONG)  ( delay >> 32 );
+
+			SetWaitableTimer(hPttTimer, &dueTime, 0, PTTDelayCallback, NULL, FALSE);
 		}
 		else
 		{
@@ -281,7 +296,7 @@ BOOL ParseCommand(char* cmd)
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
 	{
-		delayPtt = 0;
+		CancelWaitableTimer(hPttTimer);
 		SetPushToTalk(!inputActive);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
@@ -460,22 +475,6 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	return 0;
 }
 
-DWORD WINAPI PTTDelayThread(LPVOID pData)
-{
-	char str[100];
-	while(pluginRunning)
-	{
-		if(delayPtt != 0 && delayPtt <= GetTickCount())
-		{
-			SetPushToTalk(FALSE);
-			delayPtt = 0;
-		}
-		Sleep(10);
-	}
-
-	return 0;
-}
-
 /*********************************** Required functions ************************************/
 /*
  * If any of these required functions is not implemented, TS3 will refuse to load the plugin
@@ -526,7 +525,9 @@ int ts3plugin_init() {
 	// Start the plugin threads
 	pluginRunning = TRUE;
 	hDebugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
-	hPTTDelayThread = CreateThread(NULL, NULL, PTTDelayThread, 0, 0, NULL);
+
+	// Create the PTT delay timer
+	hPttTimer = CreateWaitableTimer(NULL, FALSE, NULL);
 
 	if(hDebugThread==NULL)
 	{
@@ -542,17 +543,11 @@ int ts3plugin_init() {
 
 /* Custom code called right before the plugin is unloaded */
 void ts3plugin_shutdown() {
-	// Thread handle list
-	HANDLE handles[] = {
-		hDebugThread,
-		hPTTDelayThread
-	};
-
 	// Stop the plugin threads
 	pluginRunning = FALSE;
 
 	// Wait for the thread to stop
-	WaitForMultipleObjects(2, handles, TRUE, PLUGINTHREAD_TIMEOUT);
+	WaitForSingleObject(hDebugThread, PLUGINTHREAD_TIMEOUT);
 
 	/*
 	 * Note:
