@@ -51,6 +51,8 @@ static uint64 scHandlerID = NULL;
 static BOOL vadActive = FALSE;
 static BOOL inputActive = FALSE;
 static BOOL pttActive = FALSE;
+static char configFile[MAX_PATH];
+static char whisperFile[MAX_PATH];
 
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
@@ -485,6 +487,15 @@ void ts3plugin_setFunctionPointers(const struct TS3Functions funcs) {
  * If the function returns 1 on failure, the plugin will be unloaded again.
  */
 int ts3plugin_init() {
+	char version[10];
+	// Find config files
+	ts3Functions.getConfigPath(configFile, MAX_PATH);
+	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
+	ts3Functions.getConfigPath(whisperFile, MAX_PATH);
+	strcat_s(whisperFile, MAX_PATH, "whisper.ini");
+	GetPrivateProfileStringA("Profiles", "ConfigFileVersion", "0", version, 1, configFile); // Test read
+	ts3Functions.logMessage(version, LogLevel_DEBUG, "G-Key Plugin", 0);
+
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
 
