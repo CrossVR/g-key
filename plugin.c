@@ -46,11 +46,14 @@ static struct TS3Functions ts3Functions;
 
 static char* pluginID = NULL;
 static HANDLE hDebugThread = NULL;
+static HANDLE hPTTDelayThread = NULL;
 static BOOL pluginRunning = FALSE;
 static uint64 scHandlerID = NULL;
 static BOOL vadActive = FALSE;
 static BOOL inputActive = FALSE;
 static BOOL pttActive = FALSE;
+static char configFile[MAX_PATH];
+static DWORD delayPtt = 0;
 
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
@@ -259,14 +262,26 @@ BOOL ParseCommand(char* cmd)
 	// Interpret command string
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
+		delayPtt = 0;
 		SetPushToTalk(TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
 	{
-		SetPushToTalk(FALSE);
+		char str[10];
+		GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
+		if(!strcmp(str, "true"))
+		{
+			GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "0", str, 10, configFile);
+			delayPtt = GetTickCount() + atol(str);
+		}
+		else
+		{
+			SetPushToTalk(FALSE);
+		}
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
 	{
+		delayPtt = 0;
 		SetPushToTalk(!inputActive);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
@@ -445,6 +460,18 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	return 0;
 }
 
+DWORD WINAPI PTTDelayThread(LPVOID pData)
+{
+	while(pluginRunning)
+	{
+		if(delayPtt != 0 && delayPtt <= GetTickCount())
+			SetPushToTalk(FALSE);
+		Sleep(100);
+	}
+
+	return 0;
+}
+
 /*********************************** Required functions ************************************/
 /*
  * If any of these required functions is not implemented, TS3 will refuse to load the plugin
@@ -457,7 +484,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.4.4";
+    return "0.5.0";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */
@@ -485,14 +512,17 @@ void ts3plugin_setFunctionPointers(const struct TS3Functions funcs) {
  * If the function returns 1 on failure, the plugin will be unloaded again.
  */
 int ts3plugin_init() {
+	// Find config files
+	ts3Functions.getConfigPath(configFile, MAX_PATH);
+	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
+
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
 
 	// Start the plugin threads
 	pluginRunning = TRUE;
-
-	// Debug thread
 	hDebugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
+	hPTTDelayThread = CreateThread(NULL, NULL, PTTDelayThread, 0, 0, NULL);
 
 	if(hDebugThread==NULL)
 	{
@@ -508,11 +538,17 @@ int ts3plugin_init() {
 
 /* Custom code called right before the plugin is unloaded */
 void ts3plugin_shutdown() {
+	// Thread handle list
+	HANDLE handles[] = {
+		hDebugThread,
+		hPTTDelayThread
+	};
+
 	// Stop the plugin threads
 	pluginRunning = FALSE;
 
 	// Wait for the thread to stop
-	WaitForSingleObject(hDebugThread, PLUGINTHREAD_TIMEOUT);
+	WaitForMultipleObjects(2, handles, TRUE, PLUGINTHREAD_TIMEOUT);
 
 	/*
 	 * Note:
