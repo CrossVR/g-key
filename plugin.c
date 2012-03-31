@@ -50,7 +50,7 @@ static char* pluginID = NULL;
 static HANDLE hDebugThread = NULL;
 static HANDLE hPTTDelayThread = NULL;
 static BOOL pluginRunning = FALSE;
-static uint64 scHandlerID = NULL;
+static uint64 scHandlerID = (uint64)NULL;
 static BOOL vadActive = FALSE;
 static BOOL inputActive = FALSE;
 static BOOL pttActive = FALSE;
@@ -227,7 +227,7 @@ int SetAway(BOOL isAway)
 	}
 
 	HandlerID = servers[0];
-	for(i = 1; HandlerID != NULL; i++)
+	for(i = 1; HandlerID != (uint64)NULL; i++)
 	{
 		if((error = ts3Functions.setClientSelfVariableAsInt(HandlerID, CLIENT_AWAY, 
 			isAway ? AWAY_ZZZ : AWAY_NONE)) != ERROR_ok)
@@ -276,16 +276,11 @@ BOOL ParseCommand(char* cmd)
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
 	{
 		char str[10];
-		int delay;
 		GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
 		if(!strcmp(str, "true"))
 		{
 			GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "0", str, 10, configFile);
-			delay = -atoi(str);
-
-			// Copy the relative time into a LARGE_INTEGER.
-			dueTime.LowPart  = (DWORD) ( delay & 0xFFFFFFFF );
-			dueTime.HighPart = (LONG)  ( delay >> 32 );
+			dueTime.QuadPart = 0 - atoi(str) * TIMER_MSEC;
 
 			SetWaitableTimer(hPttTimer, &dueTime, 0, PTTDelayCallback, NULL, FALSE);
 		}
@@ -351,7 +346,7 @@ BOOL ParseCommand(char* cmd)
 int GetLogitechProcessId(DWORD* ProcessId)
 {
 	PROCESSENTRY32 entry;
-	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, (DWORD)NULL);
 
 	entry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -524,7 +519,7 @@ int ts3plugin_init() {
 
 	// Start the plugin threads
 	pluginRunning = TRUE;
-	hDebugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
+	hDebugThread = CreateThread(NULL, (SIZE_T)NULL, DebugThread, 0, 0, NULL);
 
 	// Create the PTT delay timer
 	hPttTimer = CreateWaitableTimer(NULL, FALSE, NULL);
