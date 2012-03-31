@@ -462,11 +462,15 @@ DWORD WINAPI DebugThread(LPVOID pData)
 
 DWORD WINAPI PTTDelayThread(LPVOID pData)
 {
+	char str[100];
 	while(pluginRunning)
 	{
 		if(delayPtt != 0 && delayPtt <= GetTickCount())
+		{
 			SetPushToTalk(FALSE);
-		Sleep(100);
+			delayPtt = 0;
+		}
+		Sleep(10);
 	}
 
 	return 0;
