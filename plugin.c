@@ -46,6 +46,7 @@ static struct TS3Functions ts3Functions;
 
 static char* pluginID = NULL;
 static HANDLE hDebugThread = NULL;
+static HANDLE hPTTDelayThread = NULL;
 static BOOL pluginRunning = FALSE;
 static uint64 scHandlerID = NULL;
 static BOOL vadActive = FALSE;
@@ -56,6 +57,10 @@ static char whisperFile[MAX_PATH];
 
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
+
+// Thread prototypes
+DWORD WINAPI DebugThread(LPVOID pData);
+DWORD WINAPI PTTDelayThread(LPVOID pData);
 
 /*********************************** TeamSpeak functions ************************************/
 
@@ -265,7 +270,17 @@ BOOL ParseCommand(char* cmd)
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
 	{
-		SetPushToTalk(FALSE);
+		char str[10];
+		GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
+		if(!strcmp(str, "true"))
+		{
+			if(hPTTDelayThread != NULL) TerminateThread(hPTTDelayThread, 1); /* MEMORY LEAK! */
+			hPTTDelayThread = CreateThread(NULL, NULL, PTTDelayThread, 0, 0, NULL);
+		}
+		else
+		{
+			SetPushToTalk(FALSE);
+		}
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
 	{
@@ -447,6 +462,17 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	return 0;
 }
 
+DWORD WINAPI PTTDelayThread(LPVOID pData)
+{
+	char str[100];
+	GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "0", str, 100, configFile);
+	Sleep(atoi(str));
+	SetPushToTalk(FALSE);
+
+	hPTTDelayThread = NULL;
+	return 0;
+}
+
 /*********************************** Required functions ************************************/
 /*
  * If any of these required functions is not implemented, TS3 will refuse to load the plugin
@@ -459,7 +485,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.4.4";
+    return "0.5.0";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */
@@ -487,14 +513,11 @@ void ts3plugin_setFunctionPointers(const struct TS3Functions funcs) {
  * If the function returns 1 on failure, the plugin will be unloaded again.
  */
 int ts3plugin_init() {
-	char version[10];
 	// Find config files
 	ts3Functions.getConfigPath(configFile, MAX_PATH);
 	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
 	ts3Functions.getConfigPath(whisperFile, MAX_PATH);
 	strcat_s(whisperFile, MAX_PATH, "whisper.ini");
-	GetPrivateProfileStringA("Profiles", "ConfigFileVersion", "0", version, 10, configFile); // Test read
-	ts3Functions.logMessage(version, LogLevel_DEBUG, "G-Key Plugin", 0);
 
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
