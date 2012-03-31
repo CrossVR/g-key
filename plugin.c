@@ -53,14 +53,10 @@ static BOOL vadActive = FALSE;
 static BOOL inputActive = FALSE;
 static BOOL pttActive = FALSE;
 static char configFile[MAX_PATH];
-static char whisperFile[MAX_PATH];
+static DWORD delayPtt = 0;
 
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
-
-// Thread prototypes
-DWORD WINAPI DebugThread(LPVOID pData);
-DWORD WINAPI PTTDelayThread(LPVOID pData);
 
 /*********************************** TeamSpeak functions ************************************/
 
@@ -266,6 +262,7 @@ BOOL ParseCommand(char* cmd)
 	// Interpret command string
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
+		delayPtt = 0;
 		SetPushToTalk(TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
@@ -274,8 +271,8 @@ BOOL ParseCommand(char* cmd)
 		GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
 		if(!strcmp(str, "true"))
 		{
-			if(hPTTDelayThread != NULL) TerminateThread(hPTTDelayThread, 1); /* MEMORY LEAK! */
-			hPTTDelayThread = CreateThread(NULL, NULL, PTTDelayThread, 0, 0, NULL);
+			GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "0", str, 10, configFile);
+			delayPtt = GetTickCount() + atol(str);
 		}
 		else
 		{
@@ -284,6 +281,7 @@ BOOL ParseCommand(char* cmd)
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
 	{
+		delayPtt = 0;
 		SetPushToTalk(!inputActive);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
@@ -464,12 +462,13 @@ DWORD WINAPI DebugThread(LPVOID pData)
 
 DWORD WINAPI PTTDelayThread(LPVOID pData)
 {
-	char str[100];
-	GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "0", str, 100, configFile);
-	Sleep(atoi(str));
-	SetPushToTalk(FALSE);
+	while(pluginRunning)
+	{
+		if(delayPtt != 0 && delayPtt <= GetTickCount())
+			SetPushToTalk(FALSE);
+		Sleep(100);
+	}
 
-	hPTTDelayThread = NULL;
 	return 0;
 }
 
@@ -516,17 +515,14 @@ int ts3plugin_init() {
 	// Find config files
 	ts3Functions.getConfigPath(configFile, MAX_PATH);
 	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
-	ts3Functions.getConfigPath(whisperFile, MAX_PATH);
-	strcat_s(whisperFile, MAX_PATH, "whisper.ini");
 
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
 
 	// Start the plugin threads
 	pluginRunning = TRUE;
-
-	// Debug thread
 	hDebugThread = CreateThread(NULL, NULL, DebugThread, 0, 0, NULL);
+	hPTTDelayThread = CreateThread(NULL, NULL, PTTDelayThread, 0, 0, NULL);
 
 	if(hDebugThread==NULL)
 	{
@@ -542,11 +538,17 @@ int ts3plugin_init() {
 
 /* Custom code called right before the plugin is unloaded */
 void ts3plugin_shutdown() {
+	// Thread handle list
+	HANDLE handles[] = {
+		hDebugThread,
+		hPTTDelayThread
+	};
+
 	// Stop the plugin threads
 	pluginRunning = FALSE;
 
 	// Wait for the thread to stop
-	WaitForSingleObject(hDebugThread, PLUGINTHREAD_TIMEOUT);
+	WaitForMultipleObjects(2, handles, TRUE, PLUGINTHREAD_TIMEOUT);
 
 	/*
 	 * Note:
