@@ -199,7 +199,6 @@
   <ItemGroup>
     <ClInclude Include="include\clientlib_publicdefinitions.h" />
     <ClInclude Include="include\plugin_definitions.h" />
-    <ClInclude Include="include\plugin_events.h" />
     <ClInclude Include="include\public_definitions.h" />
     <ClInclude Include="include\public_errors.h" />
     <ClInclude Include="include\public_errors_rare.h" />
