@@ -46,22 +46,182 @@ static struct TS3Functions ts3Functions;
 
 #define TIMER_MSEC 10000
 
+// Plugin values
 static char* pluginID = NULL;
+static BOOL pluginRunning = FALSE;
+static char configFile[MAX_PATH];
+
+// Thread handles
 static HANDLE hDebugThread = NULL;
 static HANDLE hPTTDelayThread = NULL;
-static BOOL pluginRunning = FALSE;
+
+// Active server
 static uint64 scHandlerID = (uint64)NULL;
+
+// Push-to-talk
 static BOOL vadActive = FALSE;
 static BOOL inputActive = FALSE;
 static BOOL pttActive = FALSE;
-static char configFile[MAX_PATH];
-static HANDLE hPttTimer = NULL;
+static HANDLE hPttDelayTimer = (HANDLE)NULL;
 static LARGE_INTEGER dueTime;
+
+// Whisper list
+static BOOL whisperActive = FALSE;
+static anyID* whisperClients = (anyID*)NULL;
+static uint64* whisperChannels = (uint64*)NULL;
 
 /* Array for request client move return codes. See comments within ts3plugin_processCommand for details */
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
 
 /*********************************** TeamSpeak functions ************************************/
+
+uint64 GetServerHandleByVariable(char* value, size_t flag)
+{
+	unsigned int error;
+	char* variable;
+	uint64* servers;
+	uint64 handle;
+	int i;
+
+	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving list of servers:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return NULL;
+	}
+	
+	handle = servers[0];
+	for(i = 1; handle != (uint64)NULL; i++)
+	{
+		if((error = ts3Functions.getServerVariableAsString(handle, flag, &variable)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+			{
+				ts3Functions.logMessage("Error retrieving server variable:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
+		}
+		else
+		{
+			if(!strcmp(value, variable))
+			{
+				ts3Functions.freeMemory(variable);
+				ts3Functions.freeMemory(servers);
+				return handle;
+			}
+			ts3Functions.freeMemory(variable);
+		}
+		handle = servers[i];
+	}
+
+	ts3Functions.freeMemory(servers);
+	return handle;
+}
+
+uint64 GetChannelIDByVariable(char* value, size_t flag)
+{
+	unsigned int error;
+	char* variable;
+	uint64* channels;
+	uint64 handle;
+	int i;
+	
+	if((error = ts3Functions.getChannelList(scHandlerID, &channels)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving list of channels:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return NULL;
+	}
+	
+	for(i = 1, handle = channels[0]; handle != (uint64)NULL; i++)
+	{
+		if((error = ts3Functions.getChannelVariableAsString(scHandlerID, handle, flag, &variable)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+			{
+				ts3Functions.logMessage("Error retrieving channel variable:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
+		}
+		else
+		{
+			if(!strcmp(value, variable))
+			{
+				ts3Functions.freeMemory(variable);
+				ts3Functions.freeMemory(channels);
+				return handle;
+			}
+			ts3Functions.freeMemory(variable);
+		}
+		handle = channels[i];
+	}
+
+	ts3Functions.freeMemory(channels);
+	return handle;
+}
+
+anyID GetClientIDByVariable(char* value, size_t flag)
+{
+	unsigned int error;
+	char* variable;
+	anyID* clients;
+	anyID handle;
+	int i;
+
+	if((error = ts3Functions.getClientList(scHandlerID, &clients)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving list of clients:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return NULL;
+	}
+	
+	for(i = 1, handle = clients[0]; handle != (uint64)NULL; i++)
+	{
+		if((error = ts3Functions.getClientVariableAsString(scHandlerID, handle, flag, &variable)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+			{
+				ts3Functions.logMessage("Error retrieving client variable:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
+		}
+		else
+		{
+			if(!strcmp(value, variable))
+			{
+				ts3Functions.freeMemory(variable);
+				ts3Functions.freeMemory(clients);
+				return handle;
+			}
+			ts3Functions.freeMemory(variable);
+		}
+		handle = clients[i];
+	}
+
+	ts3Functions.freeMemory(clients);
+	return handle;
+}
 
 int SetPushToTalk(BOOL shouldTalk)
 {
@@ -207,11 +367,11 @@ int SetOutputMute(BOOL shouldMute)
 	return 0;
 }
 
-int SetAway(BOOL isAway)
+int SetGlobalAway(BOOL isAway)
 {
 	unsigned int error;
 	uint64* servers;
-	uint64 HandlerID;
+	uint64 handle;
 	int i;
 
 	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
@@ -226,10 +386,10 @@ int SetAway(BOOL isAway)
 		return 1;
 	}
 
-	HandlerID = servers[0];
-	for(i = 1; HandlerID != (uint64)NULL; i++)
+	handle = servers[0];
+	for(i = 1; handle != (uint64)NULL; i++)
 	{
-		if((error = ts3Functions.setClientSelfVariableAsInt(HandlerID, CLIENT_AWAY, 
+		if((error = ts3Functions.setClientSelfVariableAsInt(handle, CLIENT_AWAY, 
 			isAway ? AWAY_ZZZ : AWAY_NONE)) != ERROR_ok)
 		{
 			char* errorMsg;
@@ -240,7 +400,7 @@ int SetAway(BOOL isAway)
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
-		if(ts3Functions.flushClientSelfUpdates(HandlerID, NULL) != ERROR_ok)
+		if(ts3Functions.flushClientSelfUpdates(handle, NULL) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
@@ -250,10 +410,159 @@ int SetAway(BOOL isAway)
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
-		HandlerID = servers[i];
+		handle = servers[i];
 	}
 
 	ts3Functions.freeMemory(servers);
+
+	return 0;
+}
+
+int SetActiveServer(uint64 handle)
+{
+	unsigned int error;
+	
+	SetPushToTalk(FALSE);
+	ClearWhisperList();
+
+	if((error = ts3Functions.activateCaptureDevice(handle)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error activating server:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+	if((error = ts3Functions.closeCaptureDevice(scHandlerID)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error deactivating server:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+	scHandlerID = handle;
+
+	return 0;
+}
+
+int JoinChannel(uint64 channel)
+{
+	unsigned int error;
+	anyID self;
+
+	if((error = ts3Functions.getClientID(scHandlerID, &self)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error getting own client id:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+	if((error = ts3Functions.requestClientMove(scHandlerID, self, channel, NULL, NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error joining channel:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	return 0;
+}
+
+void WhisperAddClient(anyID client)
+{
+	int count = 0;
+	anyID* newList;
+	
+	// Check if old list exists
+	if(whisperClients != NULL)
+	{
+		anyID* end;
+		for(end = whisperClients; *end != NULL; end++);
+		count = whisperClients-end;
+	}
+
+	// Make new list with enough room for the new id and the NULL terminator
+	newList = (anyID*)malloc((count+2) * sizeof(anyID));
+	newList[count] = client;
+	newList[count+1] = NULL;
+
+	// Copy old list
+	if(whisperClients != NULL) memcpy(newList, whisperClients, (count) * sizeof(anyID));
+	
+	// Commit new list
+	free(whisperClients);
+	whisperClients = newList;
+	if(whisperActive) SetWhisperList(TRUE);
+}
+
+void WhisperAddChannel(uint64 channel)
+{
+	int count;
+	uint64* newList;
+	
+	// Check if old list exists
+	if(whisperChannels != NULL)
+	{
+		uint64* end;
+		for(end = whisperChannels; *end != NULL; end++);
+		count = whisperChannels-end;
+	}
+
+	// Make new list with enough room for the new id and the NULL terminator
+	newList = (uint64*)malloc((count+2) * sizeof(uint64));
+	newList[count] = channel;
+	newList[count+1] = NULL;
+
+	// Copy old list
+	if(whisperChannels != NULL) memcpy(newList, whisperClients, (count) * sizeof(uint64));
+
+	// Commit new list
+	free(whisperChannels);
+	whisperChannels = newList;
+	if(whisperActive) SetWhisperList(TRUE);
+}
+
+void WhisperListClear()
+{
+	SetWhisperList(FALSE);
+	free(whisperClients);
+	free(whisperChannels);
+	whisperClients = (anyID*)NULL;
+	whisperChannels = (uint64*)NULL;
+}
+
+int SetWhisperList(BOOL active)
+{
+	unsigned int error;
+
+	if((error = ts3Functions.requestClientSetWhisperList(scHandlerID, NULL, whisperActive?whisperChannels:NULL, whisperActive?whisperClients:NULL, NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error setting whisper list:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	whisperActive = active;
 
 	return 0;
 }
@@ -265,24 +574,24 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 	SetPushToTalk(FALSE);
 }
 
-BOOL ParseCommand(char* cmd)
+VOID ParseCommand(char* cmd, char* arg)
 {
 	// Interpret command string
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
-		CancelWaitableTimer(hPttTimer);
+		CancelWaitableTimer(hPttDelayTimer);
 		SetPushToTalk(TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
 	{
-		char str[10];
+		char str[6];
 		GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
 		if(!strcmp(str, "true"))
 		{
 			GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "0", str, 10, configFile);
 			dueTime.QuadPart = 0 - atoi(str) * TIMER_MSEC;
 
-			SetWaitableTimer(hPttTimer, &dueTime, 0, PTTDelayCallback, NULL, FALSE);
+			SetWaitableTimer(hPttDelayTimer, &dueTime, 0, PTTDelayCallback, NULL, FALSE);
 		}
 		else
 		{
@@ -291,7 +600,7 @@ BOOL ParseCommand(char* cmd)
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
 	{
-		CancelWaitableTimer(hPttTimer);
+		CancelWaitableTimer(hPttDelayTimer);
 		SetPushToTalk(!inputActive);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
@@ -304,7 +613,7 @@ BOOL ParseCommand(char* cmd)
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
 	{
-		int muted;
+		BOOL muted;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
 		SetInputMute(!muted);
 	}
@@ -318,29 +627,124 @@ BOOL ParseCommand(char* cmd)
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
 	{
-		int muted;
+		BOOL muted;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
 		SetOutputMute(!muted);
 	}
 	else if(!strcmp(cmd, "TS3_AWAY_ZZZ"))
 	{
-		SetAway(TRUE);
+		SetGlobalAway(TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_AWAY_NONE"))
 	{
-		SetAway(FALSE);
+		SetGlobalAway(FALSE);
 	}
 	else if(!strcmp(cmd, "TS3_AWAY_TOGGLE"))
 	{
-		int away;
+		BOOL away;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
-		SetAway(!away);
+		SetGlobalAway(!away);
+	}
+	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER"))
+	{
+		if(arg != NULL)
+		{
+			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_NAME);
+			if(handle != NULL) SetActiveServer(handle);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERID"))
+	{
+		if(arg != NULL)
+		{
+			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
+			if(handle != NULL) SetActiveServer(handle);
+			else ts3Functions.logMessage("Server not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_JOIN_CHAN"))
+	{
+		if(arg != NULL)
+		{
+			uint64 id = GetChannelIDByVariable(arg, CHANNEL_NAME);
+			if(id != NULL) JoinChannel(id);
+			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_JOIN_CHANID"))
+	{
+		if(arg != NULL)
+		{
+			uint64 id = atoi(arg);
+			if(id != NULL) JoinChannel(id);
+			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_WHISPER_ACTIVATE"))
+	{
+		SetWhisperList(TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_WHISPER_DEACTIVATE"))
+	{
+		SetWhisperList(FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_WHISPER_TOGGLE"))
+	{
+		SetWhisperList(!whisperActive);
+	}
+	else if(!strcmp(cmd, "TS3_WHISPER_CLEAR"))
+	{
+		WhisperListClear();
+	}
+	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENT"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
+			if(id != NULL) WhisperAddClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENTID"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
+			if(id != NULL) WhisperAddClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHAN"))
+	{
+		if(arg != NULL)
+		{
+			uint64 id = GetChannelIDByVariable(arg, CHANNEL_NAME);
+			if(id != NULL) WhisperAddChannel(id);
+			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHANID"))
+	{
+		if(arg != NULL)
+		{
+			uint64 id = atoi(arg);
+			if(id != NULL) WhisperAddChannel(id);
+			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
 	}
 	else
 	{
-		return FALSE;
+		ts3Functions.logMessage("Command not recognized:", LogLevel_WARNING, "G-Key Plugin", 0);
+		ts3Functions.logMessage(cmd, LogLevel_WARNING, "G-Key Plugin", 0);
 	}
-	return TRUE;
 }
 
 int GetLogitechProcessId(DWORD* ProcessId)
@@ -389,19 +793,26 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 				// If this is a debug message and it uses ANSI
 				if(DebugEv.dwDebugEventCode == OUTPUT_DEBUG_STRING_EVENT && !DebugEv.u.DebugString.fUnicode)
 				{
+					char *DebugStr, *arg;
+
 					// Retrieve debug string
-					char* DebugStr = (char*)malloc(DebugEv.u.DebugString.nDebugStringLength);
+					DebugStr = (char*)malloc(DebugEv.u.DebugString.nDebugStringLength);
 					ReadProcessMemory(hProcess, DebugEv.u.DebugString.lpDebugStringData, DebugStr, DebugEv.u.DebugString.nDebugStringLength, NULL);
 					
 					// Continue the process
 					ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, DBG_CONTINUE);
 
-					// Parse debug string
-					if(!ParseCommand(DebugStr))
+					// Seperate the argument from the command
+					arg = strchr(DebugStr, ' ');
+					if(arg != NULL)
 					{
-						ts3Functions.logMessage("Debug command not recognized:", LogLevel_DEBUG, "G-Key Plugin", 0);
-						ts3Functions.logMessage(DebugStr, LogLevel_DEBUG, "G-Key Plugin", 0);
+						// Split the string by inserting a NULL-terminator
+						*arg = NULL;
+						arg++;
 					}
+
+					// Parse debug string
+					ParseCommand(DebugStr, arg);
 
 					// Free the debug string
 					free(DebugStr);
@@ -482,7 +893,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.5.0";
+    return "0.5.1";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */
@@ -522,7 +933,7 @@ int ts3plugin_init() {
 	hDebugThread = CreateThread(NULL, (SIZE_T)NULL, DebugThread, 0, 0, NULL);
 
 	// Create the PTT delay timer
-	hPttTimer = CreateWaitableTimer(NULL, FALSE, NULL);
+	hPttDelayTimer = CreateWaitableTimer(NULL, FALSE, NULL);
 
 	if(hDebugThread==NULL)
 	{
@@ -540,6 +951,9 @@ int ts3plugin_init() {
 void ts3plugin_shutdown() {
 	// Stop the plugin threads
 	pluginRunning = FALSE;
+	
+	// Cancel PTT delay timer
+	CancelWaitableTimer(hPttDelayTimer);
 
 	// Wait for the thread to stop
 	WaitForSingleObject(hDebugThread, PLUGINTHREAD_TIMEOUT);
