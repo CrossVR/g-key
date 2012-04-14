@@ -510,7 +510,7 @@ int SetActiveServer(uint64 handle)
 {
 	unsigned int error;
 	
-	if(handle != scHandlerID) // Check if alreayd active
+	if(handle != scHandlerID) // Check if already active
 	{
 		SetPushToTalk(FALSE);
 		WhisperListClear();
