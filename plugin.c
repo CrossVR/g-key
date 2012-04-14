@@ -423,7 +423,7 @@ int SetActiveServer(uint64 handle)
 	unsigned int error;
 	
 	SetPushToTalk(FALSE);
-	ClearWhisperList();
+	WhisperListClear();
 
 	if((error = ts3Functions.activateCaptureDevice(handle)) != ERROR_ok)
 	{
