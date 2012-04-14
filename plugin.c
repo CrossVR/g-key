@@ -582,6 +582,16 @@ int MuteClient(anyID client)
 		}
 		return 1;
 	}
+	if(ts3Functions.requestClientVariables(scHandlerID, client, NULL) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error flushing after muting client:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+	}
 
 	return 0;
 }
@@ -600,6 +610,16 @@ int UnmuteClient(anyID client)
 			ts3Functions.freeMemory(errorMsg);
 		}
 		return 1;
+	}
+	if(ts3Functions.requestClientVariables(scHandlerID, client, NULL) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error flushing after unmuting client:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
 	}
 
 	return 0;
