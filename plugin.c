@@ -92,7 +92,7 @@ uint64 GetServerHandleByVariable(char* value, size_t flag)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return NULL;
+		return (uint64)NULL;
 	}
 	
 	handle = servers[0];
@@ -142,7 +142,7 @@ uint64 GetChannelIDByVariable(char* value, size_t flag)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return NULL;
+		return (uint64)NULL;
 	}
 	
 	for(i = 1, handle = channels[0]; handle != (uint64)NULL; i++)
@@ -191,7 +191,7 @@ anyID GetClientIDByVariable(char* value, size_t flag)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return NULL;
+		return (anyID)NULL;
 	}
 	
 	for(i = 1, handle = clients[0]; handle != (uint64)NULL; i++)
@@ -418,6 +418,121 @@ int SetGlobalAway(BOOL isAway)
 	return 0;
 }
 
+int JoinChannel(uint64 channel)
+{
+	unsigned int error;
+	anyID self;
+
+	if((error = ts3Functions.getClientID(scHandlerID, &self)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error getting own client id:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+	if((error = ts3Functions.requestClientMove(scHandlerID, self, channel, NULL, NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error joining channel:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	return 0;
+}
+
+int SetWhisperList(BOOL active)
+{
+	unsigned int error;
+
+	if((error = ts3Functions.requestClientSetWhisperList(scHandlerID, (anyID)NULL, whisperActive?whisperChannels:(uint64*)NULL, whisperActive?whisperClients:(anyID*)NULL, NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error setting whisper list:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	whisperActive = active;
+
+	return 0;
+}
+
+void WhisperListClear()
+{
+	SetWhisperList(FALSE);
+	free(whisperClients);
+	free(whisperChannels);
+	whisperClients = (anyID*)NULL;
+	whisperChannels = (uint64*)NULL;
+}
+
+void WhisperAddClient(anyID client)
+{
+	int count = 0;
+	anyID* newList;
+	
+	// Check if old list exists
+	if(whisperClients != NULL)
+	{
+		anyID* end;
+		for(end = whisperClients; *end != (anyID)NULL; end++);
+		count = (int)(whisperClients-end);
+	}
+
+	// Make new list with enough room for the new id and the NULL terminator
+	newList = (anyID*)malloc((count+2) * sizeof(anyID));
+	newList[count] = client;
+	newList[count+1] = (anyID)NULL;
+
+	// Copy old list
+	if(whisperClients != NULL) memcpy(newList, whisperClients, (count) * sizeof(anyID));
+	
+	// Commit new list
+	free(whisperClients);
+	whisperClients = newList;
+	if(whisperActive) SetWhisperList(TRUE);
+}
+
+void WhisperAddChannel(uint64 channel)
+{
+	int count;
+	uint64* newList;
+	
+	// Check if old list exists
+	if(whisperChannels != NULL)
+	{
+		uint64* end;
+		for(end = whisperChannels; *end != (uint64)NULL; end++);
+		count = (int)(whisperChannels-end);
+	}
+
+	// Make new list with enough room for the new id and the NULL terminator
+	newList = (uint64*)malloc((count+2) * sizeof(uint64));
+	newList[count] = channel;
+	newList[count+1] = (uint64)NULL;
+
+	// Copy old list
+	if(whisperChannels != NULL) memcpy(newList, whisperClients, (count) * sizeof(uint64));
+
+	// Commit new list
+	free(whisperChannels);
+	whisperChannels = newList;
+	if(whisperActive) SetWhisperList(TRUE);
+}
+
 int SetActiveServer(uint64 handle)
 {
 	unsigned int error;
@@ -452,121 +567,6 @@ int SetActiveServer(uint64 handle)
 	return 0;
 }
 
-int JoinChannel(uint64 channel)
-{
-	unsigned int error;
-	anyID self;
-
-	if((error = ts3Functions.getClientID(scHandlerID, &self)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
-		{
-			ts3Functions.logMessage("Error getting own client id:", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-		}
-		return 1;
-	}
-	if((error = ts3Functions.requestClientMove(scHandlerID, self, channel, NULL, NULL)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
-		{
-			ts3Functions.logMessage("Error joining channel:", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-		}
-		return 1;
-	}
-
-	return 0;
-}
-
-void WhisperAddClient(anyID client)
-{
-	int count = 0;
-	anyID* newList;
-	
-	// Check if old list exists
-	if(whisperClients != NULL)
-	{
-		anyID* end;
-		for(end = whisperClients; *end != NULL; end++);
-		count = whisperClients-end;
-	}
-
-	// Make new list with enough room for the new id and the NULL terminator
-	newList = (anyID*)malloc((count+2) * sizeof(anyID));
-	newList[count] = client;
-	newList[count+1] = NULL;
-
-	// Copy old list
-	if(whisperClients != NULL) memcpy(newList, whisperClients, (count) * sizeof(anyID));
-	
-	// Commit new list
-	free(whisperClients);
-	whisperClients = newList;
-	if(whisperActive) SetWhisperList(TRUE);
-}
-
-void WhisperAddChannel(uint64 channel)
-{
-	int count;
-	uint64* newList;
-	
-	// Check if old list exists
-	if(whisperChannels != NULL)
-	{
-		uint64* end;
-		for(end = whisperChannels; *end != NULL; end++);
-		count = whisperChannels-end;
-	}
-
-	// Make new list with enough room for the new id and the NULL terminator
-	newList = (uint64*)malloc((count+2) * sizeof(uint64));
-	newList[count] = channel;
-	newList[count+1] = NULL;
-
-	// Copy old list
-	if(whisperChannels != NULL) memcpy(newList, whisperClients, (count) * sizeof(uint64));
-
-	// Commit new list
-	free(whisperChannels);
-	whisperChannels = newList;
-	if(whisperActive) SetWhisperList(TRUE);
-}
-
-void WhisperListClear()
-{
-	SetWhisperList(FALSE);
-	free(whisperClients);
-	free(whisperChannels);
-	whisperClients = (anyID*)NULL;
-	whisperChannels = (uint64*)NULL;
-}
-
-int SetWhisperList(BOOL active)
-{
-	unsigned int error;
-
-	if((error = ts3Functions.requestClientSetWhisperList(scHandlerID, NULL, whisperActive?whisperChannels:NULL, whisperActive?whisperClients:NULL, NULL)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
-		{
-			ts3Functions.logMessage("Error setting whisper list:", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-		}
-		return 1;
-	}
-
-	whisperActive = active;
-
-	return 0;
-}
-
 int MuteClient(anyID client)
 {
 	unsigned int error;
@@ -582,6 +582,8 @@ int MuteClient(anyID client)
 		}
 		return 1;
 	}
+
+	return 0;
 }
 
 int UnmuteClient(anyID client)
@@ -599,6 +601,8 @@ int UnmuteClient(anyID client)
 		}
 		return 1;
 	}
+
+	return 0;
 }
 
 int ServerKickClient(anyID client)
@@ -616,6 +620,8 @@ int ServerKickClient(anyID client)
 		}
 		return 1;
 	}
+
+	return 0;
 }
 
 int ChannelKickClient(anyID client)
@@ -633,6 +639,8 @@ int ChannelKickClient(anyID client)
 		}
 		return 1;
 	}
+
+	return 0;
 }
 
 /*********************************** Plugin functions ************************************/
@@ -718,7 +726,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_NAME);
-			if(handle != NULL) SetActiveServer(handle);
+			if(handle != (uint64)NULL) SetActiveServer(handle);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
 	}
@@ -727,7 +735,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
-			if(handle != NULL) SetActiveServer(handle);
+			if(handle != (uint64)NULL) SetActiveServer(handle);
 			else ts3Functions.logMessage("Server not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -737,7 +745,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			uint64 id = GetChannelIDByVariable(arg, CHANNEL_NAME);
-			if(id != NULL) JoinChannel(id);
+			if(id != (uint64)NULL) JoinChannel(id);
 			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -747,7 +755,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			uint64 id = atoi(arg);
-			if(id != NULL) JoinChannel(id);
+			if(id != (uint64)NULL) JoinChannel(id);
 			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -773,7 +781,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
-			if(id != NULL) WhisperAddClient(id);
+			if(id != (anyID)NULL) WhisperAddClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -783,7 +791,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
-			if(id != NULL) WhisperAddClient(id);
+			if(id != (anyID)NULL) WhisperAddClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -793,7 +801,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			uint64 id = GetChannelIDByVariable(arg, CHANNEL_NAME);
-			if(id != NULL) WhisperAddChannel(id);
+			if(id != (uint64)NULL) WhisperAddChannel(id);
 			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -803,7 +811,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			uint64 id = atoi(arg);
-			if(id != NULL) WhisperAddChannel(id);
+			if(id != (uint64)NULL) WhisperAddChannel(id);
 			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -813,7 +821,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
-			if(id != NULL) MuteClient(id);
+			if(id != (anyID)NULL) MuteClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -823,7 +831,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
-			if(id != NULL) MuteClient(id);
+			if(id != (anyID)NULL) MuteClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -833,7 +841,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
-			if(id != NULL) UnmuteClient(id);
+			if(id != (anyID)NULL) UnmuteClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -843,7 +851,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
-			if(id != NULL) UnmuteClient(id);
+			if(id != (anyID)NULL) UnmuteClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -853,7 +861,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
-			if(id != NULL) ServerKickClient(id);
+			if(id != (anyID)NULL) ServerKickClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -863,7 +871,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
-			if(id != NULL) ServerKickClient(id);
+			if(id != (anyID)NULL) ServerKickClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -873,7 +881,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
-			if(id != NULL) ChannelKickClient(id);
+			if(id != (anyID)NULL) ChannelKickClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -883,7 +891,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		if(arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
-			if(id != NULL) ChannelKickClient(id);
+			if(id != (anyID)NULL) ChannelKickClient(id);
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
@@ -955,7 +963,7 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 					if(arg != NULL)
 					{
 						// Split the string by inserting a NULL-terminator
-						*arg = NULL;
+						*arg = (char)NULL;
 						arg++;
 					}
 
