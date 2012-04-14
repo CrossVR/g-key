@@ -689,7 +689,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
 	{
-		BOOL muted;
+		int muted;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
 		SetInputMute(!muted);
 	}
@@ -703,7 +703,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
 	{
-		BOOL muted;
+		int muted;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
 		SetOutputMute(!muted);
 	}
@@ -717,7 +717,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_AWAY_TOGGLE"))
 	{
-		BOOL away;
+		int away;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
 		SetGlobalAway(!away);
 	}
@@ -852,6 +852,38 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) UnmuteClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENT"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
+			if(id != (anyID)NULL)
+			{
+				int muted;
+				ts3Functions.getClientVariableAsInt(scHandlerID, id, CLIENT_IS_MUTED, &muted);
+				if(!muted) MuteClient(id);
+				else UnmuteClient(id);
+			}
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENTID"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
+			if(id != (anyID)NULL)
+			{
+				int muted;
+				ts3Functions.getClientVariableAsInt(scHandlerID, id, CLIENT_IS_MUTED, &muted);
+				if(!muted) MuteClient(id);
+				else UnmuteClient(id);
+			}
 			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
