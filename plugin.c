@@ -567,6 +567,74 @@ int SetWhisperList(BOOL active)
 	return 0;
 }
 
+int MuteClient(anyID client)
+{
+	unsigned int error;
+
+	if((error = ts3Functions.requestMuteClients(scHandlerID, &client, NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error muting client:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+}
+
+int UnmuteClient(anyID client)
+{
+	unsigned int error;
+
+	if((error = ts3Functions.requestUnmuteClients(scHandlerID, &client, NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error unmuting client:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+}
+
+int ServerKickClient(anyID client)
+{
+	unsigned int error;
+
+	if((error = ts3Functions.requestClientKickFromServer(scHandlerID, client, "", NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error kicking client from server:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+}
+
+int ChannelKickClient(anyID client)
+{
+	unsigned int error;
+
+	if((error = ts3Functions.requestClientKickFromChannel(scHandlerID, client, "", NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) != ERROR_ok)
+		{
+			ts3Functions.logMessage("Error kicking client from server:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+}
+
 /*********************************** Plugin functions ************************************/
 
 VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowValue,DWORD dwTimerHighValue)
@@ -737,6 +805,86 @@ VOID ParseCommand(char* cmd, char* arg)
 			uint64 id = atoi(arg);
 			if(id != NULL) WhisperAddChannel(id);
 			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
+			if(id != NULL) MuteClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_MUTE_CLIENTID"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
+			if(id != NULL) MuteClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENT"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
+			if(id != NULL) UnmuteClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENTID"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
+			if(id != NULL) UnmuteClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
+			if(id != NULL) ServerKickClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
+			if(id != NULL) ServerKickClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
+			if(id != NULL) ChannelKickClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+		}
+		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+	}
+	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
+	{
+		if(arg != NULL)
+		{
+			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
+			if(id != NULL) ChannelKickClient(id);
+			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
 		}
 		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
 	}
