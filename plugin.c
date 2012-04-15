@@ -709,7 +709,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_NAME);
 			if(handle != (uint64)NULL) SetActiveServer(handle);
@@ -718,7 +718,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
 			if(handle != (uint64)NULL) SetActiveServer(handle);
@@ -728,7 +728,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHAN"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			uint64 id = GetChannelIDByVariable(arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) JoinChannel(id);
@@ -738,7 +738,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) JoinChannel(id);
@@ -764,7 +764,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENT"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) WhisperAddClient(id);
@@ -774,7 +774,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENTID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) WhisperAddClient(id);
@@ -784,7 +784,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHAN"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			uint64 id = GetChannelIDByVariable(arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) WhisperAddChannel(id);
@@ -794,7 +794,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHANID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) WhisperAddChannel(id);
@@ -804,7 +804,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) MuteClient(id);
@@ -814,7 +814,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENTID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) MuteClient(id);
@@ -824,7 +824,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENT"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) UnmuteClient(id);
@@ -834,7 +834,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENTID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) UnmuteClient(id);
@@ -844,7 +844,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENT"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL)
@@ -860,7 +860,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENTID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL)
@@ -876,7 +876,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ServerKickClient(id);
@@ -886,7 +886,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ServerKickClient(id);
@@ -896,7 +896,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ChannelKickClient(id);
@@ -906,7 +906,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
 	{
-		if(arg != NULL)
+		if(arg != NULL && *arg != NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ChannelKickClient(id);
@@ -978,7 +978,7 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 
 					// Seperate the argument from the command
 					arg = strchr(DebugStr, ' ');
-					if(arg != NULL)
+					if(arg != NULL && *arg != NULL)
 					{
 						// Split the string by inserting a NULL-terminator
 						*arg = (char)NULL;
