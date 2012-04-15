@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "public_errors.h"
 #include "public_errors_rare.h"
 #include "public_definitions.h"
@@ -50,6 +51,8 @@ static struct TS3Functions ts3Functions;
 static char* pluginID = NULL;
 static BOOL pluginRunning = FALSE;
 static char configFile[MAX_PATH];
+static char errorSound[MAX_PATH];
+static char infoIcon[MAX_PATH];
 
 // Thread handles
 static HANDLE hDebugThread = NULL;
@@ -74,6 +77,24 @@ static uint64* whisperChannels = (uint64*)NULL;
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
 
 /*********************************** TeamSpeak functions ************************************/
+
+void ErrorMessage(char* message)
+{
+	time_t timer;
+	char timeStr[11];
+	size_t newLength = strlen(message)+1000;
+	char* styledMsg = (char*)malloc(newLength*sizeof(char));
+
+	// Get the time
+	time(&timer);
+	strftime(timeStr, 11, "<%X>", localtime(&timer));
+
+	// Format and print the error message with an error sound
+	sprintf_s(styledMsg, newLength, "[img]%s[/img][color=red]%s\t%s[/color]", infoIcon, timeStr, message);
+	ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
+	ts3Functions.playWaveFile(scHandlerID, errorSound);
+	free(styledMsg);
+}
 
 uint64 GetServerHandleByVariable(char* value, size_t flag)
 {
@@ -709,7 +730,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_NAME);
 			if(handle != (uint64)NULL) SetActiveServer(handle);
@@ -718,7 +739,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
 			if(handle != (uint64)NULL) SetActiveServer(handle);
@@ -728,7 +749,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHAN"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			uint64 id = GetChannelIDByVariable(arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) JoinChannel(id);
@@ -738,7 +759,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) JoinChannel(id);
@@ -764,7 +785,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENT"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) WhisperAddClient(id);
@@ -774,7 +795,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENTID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) WhisperAddClient(id);
@@ -784,7 +805,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHAN"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			uint64 id = GetChannelIDByVariable(arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) WhisperAddChannel(id);
@@ -794,7 +815,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHANID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) WhisperAddChannel(id);
@@ -804,7 +825,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) MuteClient(id);
@@ -814,7 +835,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENTID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) MuteClient(id);
@@ -824,7 +845,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENT"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) UnmuteClient(id);
@@ -834,7 +855,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENTID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) UnmuteClient(id);
@@ -844,7 +865,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENT"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL)
@@ -860,7 +881,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENTID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL)
@@ -876,7 +897,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ServerKickClient(id);
@@ -886,7 +907,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ServerKickClient(id);
@@ -896,7 +917,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ChannelKickClient(id);
@@ -906,7 +927,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
 	{
-		if(arg != NULL && *arg != NULL)
+		if(arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ChannelKickClient(id);
@@ -978,7 +999,7 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 
 					// Seperate the argument from the command
 					arg = strchr(DebugStr, ' ');
-					if(arg != NULL && *arg != NULL)
+					if(arg != NULL)
 					{
 						// Split the string by inserting a NULL-terminator
 						*arg = (char)NULL;
@@ -1095,9 +1116,27 @@ void ts3plugin_setFunctionPointers(const struct TS3Functions funcs) {
  * If the function returns 1 on failure, the plugin will be unloaded again.
  */
 int ts3plugin_init() {
-	// Find config files
+	size_t length;
+
+	// Find config file
 	ts3Functions.getConfigPath(configFile, MAX_PATH);
 	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
+
+	// Find error.wav
+	ts3Functions.getResourcesPath(errorSound, MAX_PATH);
+	strcat_s(errorSound, MAX_PATH, "sound/");
+	length = strlen(errorSound);
+	GetPrivateProfileStringA("Notifications", "SoundPack", "default", errorSound+length, MAX_PATH-(DWORD)length, configFile);
+	strcat_s(errorSound, MAX_PATH, "/error.wav");
+
+	// Find info icon
+	ts3Functions.getResourcesPath(infoIcon, MAX_PATH);
+	strcat_s(infoIcon, MAX_PATH, "gfx/");
+	length = strlen(infoIcon);
+	GetPrivateProfileStringA("Application", "IconPack", "default", infoIcon+length, MAX_PATH-(DWORD)length, configFile);
+	strcat_s(infoIcon, MAX_PATH, "/16x16_message_info.png");
+	ts3Functions.logMessage(infoIcon, LogLevel_DEBUG, "G-Key Plugin", 0);
+	
 
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
