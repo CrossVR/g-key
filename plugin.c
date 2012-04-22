@@ -383,8 +383,9 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else
 	{
-		ErrorMessage(scHandlerID, "Command not recognized:", infoIcon, errorSound);
-		ErrorMessage(scHandlerID, cmd, infoIcon, NULL);
+		ts3Functions.logMessage("Command not recognized:", LogLevel_WARNING, "G-Key Plugin", 0);
+		ts3Functions.logMessage(cmd, LogLevel_INFO, "G-Key Plugin", 0);
+		ErrorMessage(scHandlerID, "Command not recognized", infoIcon, errorSound);
 	}
 }
 
