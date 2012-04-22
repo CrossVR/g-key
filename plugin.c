@@ -570,7 +570,6 @@ int ts3plugin_init() {
 	length = strlen(infoIcon);
 	GetPrivateProfileStringA("Application", "IconPack", "default", infoIcon+length, MAX_PATH-(DWORD)length, configFile);
 	strcat_s(infoIcon, MAX_PATH, "/16x16_message_info.png");
-	ts3Functions.logMessage(infoIcon, LogLevel_DEBUG, "G-Key Plugin", 0);
 	
 
 	// Get first connection handler
