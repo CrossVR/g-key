@@ -194,9 +194,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="functions.c" />
     <ClCompile Include="plugin.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="functions.h" />
     <ClInclude Include="include\clientlib_publicdefinitions.h" />
     <ClInclude Include="include\plugin_definitions.h" />
     <ClInclude Include="include\public_definitions.h" />
