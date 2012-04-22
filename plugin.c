@@ -48,10 +48,18 @@ static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RET
 
 // Plugin values
 static char* pluginID = NULL;
-static BOOL pluginRunning = FALSE;
+static BOOL pluginRunning = 0;
 static char configFile[MAX_PATH];
 static char errorSound[MAX_PATH];
 static char infoIcon[MAX_PATH];
+
+// Error codes
+enum PluginError {
+	PLUGIN_ERROR_NONE = 0,
+	PLUGIN_ERROR_HOOK_FAILED,
+	PLUGIN_ERROR_READ_FAILED,
+	PLUGIN_ERROR_NOT_FOUND
+};
 
 // Thread handles
 static HANDLE hDebugThread = NULL;
@@ -154,18 +162,25 @@ VOID ParseCommand(char* cmd, char* arg)
 				WhisperListClear(scHandlerID);
 				SetActiveServer(handle);
 			}
+			else ErrorMessage(scHandlerID, "Server not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERID"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
 			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
-			if(handle != (uint64)NULL) SetActiveServer(handle);
-			else ts3Functions.logMessage("Server not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			if(handle != (uint64)NULL)
+			{
+				CancelWaitableTimer(hPttDelayTimer);
+				SetPushToTalk(scHandlerID, TRUE);
+				WhisperListClear(scHandlerID);
+				SetActiveServer(handle);
+			}
+			else ErrorMessage(scHandlerID, "Server not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHAN"))
 	{
@@ -173,13 +188,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			uint64 id = GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) JoinChannel(scHandlerID, id);
-			else
-			{
-				ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
-				ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
-			}
+			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANID"))
 	{
@@ -187,9 +198,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) JoinChannel(scHandlerID, id);
-			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ACTIVATE"))
 	{
@@ -213,9 +224,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) WhisperAddClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENTID"))
 	{
@@ -223,9 +234,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) WhisperAddClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHAN"))
 	{
@@ -233,9 +244,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			uint64 id = GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) WhisperAddChannel(scHandlerID, id);
-			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHANID"))
 	{
@@ -243,9 +254,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) WhisperAddChannel(scHandlerID, id);
-			else ts3Functions.logMessage("Channel not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
 	{
@@ -253,9 +264,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) MuteClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENTID"))
 	{
@@ -263,9 +274,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) MuteClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENT"))
 	{
@@ -273,9 +284,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) UnmuteClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENTID"))
 	{
@@ -283,9 +294,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) UnmuteClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENT"))
 	{
@@ -299,9 +310,9 @@ VOID ParseCommand(char* cmd, char* arg)
 				if(!muted) MuteClient(scHandlerID, id);
 				else UnmuteClient(scHandlerID, id);
 			}
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENTID"))
 	{
@@ -315,9 +326,9 @@ VOID ParseCommand(char* cmd, char* arg)
 				if(!muted) MuteClient(scHandlerID, id);
 				else UnmuteClient(scHandlerID, id);
 			}
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
 	{
@@ -325,9 +336,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
 	{
@@ -335,9 +346,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
 	{
@@ -345,9 +356,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
 	{
@@ -355,9 +366,9 @@ VOID ParseCommand(char* cmd, char* arg)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
-			else ts3Functions.logMessage("Client not found", LogLevel_WARNING, "G-Key Plugin", 0);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else if(!strcmp(cmd, "TS3_SEND_CMD"))
 	{
@@ -368,12 +379,12 @@ VOID ParseCommand(char* cmd, char* arg)
 			self[1] = (anyID)NULL;
 			ts3Functions.sendPluginCommand(scHandlerID, pluginID, arg, PluginCommandTarget_CLIENT, self, NULL);
 		}
-		else ts3Functions.logMessage("Missing argument", LogLevel_WARNING, "G-Key Plugin", 0);
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
 	else
 	{
-		ts3Functions.logMessage("Command not recognized:", LogLevel_WARNING, "G-Key Plugin", 0);
-		ts3Functions.logMessage(cmd, LogLevel_WARNING, "G-Key Plugin", 0);
+		ErrorMessage(scHandlerID, "Command not recognized:", infoIcon, errorSound);
+		ErrorMessage(scHandlerID, cmd, infoIcon, NULL);
 	}
 }
 
@@ -472,40 +483,43 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 
 DWORD WINAPI DebugThread(LPVOID pData)
 {
-	DWORD ProcessId; // Process ID for the Logitech drivers
-	HANDLE hProcess; // Handle for the Logitech drivers
+	DWORD ProcessId; // Process ID for the Logitech software
+	HANDLE hProcess; // Handle for the Logitech software
 
-	// Get process id of the logitech driver
+	// Get process id of the logitech software
 	if(GetLogitechProcessId(&ProcessId))
 	{
-		ts3Functions.logMessage("Could not find Logitech software, are you sure it's running?", LogLevel_WARNING, "G-Key Plugin", 0);
-		return 1;
+		ts3Functions.logMessage("Could not find Logitech software", LogLevel_ERROR, "G-Key Plugin", 0);
+		pluginRunning = FALSE;
+		return PLUGIN_ERROR_NOT_FOUND;
 	}
 
-	// Open a read memory handle to the Logitech drivers
+	// Open a read memory handle to the Logitech software
 	hProcess = OpenProcess(PROCESS_VM_READ, FALSE, ProcessId);
 	if(hProcess==NULL)
 	{
-		ts3Functions.logMessage("Failed to open Logitech software for reading, try running as administrator", LogLevel_ERROR, "G-Key Plugin", 0);
-		return 1;
+		ts3Functions.logMessage("Failed to open Logitech software for reading", LogLevel_ERROR, "G-Key Plugin", 0);
+		pluginRunning = FALSE;
+		return PLUGIN_ERROR_READ_FAILED;
 	}
 
-	// Attach debugger to Logitech drivers
+	// Attach debugger to Logitech software
 	if(!DebugActiveProcess(ProcessId))
 	{
 		// Could not attach debugger, exit debug thread
-		ts3Functions.logMessage("Failed to attach debugger, are you using the correct version for your platform?", LogLevel_ERROR, "G-Key Plugin", 0);
-		return 1;
+		ts3Functions.logMessage("Failed to attach debugger", LogLevel_ERROR, "G-Key Plugin", 0);
+		pluginRunning = FALSE;
+		return PLUGIN_ERROR_HOOK_FAILED;
 	}
 
 	ts3Functions.logMessage("Debugger attached to Logitech software", LogLevel_INFO, "G-Key Plugin", 0);
 	DebugMain(ProcessId, hProcess);
 
-	// Deattach the debugger
+	// Dettach the debugger
 	DebugActiveProcessStop(ProcessId);
 	ts3Functions.logMessage("Debugger detached from Logitech software", LogLevel_INFO, "G-Key Plugin", 0);
 
-	// Close the handle to the Logitech drivers
+	// Close the handle to the Logitech software
 	CloseHandle(hProcess);
 
 	return 0;
@@ -557,7 +571,7 @@ int ts3plugin_init() {
 	ts3Functions.getConfigPath(configFile, MAX_PATH);
 	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
 
-	// Find error.wav
+	// Find error sound
 	ts3Functions.getResourcesPath(errorSound, MAX_PATH);
 	strcat_s(errorSound, MAX_PATH, "sound/");
 	length = strlen(errorSound);
@@ -570,7 +584,6 @@ int ts3plugin_init() {
 	length = strlen(infoIcon);
 	GetPrivateProfileStringA("Application", "IconPack", "default", infoIcon+length, MAX_PATH-(DWORD)length, configFile);
 	strcat_s(infoIcon, MAX_PATH, "/16x16_message_info.png");
-	
 
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
@@ -696,4 +709,25 @@ void ts3plugin_freeMemory(void* data) {
  */
 int ts3plugin_requestAutoload() {
 	return 1;  /* 1 = request autoloaded, 0 = do not request autoload */
+}
+
+/* Show an error message if the plugin failed to load */
+void ts3plugin_onConnectStatusChangeEvent(uint64 serverConnectionHandlerID, int newStatus, unsigned int errorNumber) {
+    if(newStatus == STATUS_CONNECTION_ESTABLISHED)
+	{
+		if(!pluginRunning) 
+		{
+			DWORD errorCode;
+			if(GetExitCodeThread(hDebugThread, &errorCode))
+			{
+				switch(errorCode)
+				{
+					case PLUGIN_ERROR_HOOK_FAILED: ErrorMessage(serverConnectionHandlerID, "Could not hook into Logitech software, make sure you're using the 64-bit version", infoIcon, errorSound); break;
+					case PLUGIN_ERROR_READ_FAILED: ErrorMessage(serverConnectionHandlerID, "Not enough permissions to hook into Logitech software, try running as as administrator", infoIcon, errorSound); break;
+					case PLUGIN_ERROR_NOT_FOUND: ErrorMessage(serverConnectionHandlerID, "Logitech software not running, start the Logitech software and reload the G-Key Plugin", infoIcon, errorSound); break;
+					default: ErrorMessage(serverConnectionHandlerID, "G-Key Plugin failed to start, check the clientlog for more info", infoIcon, errorSound); break;
+				}
+			}
+		}
+	}
 }
