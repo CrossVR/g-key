@@ -275,7 +275,7 @@ int SetVoiceActivation(uint64 scHandlerID, BOOL shouldActivate)
 	unsigned int error;
 
 	// Activate Voice Activity Detection
-	if((error = ts3Functions.setPreProcessorConfigValue(scHandlerID, "vad", (shouldActivate)?"true":"false")) != ERROR_ok)
+	if((error = ts3Functions.setPreProcessorConfigValue(scHandlerID, "vad", (shouldActivate && !pttActive)?"true":"false")) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
