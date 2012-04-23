@@ -21,7 +21,7 @@ uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag);
 anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag);
 int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk);
 int SetVoiceActivation(uint64 scHandlerID, BOOL shouldActivate);
-int SetInputActive(uint64 scHandlerID, BOOL shouldActivate);
+int SetContinuousTransmission(uint64 scHandlerID, BOOL shouldActivate);
 int SetInputMute(uint64 scHandlerID, BOOL shouldMute);
 int SetOutputMute(uint64 scHandlerID, BOOL shouldMute);
 int SetGlobalAway(BOOL isAway);

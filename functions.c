@@ -311,7 +311,7 @@ int SetVoiceActivation(uint64 scHandlerID, BOOL shouldActivate)
 	return 0;
 }
 
-int SetInputActive(uint64 scHandlerID, BOOL shouldActivate)
+int SetContinuousTransmission(uint64 scHandlerID, BOOL shouldActivate)
 {
 	unsigned int error;
 

@@ -120,41 +120,41 @@ VOID ParseCommand(char* cmd, char* arg)
 	{
 		SetVoiceActivation(scHandlerID, !vadActive);
 	}
-	else if(!strcmp(cmd, "TS3_INPUT_ACTIVATE"))
+	else if(!strcmp(cmd, "TS3_CT_ACTIVATE"))
 	{
-		SetInputActive(scHandlerID, TRUE);
+		SetContinuousTransmission(scHandlerID, TRUE);
 	}
-	else if(!strcmp(cmd, "TS3_INPUT_DEACTIVATE"))
+	else if(!strcmp(cmd, "TS3_CT_DEACTIVATE"))
 	{
-		SetInputActive(scHandlerID, FALSE);
+		SetContinuousTransmission(scHandlerID, FALSE);
 	}
-	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
+	else if(!strcmp(cmd, "TS3_CT_TOGGLE"))
 	{
-		SetInputActive(scHandlerID, !inputActive);
+		SetContinuousTransmission(scHandlerID, !inputActive);
 	}
-	else if(!strcmp(cmd, "TS3_CAPTURE_MUTE"))
+	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
 	{
 		SetInputMute(scHandlerID, TRUE);
 	}
-	else if(!strcmp(cmd, "TS3_CAPTURE_UNMUTE"))
+	else if(!strcmp(cmd, "TS3_INPUT_UNMUTE"))
 	{
 		SetInputMute(scHandlerID, FALSE);
 	}
-	else if(!strcmp(cmd, "TS3_CAPTURE_TOGGLE"))
+	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
 	{
 		int muted;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
 		SetInputMute(scHandlerID, !muted);
 	}
-	else if(!strcmp(cmd, "TS3_PLAYBACK_MUTE"))
+	else if(!strcmp(cmd, "TS3_OUTPUT_MUTE"))
 	{
 		SetOutputMute(scHandlerID, TRUE);
 	}
-	else if(!strcmp(cmd, "TS3_PLAYBACK_UNMUTE"))
+	else if(!strcmp(cmd, "TS3_OUTPUT_UNMUTE"))
 	{
 		SetOutputMute(scHandlerID, FALSE);
 	}
-	else if(!strcmp(cmd, "TS3_PLAYBACK_TOGGLE"))
+	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
 	{
 		int muted;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
