@@ -20,8 +20,8 @@
 
 // Push-to-talk
 BOOL pttActive = FALSE;
-static BOOL vadActive = FALSE;
-static BOOL inputActive = FALSE;
+BOOL vadActive = FALSE;
+BOOL inputActive = FALSE;
 
 // Whisper list
 BOOL whisperActive = FALSE;
@@ -199,7 +199,7 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 {
 	unsigned int error;
 
-	// If PTT is inactive, retrieve some client settings to see how PTT should behave
+	// If PTT is inactive, store the current settings
 	if(!pttActive)
 	{
 		// Get the current VAD setting
@@ -218,8 +218,7 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 		vadActive = !strcmp(temp, "true");
 		ts3Functions.freeMemory(temp);
 		
-		// Get the current input setting, this will indicate whether
-		// VAD is being used in combination with PTT.
+		// Get the current input setting, this will indicate whether VAD is being used in combination with PTT.
 		if((error = ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, &inputActive)) != ERROR_ok)
 		{
 			char* errorMsg;
@@ -231,12 +230,12 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 			}
 			return 1;
 		}
+		inputActive = !inputActive; // We want to know when it is active, not when it is inactive 
 	}
 	
-	// Temporarily disable VAD if it is not used in combination with
-	// PTT, restore the VAD setting afterwards.
+	// If VAD is active and the input is active, disable VAD, restore VAD setting afterwards
 	if((error = ts3Functions.setPreProcessorConfigValue(scHandlerID, "vad",
-		(shouldTalk && (vadActive && !inputActive)) ? "false" : (vadActive)?"true":"false")) != ERROR_ok)
+		(shouldTalk && (vadActive && inputActive)) ? "false" : (vadActive)?"true":"false")) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -248,15 +247,14 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 		return 1;
 	}
 
-	// Toggle input, it should always be on if PTT is inactive.
-	// (in the case of VAD or CT)
+	// Activate the input, restore the input setting afterwards
 	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, 
-		(shouldTalk || !inputActive) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
+		(shouldTalk || inputActive) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
 		{
-			ts3Functions.logMessage("Error toggling push-to-talk:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage("Error toggling input:", LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
@@ -268,6 +266,74 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 
 	// Commit the change
 	pttActive = shouldTalk;
+
+	return 0;
+}
+
+int SetVoiceActivation(uint64 scHandlerID, BOOL shouldActivate)
+{
+	unsigned int error;
+
+	// Activate Voice Activity Detection
+	if((error = ts3Functions.setPreProcessorConfigValue(scHandlerID, "vad", (shouldActivate)?"true":"false")) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error toggling vad:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	// Activate the input, restore the input setting afterwards
+	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, 
+		(shouldActivate) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error toggling input:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	// Update the client
+	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
+
+	// Commit the change
+	vadActive = shouldActivate;
+	inputActive = shouldActivate;
+
+	return 0;
+}
+
+int SetInputActive(uint64 scHandlerID, BOOL shouldActivate)
+{
+	unsigned int error;
+
+	// Activate the input, restore the input setting afterwards
+	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, 
+		(shouldActivate) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error toggling input:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	// Update the client
+	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
+
+	// Commit the change
+	inputActive = shouldActivate;
 
 	return 0;
 }

@@ -84,7 +84,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	// Interpret command string
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
-		CancelWaitableTimer(hPttDelayTimer);
+		if(pttActive) CancelWaitableTimer(hPttDelayTimer);
 		SetPushToTalk(scHandlerID, TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
@@ -105,32 +105,56 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
 	{
-		CancelWaitableTimer(hPttDelayTimer);
+		if(pttActive) CancelWaitableTimer(hPttDelayTimer);
 		SetPushToTalk(scHandlerID, !pttActive);
 	}
-	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
+	else if(!strcmp(cmd, "TS3_VAD_ACTIVATE"))
+	{
+		SetVoiceActivation(scHandlerID, TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_VAD_DEACTIVATE"))
+	{
+		SetVoiceActivation(scHandlerID, FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_VAD_TOGGLE"))
+	{
+		SetVoiceActivation(scHandlerID, !vadActive);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_ACTIVATE"))
+	{
+		SetInputActive(scHandlerID, TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_DEACTIVATE"))
+	{
+		SetInputActive(scHandlerID, FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
+	{
+		SetInputActive(scHandlerID, !inputActive);
+	}
+	else if(!strcmp(cmd, "TS3_CAPTURE_MUTE"))
 	{
 		SetInputMute(scHandlerID, TRUE);
 	}
-	else if(!strcmp(cmd, "TS3_INPUT_UNMUTE"))
+	else if(!strcmp(cmd, "TS3_CAPTURE_UNMUTE"))
 	{
 		SetInputMute(scHandlerID, FALSE);
 	}
-	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
+	else if(!strcmp(cmd, "TS3_CAPTURE_TOGGLE"))
 	{
 		int muted;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
 		SetInputMute(scHandlerID, !muted);
 	}
-	else if(!strcmp(cmd, "TS3_OUTPUT_MUTE"))
+	else if(!strcmp(cmd, "TS3_PLAYBACK_MUTE"))
 	{
 		SetOutputMute(scHandlerID, TRUE);
 	}
-	else if(!strcmp(cmd, "TS3_OUTPUT_UNMUTE"))
+	else if(!strcmp(cmd, "TS3_PLAYBACK_UNMUTE"))
 	{
 		SetOutputMute(scHandlerID, FALSE);
 	}
-	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
+	else if(!strcmp(cmd, "TS3_PLAYBACK_TOGGLE"))
 	{
 		int muted;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
@@ -589,12 +613,15 @@ int ts3plugin_init() {
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
 
-	// Start the plugin threads
-	pluginRunning = TRUE;
-	hDebugThread = CreateThread(NULL, (SIZE_T)NULL, DebugThread, 0, 0, NULL);
+	// Initialize PTT settings
+	SetPushToTalk(scHandlerID, FALSE);
 
 	// Create the PTT delay timer
 	hPttDelayTimer = CreateWaitableTimer(NULL, FALSE, NULL);
+
+	// Start the plugin threads
+	pluginRunning = TRUE;
+	hDebugThread = CreateThread(NULL, (SIZE_T)NULL, DebugThread, 0, 0, NULL);
 
 	if(hDebugThread==NULL)
 	{
