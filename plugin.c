@@ -394,17 +394,6 @@ VOID ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
-	else if(!strcmp(cmd, "TS3_SEND_CMD"))
-	{
-		if(arg != NULL && *arg != (char)NULL)
-		{
-			anyID self[2];
-			ts3Functions.getClientID(scHandlerID, self);
-			self[1] = (anyID)NULL;
-			ts3Functions.sendPluginCommand(scHandlerID, pluginID, arg, PluginCommandTarget_CLIENT, self, NULL);
-		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
-	}
 	else
 	{
 		ts3Functions.logMessage("Command not recognized:", LogLevel_WARNING, "G-Key Plugin", 0);
