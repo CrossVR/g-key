@@ -317,7 +317,7 @@ int SetInputActive(uint64 scHandlerID, BOOL shouldActivate)
 
 	// Activate the input, restore the input setting afterwards
 	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, 
-		(shouldActivate) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
+		(shouldActivate || pttActive) ? INPUT_ACTIVE : INPUT_DEACTIVATED)) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
