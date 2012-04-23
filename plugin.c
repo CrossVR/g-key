@@ -394,13 +394,13 @@ VOID ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
-	else if(!strcmp(cmd, "TS3_VOLUME_INCREASE"))
+	else if(!strcmp(cmd, "TS3_VOLUME_UP"))
 	{
 		float value;
 		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
 		SetMasterVolume(scHandlerID, value+1.0f);
 	}
-	else if(!strcmp(cmd, "TS3_VOLUME_DECREASE"))
+	else if(!strcmp(cmd, "TS3_VOLUME_DOWN"))
 	{
 		float value;
 		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
