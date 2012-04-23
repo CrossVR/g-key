@@ -35,5 +35,6 @@ int MuteClient(uint64 scHandlerID, anyID client);
 int UnmuteClient(uint64 scHandlerID, anyID client);
 int ServerKickClient(uint64 scHandlerID, anyID client);
 int ChannelKickClient(uint64 scHandlerID, anyID client);
+int SetMasterVolume(uint64 scHandlerID, float value);
 
 #endif

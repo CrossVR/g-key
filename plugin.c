@@ -394,6 +394,23 @@ VOID ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
+	else if(!strcmp(cmd, "TS3_VOLUME_INCREASE"))
+	{
+		float value;
+		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
+		SetMasterVolume(scHandlerID, value+1.0f);
+	}
+	else if(!strcmp(cmd, "TS3_VOLUME_DECREASE"))
+	{
+		float value;
+		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
+		SetMasterVolume(scHandlerID, value-1.0f);
+	}
+	else if(!strcmp(cmd, "TS3_VOLUME_SET"))
+	{
+		float value = atof(arg);
+		SetMasterVolume(scHandlerID, value);
+	}
 	else
 	{
 		ts3Functions.logMessage("Command not recognized:", LogLevel_WARNING, "G-Key Plugin", 0);

@@ -18,6 +18,13 @@
 #include "plugin.h"
 #include "functions.h"
 
+#ifdef _WIN32
+#define _strcpy(dest, destSize, src) strcpy_s(dest, destSize, src)
+#define snprintf sprintf_s
+#else
+#define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
+#endif
+
 // Push-to-talk
 BOOL pttActive = FALSE;
 BOOL vadActive = FALSE;
@@ -41,7 +48,7 @@ void ErrorMessage(uint64 scHandlerID, char* message, char* icon, char* sound)
 
 	// Format and print the error message and play the error sound
 	// Use a transparent underscore because a double space will be collapsed
-	sprintf_s(styledMsg, newLength, "[img]%s[/img][color=red]%s[color=transparent]_[/color]%s[/color]", icon, timeStr, message);
+	snprintf(styledMsg, newLength, "[img]%s[/img][color=red]%s[color=transparent]_[/color]%s[/color]", icon, timeStr, message);
 	ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
 	if(sound!=NULL) ts3Functions.playWaveFile(scHandlerID, sound);
 	free(styledMsg);
@@ -648,6 +655,30 @@ int ChannelKickClient(uint64 scHandlerID, anyID client)
 
 	if((error = ts3Functions.requestClientKickFromChannel(scHandlerID, client, "", NULL)) != ERROR_ok)
 	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error kicking client from server:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	return 0;
+}
+
+int SetMasterVolume(uint64 scHandlerID, float value)
+{
+	unsigned int error;
+	char str[5];
+	
+	// Clamp value
+	if(value < -40.0) value = -40.0;
+	if(value > 20.0) value = 20.0;
+
+	snprintf(str, 5, "%.1f", value);
+	if((error = ts3Functions.setPlaybackConfigValue(scHandlerID, "volume_modifier", str)) != ERROR_ok) {
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
 		{
