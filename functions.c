@@ -2,7 +2,7 @@
  * TeamSpeak 3 G-key plugin
  * Author: Jules Blok (jules@aerix.nl)
  *
- * Copyright (c) 2008-2011 TeamSpeak Systems GmbH
+ * Copyright (c) 2008-2012 TeamSpeak Systems GmbH
  */
 
 #include <Windows.h>
