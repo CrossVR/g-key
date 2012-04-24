@@ -54,13 +54,12 @@ void ErrorMessage(uint64 scHandlerID, char* message, char* icon, char* sound)
 	free(styledMsg);
 }
 
-uint64 GetServerHandleByVariable(char* value, size_t flag)
+int GetServerHandleByVariable(char* value, size_t flag, uint64* result)
 {
 	unsigned int error;
 	char* variable;
 	uint64* servers;
-	uint64 handle;
-	int i;
+	uint64* server;
 
 	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
 	{
@@ -71,13 +70,13 @@ uint64 GetServerHandleByVariable(char* value, size_t flag)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return (uint64)NULL;
+		return 1;
 	}
 	
-	handle = servers[0];
-	for(i = 1; handle != (uint64)NULL; i++)
+	// Find the first server that matches the criteria
+	for(server = servers, *result = NULL; *server != (uint64)NULL && *result == NULL; server++)
 	{
-		if((error = ts3Functions.getServerVariableAsString(handle, flag, &variable)) != ERROR_ok)
+		if((error = ts3Functions.getServerVariableAsString(*server, flag, &variable)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -89,28 +88,22 @@ uint64 GetServerHandleByVariable(char* value, size_t flag)
 		}
 		else
 		{
-			if(!strcmp(value, variable))
-			{
-				ts3Functions.freeMemory(variable);
-				ts3Functions.freeMemory(servers);
-				return handle;
-			}
+			// If the variable matches the value set the result, this will end the loop
+			if(!strcmp(value, variable)) *result = *server;
 			ts3Functions.freeMemory(variable);
 		}
-		handle = servers[i];
 	}
 
 	ts3Functions.freeMemory(servers);
-	return handle;
+	return 0;
 }
 
-uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag)
+int GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag, uint64* result)
 {
 	unsigned int error;
 	char* variable;
 	uint64* channels;
-	uint64 handle;
-	int i;
+	uint64* channel;
 	
 	if((error = ts3Functions.getChannelList(scHandlerID, &channels)) != ERROR_ok)
 	{
@@ -124,9 +117,10 @@ uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 		return (uint64)NULL;
 	}
 	
-	for(i = 1, handle = channels[0]; handle != (uint64)NULL; i++)
+	// Find the first channel that matches the criteria
+	for(channel = channels, *result = NULL; *channel != (uint64)NULL && *result == NULL; channel++)
 	{
-		if((error = ts3Functions.getChannelVariableAsString(scHandlerID, handle, flag, &variable)) != ERROR_ok)
+		if((error = ts3Functions.getChannelVariableAsString(scHandlerID, *channel, flag, &variable)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -138,27 +132,22 @@ uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 		}
 		else
 		{
-			if(!strcmp(value, variable))
-			{
-				ts3Functions.freeMemory(variable);
-				ts3Functions.freeMemory(channels);
-				return handle;
-			}
+			// If the variable matches the value set the result, this will end the loop
+			if(!strcmp(value, variable)) *result = *channel;
 			ts3Functions.freeMemory(variable);
 		}
-		handle = channels[i];
 	}
 
 	ts3Functions.freeMemory(channels);
-	return handle;
+	return 0;
 }
 
-anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag)
+int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* result)
 {
 	unsigned int error;
 	char* variable;
 	anyID* clients;
-	anyID handle;
+	anyID* client;
 	int i;
 
 	if((error = ts3Functions.getClientList(scHandlerID, &clients)) != ERROR_ok)
@@ -170,12 +159,13 @@ anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return (anyID)NULL;
+		return 1;
 	}
 	
-	for(i = 1, handle = clients[0]; handle != (uint64)NULL; i++)
+	// Find the first client that matches the criteria
+	for(client = clients, *result = NULL; *client != (uint64)NULL && *result == NULL; client++)
 	{
-		if((error = ts3Functions.getClientVariableAsString(scHandlerID, handle, flag, &variable)) != ERROR_ok)
+		if((error = ts3Functions.getClientVariableAsString(scHandlerID, *client, flag, &variable)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -187,19 +177,15 @@ anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 		}
 		else
 		{
-			if(!strcmp(value, variable))
-			{
-				ts3Functions.freeMemory(variable);
-				ts3Functions.freeMemory(clients);
-				return handle;
-			}
+			// If the variable matches the value set the result, this will end the loop
+			if(!strcmp(value, variable)) *result = *client;
 			ts3Functions.freeMemory(variable);
 		}
-		handle = clients[i];
 	}
-
+	
+	*result = *client;
 	ts3Functions.freeMemory(clients);
-	return handle;
+	return 0;
 }
 
 int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)

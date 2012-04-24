@@ -20,9 +20,9 @@ extern BOOL whisperActive;
 void ErrorMessage(uint64 scHandlerID, char* message, char* icon, char* sound);
 
 /* Getters */
-uint64 GetServerHandleByVariable(char* value, size_t flag);
-uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag);
-anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag);
+int GetServerHandleByVariable(char* value, size_t flag, uint64* result);
+int GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag, uint64* result);
+int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* result);
 
 /* Communication */
 int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk);
@@ -46,11 +46,7 @@ int UnmuteClient(uint64 scHandlerID, anyID client);
 int ServerKickClient(uint64 scHandlerID, anyID client);
 int ChannelKickClient(uint64 scHandlerID, anyID client);
 int JoinChannelRelative(uint64 scHandlerID, int direction);
-inline int JoinNextChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, 1); }
-inline int JoinPrevChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, -1); }
 int SetActiveServerRelative(uint64 scHandlerID, int direction);
-inline int SetNextActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, 1); }
-inline int SetPrevActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, -1); }
 
 /* Miscellaneous */
 int SetMasterVolume(uint64 scHandlerID, float value);
