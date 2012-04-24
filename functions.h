@@ -30,7 +30,6 @@ int SetVoiceActivation(uint64 scHandlerID, BOOL shouldActivate);
 int SetContinuousTransmission(uint64 scHandlerID, BOOL shouldActivate);
 int SetInputMute(uint64 scHandlerID, BOOL shouldMute);
 int SetOutputMute(uint64 scHandlerID, BOOL shouldMute);
-int SetMasterVolume(uint64 scHandlerID, float value);
 
 /* Whispering */
 int SetWhisperList(uint64 scHandlerID, BOOL shouldWhisper);
@@ -49,5 +48,8 @@ int ChannelKickClient(uint64 scHandlerID, anyID client);
 int JoinChannelRelative(uint64 scHandlerID, int direction);
 inline int JoinNextChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, 1); }
 inline int JoinPrevChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, -1); }
+
+/* Miscellaneous */
+int SetMasterVolume(uint64 scHandlerID, float value);
 
 #endif
