@@ -48,7 +48,7 @@ static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RET
 
 // Plugin values
 static char* pluginID = NULL;
-static BOOL pluginRunning = 0;
+static bool pluginRunning = false;
 static char configFile[MAX_PATH];
 static char errorSound[MAX_PATH];
 static char infoIcon[MAX_PATH];
@@ -639,14 +639,11 @@ int ts3plugin_init() {
 	// Get first connection handler
 	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
 
-	// Initialize PTT settings
-	SetPushToTalk(scHandlerID, FALSE);
-
 	// Create the PTT delay timer
 	hPttDelayTimer = CreateWaitableTimer(NULL, FALSE, NULL);
 
 	// Start the plugin threads
-	pluginRunning = TRUE;
+	pluginRunning = true;
 	hDebugThread = CreateThread(NULL, (SIZE_T)NULL, DebugThread, 0, 0, NULL);
 
 	if(hDebugThread==NULL)
