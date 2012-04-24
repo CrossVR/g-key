@@ -41,8 +41,6 @@ void WhisperAddChannel(uint64 scHandlerID, uint64 channel);
 int SetActiveServer(uint64 handle);
 int SetGlobalAway(BOOL isAway);
 int JoinChannel(uint64 scHandlerID, uint64 channel);
-int MuteClient(uint64 scHandlerID, anyID client);
-int UnmuteClient(uint64 scHandlerID, anyID client);
 int ServerKickClient(uint64 scHandlerID, anyID client);
 int ChannelKickClient(uint64 scHandlerID, anyID client);
 int JoinChannelRelative(uint64 scHandlerID, int direction);
@@ -50,5 +48,7 @@ int SetActiveServerRelative(uint64 scHandlerID, int direction);
 
 /* Miscellaneous */
 int SetMasterVolume(uint64 scHandlerID, float value);
+int MuteClient(uint64 scHandlerID, anyID client);
+int UnmuteClient(uint64 scHandlerID, anyID client);
 
 #endif

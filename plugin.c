@@ -81,7 +81,7 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 
 VOID ParseCommand(char* cmd, char* arg)
 {
-	// Interpret command string
+	/***** Communication *****/
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
 		if(pttActive) CancelWaitableTimer(hPttDelayTimer);
@@ -160,6 +160,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
 		SetOutputMute(scHandlerID, !muted);
 	}
+	/***** Server interaction *****/
 	else if(!strcmp(cmd, "TS3_AWAY_ZZZ"))
 	{
 		SetGlobalAway(TRUE);
@@ -229,6 +230,51 @@ VOID ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
+	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
+	{
+		if(arg != NULL && *arg != (char)NULL)
+		{
+			anyID id;
+			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
+			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+		}
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+	}
+	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
+	{
+		if(arg != NULL && *arg != (char)NULL)
+		{
+			anyID id;
+			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
+			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+		}
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+	}
+	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
+	{
+		if(arg != NULL && *arg != (char)NULL)
+		{
+			anyID id;
+			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
+			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+		}
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+	}
+	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
+	{
+		if(arg != NULL && *arg != (char)NULL)
+		{
+			anyID id;
+			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
+			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
+			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+		}
+		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+	}
+	/***** Whispering *****/
 	else if(!strcmp(cmd, "TS3_WHISPER_ACTIVATE"))
 	{
 		SetWhisperList(scHandlerID, TRUE);
@@ -288,6 +334,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
+	/***** Miscellaneous *****/
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
@@ -366,50 +413,6 @@ VOID ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
-	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
-	{
-		if(arg != NULL && *arg != (char)NULL)
-		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
-			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
-		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
-	}
-	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
-	{
-		if(arg != NULL && *arg != (char)NULL)
-		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
-			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
-		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
-	}
-	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
-	{
-		if(arg != NULL && *arg != (char)NULL)
-		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
-			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
-		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
-	}
-	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
-	{
-		if(arg != NULL && *arg != (char)NULL)
-		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
-			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
-		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
-	}
 	else if(!strcmp(cmd, "TS3_VOLUME_UP"))
 	{
 		float value;
@@ -427,6 +430,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		float value = atof(arg);
 		SetMasterVolume(scHandlerID, value);
 	}
+	/***** Error handler *****/
 	else
 	{
 		ts3Functions.logMessage("Command not recognized:", LogLevel_WARNING, "G-Key Plugin", 0);
