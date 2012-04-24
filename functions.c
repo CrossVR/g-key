@@ -691,3 +691,87 @@ int SetMasterVolume(uint64 scHandlerID, float value)
 
 	return 0;
 }
+
+int JoinChannelRelative(uint64 scHandlerID, int direction)
+{
+	unsigned int error;
+	anyID self;
+	uint64* channels;
+	uint64* channel;
+	uint64 ownChannel;
+	int result = 1;
+
+	// Get channel list
+	if((error = ts3Functions.getChannelList(scHandlerID, &channels)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving list of channels:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return (uint64)NULL;
+	}
+
+	// Get own channel
+	if((error = ts3Functions.getClientID(scHandlerID, &self)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error getting own client id:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+	if((error = ts3Functions.getChannelOfClient(scHandlerID, self, &ownChannel)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error getting own channel id:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	// Find own channel in channel list
+	for(channel=channels; *channel!=ownChannel && *channel!=NULL; channel++);
+	
+	// Find joinable channel
+	for(; channel!=channels && channel!=NULL && result; (direction>=0)?channel++:channel--)
+	{
+		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, *channel, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+			{
+				ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
+			return 1;
+		}
+	}
+
+	// If a joinable channel was found, attempt to join it
+	if(!result)
+	{
+		if((error = ts3Functions.requestClientMove(scHandlerID, self, *channel, "", NULL)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+			{
+				ts3Functions.logMessage("Error joining channel:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
+			return 1;
+		}
+	}
+
+	return 0;
+}
