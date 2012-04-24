@@ -194,8 +194,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="functions.c" />
-    <ClCompile Include="plugin.c" />
+    <ClCompile Include="functions.cpp" />
+    <ClCompile Include="plugin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="functions.h" />

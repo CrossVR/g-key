@@ -17,6 +17,7 @@
 #include "ts3_functions.h"
 #include "plugin.h"
 #include "functions.h"
+#include <vector>
 
 #ifdef _WIN32
 #define _strcpy(dest, destSize, src) strcpy_s(dest, destSize, src)
@@ -26,14 +27,14 @@
 #endif
 
 // Push-to-talk
-BOOL pttActive = FALSE;
-BOOL vadActive = FALSE;
-BOOL inputActive = FALSE;
+bool pttActive = false;
+bool vadActive = false;
+bool inputActive = false;
 
 // Whisper list
-BOOL whisperActive = FALSE;
-static anyID* whisperClients = (anyID*)NULL;
-static uint64* whisperChannels = (uint64*)NULL;
+bool whisperActive = false;
+static std::vector<anyID> whisperClients;
+static std::vector<uint64> whisperChannels;
 
 void ErrorMessage(uint64 scHandlerID, char* message, char* icon, char* sound)
 {
@@ -148,7 +149,6 @@ int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* r
 	char* variable;
 	anyID* clients;
 	anyID* client;
-	int i;
 
 	if((error = ts3Functions.getClientList(scHandlerID, &clients)) != ERROR_ok)
 	{
@@ -188,7 +188,7 @@ int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* r
 	return 0;
 }
 
-int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
+int SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 {
 	unsigned int error;
 
@@ -196,8 +196,8 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 	if(!pttActive)
 	{
 		// Get the current VAD setting
-		char* temp;
-		if((error = ts3Functions.getPreProcessorConfigValue(scHandlerID, "vad", &temp)) != ERROR_ok)
+		char* vad;
+		if((error = ts3Functions.getPreProcessorConfigValue(scHandlerID, "vad", &vad)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -208,11 +208,12 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 			}
 			return 1;
 		}
-		vadActive = !strcmp(temp, "true");
-		ts3Functions.freeMemory(temp);
+		vadActive = !strcmp(vad, "true");
+		ts3Functions.freeMemory(vad);
 		
-		// Get the current input setting, this will indicate whether VAD is being used in combination with PTT.
-		if((error = ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, &inputActive)) != ERROR_ok)
+		// Get the current input setting, this will indicate whether VAD is being used in combination with PTT
+		int input;
+		if((error = ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_DEACTIVATED, &input)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -223,7 +224,7 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 			}
 			return 1;
 		}
-		inputActive = !inputActive; // We want to know when it is active, not when it is inactive 
+		inputActive = !input; // We want to know when it is active, not when it is inactive 
 	}
 	
 	// If VAD is active and the input is active, disable VAD, restore VAD setting afterwards
@@ -263,7 +264,7 @@ int SetPushToTalk(uint64 scHandlerID, BOOL shouldTalk)
 	return 0;
 }
 
-int SetVoiceActivation(uint64 scHandlerID, BOOL shouldActivate)
+int SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
 {
 	unsigned int error;
 
@@ -304,7 +305,7 @@ int SetVoiceActivation(uint64 scHandlerID, BOOL shouldActivate)
 	return 0;
 }
 
-int SetContinuousTransmission(uint64 scHandlerID, BOOL shouldActivate)
+int SetContinuousTransmission(uint64 scHandlerID, bool shouldActivate)
 {
 	unsigned int error;
 
@@ -331,7 +332,7 @@ int SetContinuousTransmission(uint64 scHandlerID, BOOL shouldActivate)
 	return 0;
 }
 
-int SetInputMute(uint64 scHandlerID, BOOL shouldMute)
+int SetInputMute(uint64 scHandlerID, bool shouldMute)
 {
 	unsigned int error;
 
@@ -351,7 +352,7 @@ int SetInputMute(uint64 scHandlerID, BOOL shouldMute)
 	return 0;
 }
 
-int SetOutputMute(uint64 scHandlerID, BOOL shouldMute)
+int SetOutputMute(uint64 scHandlerID, bool shouldMute)
 {
 	unsigned int error;
 
@@ -371,7 +372,7 @@ int SetOutputMute(uint64 scHandlerID, BOOL shouldMute)
 	return 0;
 }
 
-int SetGlobalAway(BOOL isAway)
+int SetGlobalAway(bool isAway)
 {
 	unsigned int error;
 	uint64* servers;
@@ -444,11 +445,21 @@ int JoinChannel(uint64 scHandlerID, uint64 channel)
 	return 0;
 }
 
-int SetWhisperList(uint64 scHandlerID, BOOL shouldWhisper)
+int SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 {
 	unsigned int error;
 
-	if((error = ts3Functions.requestClientSetWhisperList(scHandlerID, (anyID)NULL, shouldWhisper?whisperChannels:(uint64*)NULL, shouldWhisper?whisperClients:(anyID*)NULL, NULL)) != ERROR_ok)
+	// Add the NULL-terminator
+	if(shouldWhisper)
+	{
+		whisperClients.push_back((anyID)NULL);
+		whisperChannels.push_back((uint64)NULL);
+	}
+
+	/*
+	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
+	 */
+	if((error = ts3Functions.requestClientSetWhisperList(scHandlerID, (anyID)NULL, shouldWhisper?&whisperChannels[0]:(uint64*)NULL, shouldWhisper?&whisperClients[0]:(anyID*)NULL, NULL)) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -459,8 +470,15 @@ int SetWhisperList(uint64 scHandlerID, BOOL shouldWhisper)
 		}
 		return 1;
 	}
-	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
 
+	// Remove the NULL-terminator
+	if(shouldWhisper)
+	{
+		whisperClients.pop_back();
+		whisperChannels.pop_back();
+	}
+
+	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
 	whisperActive = shouldWhisper;
 
 	return 0;
@@ -468,73 +486,45 @@ int SetWhisperList(uint64 scHandlerID, BOOL shouldWhisper)
 
 void WhisperListClear(uint64 scHandlerID)
 {
-	SetWhisperList(scHandlerID, FALSE);
-	free(whisperClients);
-	free(whisperChannels);
-	whisperClients = (anyID*)NULL;
-	whisperChannels = (uint64*)NULL;
+	SetWhisperList(scHandlerID, false);
+	whisperClients.clear();
+	whisperChannels.clear();
 }
 
 void WhisperAddClient(uint64 scHandlerID, anyID client)
 {
-	int count = 0;
-	anyID* newList;
-	
-	// Check if old list exists
-	if(whisperClients != NULL)
-	{
-		anyID* end;
-		for(end = whisperClients; *end != (anyID)NULL; end++)
-			if(*end == client) return; // Client already in list
-		count = (int)(whisperClients-end);
-	}
+	/*
+	 * Do not add if duplicate. I could use a set, but that would be inefficient as
+	 * ordering is unimportant and it would require me to convert to C arrays when
+	 * activating the whisper list.
+	 */
+	bool duplicate = false;
+	for(std::vector<anyID>::iterator it=whisperClients.begin(); it!=whisperClients.end(); it++)
+		if(*it == client) duplicate = true;
 
-	// Make new list with enough room for the new id and the NULL terminator
-	newList = (anyID*)malloc((count+2) * sizeof(anyID));
-	newList[count] = client;
-	newList[count+1] = (anyID)NULL;
-
-	// Copy old list
-	if(whisperClients != NULL)
+	if(!duplicate)
 	{
-		memcpy(newList, whisperClients, (count) * sizeof(anyID));
-		free(whisperClients);
+		whisperClients.push_back(client);
+		if(whisperActive) SetWhisperList(scHandlerID, true);
 	}
-	
-	// Commit new list
-	whisperClients = newList;
-	if(whisperActive) SetWhisperList(scHandlerID, TRUE);
 }
 
 void WhisperAddChannel(uint64 scHandlerID, uint64 channel)
 {
-	int count;
-	uint64* newList;
-	
-	// Check if old list exists
-	if(whisperChannels != NULL)
+	/*
+	 * Do not add if duplicate. I could use a set, but that would be inefficient as
+	 * ordering is unimportant and it would require me to convert to C arrays when
+	 * activating the whisper list.
+	 */
+	bool duplicate = false;
+	for(std::vector<uint64>::iterator it=whisperChannels.begin(); it!=whisperChannels.end(); it++)
+		if(*it == channel) duplicate = true;
+
+	if(!duplicate)
 	{
-		uint64* end;
-		for(end = whisperChannels; *end != (uint64)NULL; end++)
-			if(*end == channel) return; // Channel already in list
-		count = (int)(whisperChannels-end);
+		whisperChannels.push_back(channel);
+		if(whisperActive) SetWhisperList(scHandlerID, true);
 	}
-
-	// Make new list with enough room for the new id and the NULL terminator
-	newList = (uint64*)malloc((count+2) * sizeof(uint64));
-	newList[count] = channel;
-	newList[count+1] = (uint64)NULL;
-
-	// Copy old list
-	if(whisperChannels != NULL)
-	{
-		memcpy(newList, whisperClients, (count) * sizeof(uint64));
-		free(whisperChannels);
-	}
-
-	// Commit new list
-	whisperChannels = newList;
-	if(whisperActive) SetWhisperList(scHandlerID, TRUE);
 }
 
 int SetActiveServer(uint64 handle)
@@ -791,4 +781,6 @@ int SetActiveServerRelative(uint64 scHandlerID, int direction)
 	for(; server!=NULL && server!=servers; server+=direction);
 
 	if(*server != NULL && *server != scHandlerID) SetActiveServer(*server);
+
+	return 0;
 }

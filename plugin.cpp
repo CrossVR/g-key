@@ -76,16 +76,16 @@ static uint64 scHandlerID = (uint64)NULL;
 
 VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowValue,DWORD dwTimerHighValue)
 {
-	SetPushToTalk(scHandlerID, FALSE);
+	SetPushToTalk(scHandlerID, false);
 }
 
-VOID ParseCommand(char* cmd, char* arg)
+void ParseCommand(char* cmd, char* arg)
 {
 	/***** Communication *****/
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
 		if(pttActive) CancelWaitableTimer(hPttDelayTimer);
-		SetPushToTalk(scHandlerID, TRUE);
+		SetPushToTalk(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
 	{
@@ -100,7 +100,7 @@ VOID ParseCommand(char* cmd, char* arg)
 		}
 		else
 		{
-			SetPushToTalk(scHandlerID, FALSE);
+			SetPushToTalk(scHandlerID, false);
 		}
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
@@ -110,11 +110,11 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_VAD_ACTIVATE"))
 	{
-		SetVoiceActivation(scHandlerID, TRUE);
+		SetVoiceActivation(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_VAD_DEACTIVATE"))
 	{
-		SetVoiceActivation(scHandlerID, FALSE);
+		SetVoiceActivation(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_VAD_TOGGLE"))
 	{
@@ -122,11 +122,11 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CT_ACTIVATE"))
 	{
-		SetContinuousTransmission(scHandlerID, TRUE);
+		SetContinuousTransmission(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_CT_DEACTIVATE"))
 	{
-		SetContinuousTransmission(scHandlerID, FALSE);
+		SetContinuousTransmission(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_CT_TOGGLE"))
 	{
@@ -134,11 +134,11 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
 	{
-		SetInputMute(scHandlerID, TRUE);
+		SetInputMute(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_UNMUTE"))
 	{
-		SetInputMute(scHandlerID, FALSE);
+		SetInputMute(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
 	{
@@ -148,11 +148,11 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_MUTE"))
 	{
-		SetOutputMute(scHandlerID, TRUE);
+		SetOutputMute(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_UNMUTE"))
 	{
-		SetOutputMute(scHandlerID, FALSE);
+		SetOutputMute(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
 	{
@@ -163,11 +163,11 @@ VOID ParseCommand(char* cmd, char* arg)
 	/***** Server interaction *****/
 	else if(!strcmp(cmd, "TS3_AWAY_ZZZ"))
 	{
-		SetGlobalAway(TRUE);
+		SetGlobalAway(true);
 	}
 	else if(!strcmp(cmd, "TS3_AWAY_NONE"))
 	{
-		SetGlobalAway(FALSE);
+		SetGlobalAway(false);
 	}
 	else if(!strcmp(cmd, "TS3_AWAY_TOGGLE"))
 	{
@@ -427,7 +427,7 @@ VOID ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_SET"))
 	{
-		float value = atof(arg);
+		float value = (float)atof(arg);
 		SetMasterVolume(scHandlerID, value);
 	}
 	/***** Error handler *****/

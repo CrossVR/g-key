@@ -11,10 +11,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="plugin.c">
+    <ClCompile Include="functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="functions.c">
+    <ClCompile Include="plugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
