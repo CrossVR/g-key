@@ -48,6 +48,9 @@ int ChannelKickClient(uint64 scHandlerID, anyID client);
 int JoinChannelRelative(uint64 scHandlerID, int direction);
 inline int JoinNextChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, 1); }
 inline int JoinPrevChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, -1); }
+int SetActiveServerRelative(uint64 scHandlerID, int direction);
+inline int SetNextActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, 1); }
+inline int SetPrevActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, -1); }
 
 /* Miscellaneous */
 int SetMasterVolume(uint64 scHandlerID, float value);

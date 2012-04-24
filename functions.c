@@ -711,7 +711,7 @@ int JoinChannelRelative(uint64 scHandlerID, int direction)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return (uint64)NULL;
+		return 1;
 	}
 
 	// Get own channel
@@ -774,4 +774,32 @@ int JoinChannelRelative(uint64 scHandlerID, int direction)
 	}
 
 	return 0;
+}
+
+int SetActiveServerRelative(uint64 scHandlerID, int direction)
+{
+	unsigned int error;
+	uint64* servers;
+	uint64* server;
+
+	// Get server list
+	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving list of servers:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	// Find active server
+	for(server=servers; *server!=NULL; server++);
+
+	// Find the server
+	for(; server!=NULL && server!=servers; (direction>=0)?server++:server--);
+
+	if(*server != NULL && *server != scHandlerID) SetActiveServer(*server);
 }
