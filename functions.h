@@ -32,6 +32,7 @@ int SetInputMute(uint64 scHandlerID, bool shouldMute);
 int SetOutputMute(uint64 scHandlerID, bool shouldMute);
 
 /* Whispering */
+void GetWhisperList(uint64 scHandlerID);
 int SetWhisperList(uint64 scHandlerID, bool shouldWhisper);
 void WhisperListClear(uint64 scHandlerID);
 void WhisperAddClient(uint64 scHandlerID, anyID client);

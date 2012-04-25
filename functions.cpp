@@ -18,6 +18,7 @@
 #include "plugin.h"
 #include "functions.h"
 #include <vector>
+#include <map>
 
 #ifdef _WIN32
 #define _strcpy(dest, destSize, src) strcpy_s(dest, destSize, src)
@@ -32,9 +33,16 @@ bool vadActive = false;
 bool inputActive = false;
 
 // Whisper list
+class WhisperList
+{
+	public:
+		std::vector<anyID> clients;
+		std::vector<uint64> channels;
+};
+typedef std::map<uint64, WhisperList>::iterator WhisperIterator;
+
 bool whisperActive = false;
-static std::vector<anyID> whisperClients;
-static std::vector<uint64> whisperChannels;
+std::map<uint64, WhisperList> whisperLists;
 
 void ErrorMessage(uint64 scHandlerID, char* message, char* icon, char* sound)
 {
@@ -448,18 +456,24 @@ int JoinChannel(uint64 scHandlerID, uint64 channel)
 int SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 {
 	unsigned int error;
+	WhisperIterator list;
 
-	// Add the NULL-terminator
 	if(shouldWhisper)
 	{
-		whisperClients.push_back((anyID)NULL);
-		whisperChannels.push_back((uint64)NULL);
+		list = whisperLists.find(scHandlerID);
+		if(list == whisperLists.end()) shouldWhisper = false;
+		else
+		{
+			// Add the NULL-terminator
+			list->second.clients.push_back((anyID)NULL);
+			list->second.channels.push_back((uint64)NULL);
+		}
 	}
 
 	/*
 	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
 	 */
-	if((error = ts3Functions.requestClientSetWhisperList(scHandlerID, (anyID)NULL, shouldWhisper?&whisperChannels[0]:(uint64*)NULL, shouldWhisper?&whisperClients[0]:(anyID*)NULL, NULL)) != ERROR_ok)
+	if((error = ts3Functions.requestClientSetWhisperList(scHandlerID, (anyID)NULL, shouldWhisper?&list->second.channels[0]:(uint64*)NULL, shouldWhisper?&list->second.clients[0]:(anyID*)NULL, NULL)) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -471,11 +485,11 @@ int SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 		return 1;
 	}
 
-	// Remove the NULL-terminator
 	if(shouldWhisper)
 	{
-		whisperClients.pop_back();
-		whisperChannels.pop_back();
+		// Remove the NULL-terminator
+		list->second.clients.pop_back();
+		list->second.channels.pop_back();
 	}
 
 	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
@@ -487,44 +501,43 @@ int SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 void WhisperListClear(uint64 scHandlerID)
 {
 	SetWhisperList(scHandlerID, false);
-	whisperClients.clear();
-	whisperChannels.clear();
+	whisperLists.erase(scHandlerID);
 }
 
 void WhisperAddClient(uint64 scHandlerID, anyID client)
 {
+	// Find the whisperlist, create it if it doesn't exist
+	std::pair<WhisperIterator,bool> result = whisperLists.insert(std::pair<uint64,WhisperList>(scHandlerID, WhisperList()));
+	WhisperIterator list = result.first;
+	
 	/*
 	 * Do not add if duplicate. I could use a set, but that would be inefficient as
 	 * ordering is unimportant and it would require me to convert to C arrays when
 	 * activating the whisper list.
 	 */
-	bool duplicate = false;
-	for(std::vector<anyID>::iterator it=whisperClients.begin(); it!=whisperClients.end(); it++)
-		if(*it == client) duplicate = true;
+	for(std::vector<anyID>::iterator it=list->second.clients.begin(); it!=list->second.clients.end(); it++)
+		if(*it == client) return;
 
-	if(!duplicate)
-	{
-		whisperClients.push_back(client);
-		if(whisperActive) SetWhisperList(scHandlerID, true);
-	}
+	list->second.clients.push_back(client);
+	if(whisperActive) SetWhisperList(scHandlerID, true);
 }
 
 void WhisperAddChannel(uint64 scHandlerID, uint64 channel)
 {
+	// Find the whisperlist, create it if it doesn't exist
+	std::pair<WhisperIterator,bool> result = whisperLists.insert(std::pair<uint64,WhisperList>(scHandlerID, WhisperList()));
+	WhisperIterator list = result.first;
+
 	/*
 	 * Do not add if duplicate. I could use a set, but that would be inefficient as
 	 * ordering is unimportant and it would require me to convert to C arrays when
 	 * activating the whisper list.
 	 */
-	bool duplicate = false;
-	for(std::vector<uint64>::iterator it=whisperChannels.begin(); it!=whisperChannels.end(); it++)
-		if(*it == channel) duplicate = true;
+	for(std::vector<uint64>::iterator it=list->second.channels.begin(); it!=list->second.channels.end(); it++)
+		if(*it == channel) return;
 
-	if(!duplicate)
-	{
-		whisperChannels.push_back(channel);
-		if(whisperActive) SetWhisperList(scHandlerID, true);
-	}
+	list->second.channels.push_back(channel);
+	if(whisperActive) SetWhisperList(scHandlerID, true);
 }
 
 int SetActiveServer(uint64 handle)
