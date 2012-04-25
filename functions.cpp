@@ -785,10 +785,10 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 	}
 
 	// Find active server
-	for(server=servers; *server!=NULL; server++);
+	for(server=servers; *server!=NULL && *server!=scHandlerID; server++);
 
 	// Find the server
-	for(; server!=NULL && server!=servers; (next)?server--:server++);
+	for(; *server!=NULL && server!=servers; (next)?server++:server--);
 
 	if(*server != NULL && *server != scHandlerID) SetActiveServer(*server);
 
