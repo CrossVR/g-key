@@ -731,7 +731,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 	for(channel=channels; *channel!=ownChannel && *channel!=NULL; channel++);
 	
 	// Find joinable channel
-	for(; channel!=channels && channel!=NULL && result; (next)?channel++:channel--)
+	for(; channel!=channels && channel!=NULL && result; (next)?channel--:channel++)
 	{
 		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, *channel, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
 		{
@@ -788,7 +788,7 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 	for(server=servers; *server!=NULL; server++);
 
 	// Find the server
-	for(; server!=NULL && server!=servers; (next)?server++:server--);
+	for(; server!=NULL && server!=servers; (next)?server--:server++);
 
 	if(*server != NULL && *server != scHandlerID) SetActiveServer(*server);
 
