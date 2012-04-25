@@ -207,19 +207,19 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
-	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER_NEXT"))
+	else if(!strcmp(cmd, "TS3_ACTIVATE_NEXT"))
 	{
 		CancelWaitableTimer(hPttDelayTimer);
 		SetPushToTalk(scHandlerID, false);
 		SetNextActiveServer(scHandlerID);
 	}
-	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER_NEXT"))
+	else if(!strcmp(cmd, "TS3_ACTIVATE_PREV"))
 	{
 		CancelWaitableTimer(hPttDelayTimer);
 		SetPushToTalk(scHandlerID, false);
 		SetPrevActiveServer(scHandlerID);
 	}
-	else if(!strcmp(cmd, "TS3_JOIN_CHAN"))
+	else if(!strcmp(cmd, "TS3_CHANNEL_JOIN"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
@@ -230,7 +230,7 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
-	else if(!strcmp(cmd, "TS3_JOIN_CHANID"))
+	else if(!strcmp(cmd, "TS3_CHANNEL_JOINID"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
@@ -240,11 +240,11 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
-	else if(!strcmp(cmd, "TS3_JOIN_CHAN_NEXT"))
+	else if(!strcmp(cmd, "TS3_CHANNEL_NEXT"))
 	{
 		JoinNextChannel(scHandlerID);
 	}
-	else if(!strcmp(cmd, "TS3_JOIN_CHAN_PREV"))
+	else if(!strcmp(cmd, "TS3_CHANNEL_PREV"))
 	{
 		JoinPrevChannel(scHandlerID);
 	}
