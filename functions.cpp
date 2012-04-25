@@ -681,7 +681,7 @@ int SetMasterVolume(uint64 scHandlerID, float value)
 	return 0;
 }
 
-int JoinChannelRelative(uint64 scHandlerID, int direction)
+int JoinChannelRelative(uint64 scHandlerID, bool next)
 {
 	unsigned int error;
 	anyID self;
@@ -731,7 +731,7 @@ int JoinChannelRelative(uint64 scHandlerID, int direction)
 	for(channel=channels; *channel!=ownChannel && *channel!=NULL; channel++);
 	
 	// Find joinable channel
-	for(; channel!=channels && channel!=NULL && result; channel+=direction)
+	for(; channel!=channels && channel!=NULL && result; (next)?channel++:channel--)
 	{
 		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, *channel, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
 		{
@@ -765,14 +765,11 @@ int JoinChannelRelative(uint64 scHandlerID, int direction)
 	return 0;
 }
 
-int SetActiveServerRelative(uint64 scHandlerID, int direction)
+int SetActiveServerRelative(uint64 scHandlerID, bool next)
 {
 	unsigned int error;
 	uint64* servers;
 	uint64* server;
-
-	// Clamp direction
-	direction = (direction>=0)?1:-1;
 
 	// Get server list
 	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
@@ -791,7 +788,7 @@ int SetActiveServerRelative(uint64 scHandlerID, int direction)
 	for(server=servers; *server!=NULL; server++);
 
 	// Find the server
-	for(; server!=NULL && server!=servers; server+=direction);
+	for(; server!=NULL && server!=servers; (next)?server++:server--);
 
 	if(*server != NULL && *server != scHandlerID) SetActiveServer(*server);
 

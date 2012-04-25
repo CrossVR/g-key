@@ -207,6 +207,18 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
 	}
+	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER_NEXT"))
+	{
+		CancelWaitableTimer(hPttDelayTimer);
+		SetPushToTalk(scHandlerID, false);
+		SetNextActiveServer(scHandlerID);
+	}
+	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER_NEXT"))
+	{
+		CancelWaitableTimer(hPttDelayTimer);
+		SetPushToTalk(scHandlerID, false);
+		SetPrevActiveServer(scHandlerID);
+	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHAN"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
@@ -227,6 +239,14 @@ void ParseCommand(char* cmd, char* arg)
 			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
 		}
 		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+	}
+	else if(!strcmp(cmd, "TS3_JOIN_CHAN_NEXT"))
+	{
+		JoinNextChannel(scHandlerID);
+	}
+	else if(!strcmp(cmd, "TS3_JOIN_CHAN_PREV"))
+	{
+		JoinPrevChannel(scHandlerID);
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
 	{

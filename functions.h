@@ -45,8 +45,8 @@ int JoinChannel(uint64 scHandlerID, uint64 channel);
 int ServerKickClient(uint64 scHandlerID, anyID client);
 int ChannelKickClient(uint64 scHandlerID, anyID client);
 int JoinChannelRelative(uint64 scHandlerID, bool next);
-inline int JoinNextChannelRelative(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, true); }
-inline int JoinPrevChannelRelative(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, false); }
+inline int JoinNextChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, true); }
+inline int JoinPrevChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, false); }
 int SetActiveServerRelative(uint64 scHandlerID, bool next);
 inline int SetNextActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, true); }
 inline int SetPrevActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, false); }
