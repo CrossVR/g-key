@@ -200,8 +200,7 @@ void ParseCommand(char* cmd, char* arg)
 			if(handle != (uint64)NULL)
 			{
 				CancelWaitableTimer(hPttDelayTimer);
-				SetPushToTalk(scHandlerID, TRUE);
-				WhisperListClear(scHandlerID);
+				SetPushToTalk(scHandlerID, true);
 				SetActiveServer(handle);
 			}
 			else ErrorMessage(scHandlerID, "Server not found", infoIcon, errorSound);
