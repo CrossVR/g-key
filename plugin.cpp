@@ -734,12 +734,29 @@ void ts3plugin_registerPluginID(const char* id) {
 
 /* Plugin command keyword. Return NULL or "" if not used. */
 const char* ts3plugin_commandKeyword() {
-	return NULL;
+	return "g-key";
 }
 
 /* Plugin processes console command. Return 0 if plugin handled the command, 1 if not handled. */
 int ts3plugin_processCommand(uint64 serverConnectionHandlerID, const char* command) {
-	return 1;  /* Plugin did not handle command */
+	int length = strlen(command);
+	char* str = (char*)malloc(length+1);
+	_strcpy(str, length+1, command);
+
+	// Seperate the argument from the command
+	char* arg = strchr(str, ' ');
+	if(arg != NULL)
+	{
+		// Split the string by inserting a NULL-terminator
+		*arg = (char)NULL;
+		arg++;
+	}
+
+	ParseCommand(str, arg);
+
+	free(str);
+
+	return 0;  /* Plugin did not handle command */
 }
 
 /* Client changed current server connection handler */
