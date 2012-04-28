@@ -596,8 +596,6 @@ int SetActiveServer(uint64 handle)
 		return 1;
 	}
 
-	ts3plugin_currentServerConnectionChanged(handle);
-
 	return 0;
 }
 
