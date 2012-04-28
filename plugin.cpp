@@ -39,7 +39,7 @@ struct TS3Functions ts3Functions;
 #define RETURNCODE_BUFSIZE 128
 #define REQUESTCLIENTMOVERETURNCODES_SLOTS 5
 
-#define PLUGINTHREAD_TIMEOUT 1000
+#define PLUGIN_THREAD_TIMEOUT 1000
 
 #define TIMER_MSEC 10000
 
@@ -63,14 +63,17 @@ enum PluginError {
 
 // Thread handles
 static HANDLE hDebugThread = NULL;
-static HANDLE hPTTDelayThread = NULL;
+
+// Mutex handles
+static HANDLE hMutex = NULL;
 
 // PTT Delay Timer
 static HANDLE hPttDelayTimer = (HANDLE)NULL;
 static LARGE_INTEGER dueTime;
 
-// Active server
+// Server connection handlers
 static uint64 scHandlerID = (uint64)NULL;
+static uint64 currentHandlerID = (uint64)NULL;
 
 /*********************************** Plugin functions ************************************/
 
@@ -81,6 +84,12 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 
 void ParseCommand(char* cmd, char* arg)
 {
+	// Acquire the mutex
+	WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT);
+
+	// Get the active server
+	scHandlerID = GetActiveServerConnectionHandlerID();
+
 	/***** Communication *****/
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
@@ -455,6 +464,9 @@ void ParseCommand(char* cmd, char* arg)
 		ts3Functions.logMessage(cmd, LogLevel_INFO, "G-Key Plugin", 0);
 		ErrorMessage(scHandlerID, "Command not recognized", infoIcon, errorSound);
 	}
+
+	// Release the mutex
+	ReleaseMutex(hMutex);
 }
 
 int GetLogitechProcessId(DWORD* ProcessId)
@@ -495,7 +507,7 @@ void DebugMain(DWORD ProcessId, HANDLE hProcess)
 	while(pluginRunning)
 	{
 		// Wait for a debug message
-		if(WaitForDebugEvent(&DebugEv, PLUGINTHREAD_TIMEOUT))
+		if(WaitForDebugEvent(&DebugEv, PLUGIN_THREAD_TIMEOUT))
 		{
 			// If the debug message is from the logitech driver
 			if(DebugEv.dwProcessId == ProcessId)
@@ -654,8 +666,8 @@ int ts3plugin_init() {
 	GetPrivateProfileStringA("Application", "IconPack", "default", infoIcon+length, MAX_PATH-(DWORD)length, configFile);
 	strcat_s(infoIcon, MAX_PATH, "/16x16_message_info.png");
 
-	// Get first connection handler
-	scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
+	// Create the command mutex
+	hMutex = CreateMutex(NULL, FALSE, NULL);
 
 	// Create the PTT delay timer
 	hPttDelayTimer = CreateWaitableTimer(NULL, FALSE, NULL);
@@ -685,7 +697,7 @@ void ts3plugin_shutdown() {
 	CancelWaitableTimer(hPttDelayTimer);
 
 	// Wait for the thread to stop
-	WaitForSingleObject(hDebugThread, PLUGINTHREAD_TIMEOUT);
+	WaitForSingleObject(hDebugThread, PLUGIN_THREAD_TIMEOUT);
 
 	/*
 	 * Note:
@@ -761,7 +773,7 @@ int ts3plugin_processCommand(uint64 serverConnectionHandlerID, const char* comma
 
 /* Client changed current server connection handler */
 void ts3plugin_currentServerConnectionChanged(uint64 serverConnectionHandlerID) {
-	scHandlerID = serverConnectionHandlerID;
+	currentHandlerID = serverConnectionHandlerID;
 }
 
 /*
