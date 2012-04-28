@@ -91,7 +91,7 @@ uint64 GetActiveServerConnectionHandlerID()
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
 			{
-				ts3Functions.logMessage("Error retrieving server variable:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage("Error retrieving client variable:", LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
@@ -855,6 +855,7 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 	unsigned int error;
 	uint64* servers;
 	uint64* server;
+	int result;
 
 	// Get server list
 	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
@@ -873,11 +874,21 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 	for(server=servers; *server!=NULL && *server!=scHandlerID; server++);
 
 	// Find the server in the direction given
-	if(next) server++;
+	if(next && *(server+1) != NULL) server++;
 	else if(server != servers) server--;
 
-	if(*server != NULL) SetActiveServer(*server);
-	else SetActiveServer(scHandlerID);
+	
+	if((error = ts3Functions.getClientSelfVariableAsInt(*server, CLIENT_INPUT_HARDWARE, &result)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving client variable:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+	}
+	if(!result) SetActiveServer(*server);
 
 	return 0;
 }
