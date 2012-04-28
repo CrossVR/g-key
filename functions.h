@@ -20,6 +20,7 @@ extern bool whisperActive;
 void ErrorMessage(uint64 scHandlerID, char* message, char* icon, char* sound);
 
 /* Getters */
+uint64 GetActiveServerConnectionHandlerID();
 int GetServerHandleByVariable(char* value, size_t flag, uint64* result);
 int GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag, uint64* result);
 int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* result);

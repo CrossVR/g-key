@@ -63,6 +63,46 @@ void ErrorMessage(uint64 scHandlerID, char* message, char* icon, char* sound)
 	free(styledMsg);
 }
 
+uint64 GetActiveServerConnectionHandlerID()
+{
+	unsigned int error;
+	int result = 0;
+	uint64* servers;
+	uint64* server;
+	uint64 handle;
+	
+	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving list of servers:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return NULL;
+	}
+	
+	// Find the first server that matches the criteria
+	for(server=servers; *server!=(uint64)NULL && !result; server++)
+	{
+		if((error = ts3Functions.getClientSelfVariableAsInt(*server, CLIENT_INPUT_HARDWARE, &result)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+			{
+				ts3Functions.logMessage("Error retrieving server variable:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
+		}
+	}
+	
+	handle = *(server-1);
+	ts3Functions.freeMemory(servers);
+	return handle;
+}
+
 int GetServerHandleByVariable(char* value, size_t flag, uint64* result)
 {
 	unsigned int error;
