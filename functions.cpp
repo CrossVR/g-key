@@ -726,30 +726,75 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 		}
 		return 1;
 	}
-
-	// Find own channel in channel list
-	for(channel=channels; *channel!=ownChannel && *channel!=NULL; channel++);
 	
 	// Find joinable channel
-	for(; channel!=channels && channel!=NULL && result; (next)?channel--:channel++)
+	uint64 target = ownChannel;
+	if(next)
 	{
-		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, *channel, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
+		while(result != 0)
 		{
-			char* errorMsg;
-			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+			for(channel=channels; *channel!=NULL && result != target; channel++)
 			{
-				ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
-				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-				ts3Functions.freeMemory(errorMsg);
+				if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, *channel, CHANNEL_ORDER, &result)) != ERROR_ok)
+				{
+					char* errorMsg;
+					if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+					{
+						ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
+						ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+						ts3Functions.freeMemory(errorMsg);
+					}
+					return 1;
+				}
 			}
-			return 1;
+			target = *(channel-1);
+			if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
+			{
+				char* errorMsg;
+				if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+				{
+					ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
+					ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+					ts3Functions.freeMemory(errorMsg);
+				}
+				return 1;
+			}
+		}
+	}
+	else
+	{
+		while(result != 0)
+		{
+			if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_ORDER, &result)) != ERROR_ok)
+			{
+				char* errorMsg;
+				if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+				{
+					ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
+					ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+					ts3Functions.freeMemory(errorMsg);
+				}
+				return 1;
+			}
+			target = (uint64)result;
+			if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
+			{
+				char* errorMsg;
+				if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+				{
+					ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
+					ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+					ts3Functions.freeMemory(errorMsg);
+				}
+				return 1;
+			}
 		}
 	}
 
 	// If a joinable channel was found, attempt to join it
-	if(!result)
+	if(!result && target != ownChannel)
 	{
-		if((error = ts3Functions.requestClientMove(scHandlerID, self, *channel, "", NULL)) != ERROR_ok)
+		if((error = ts3Functions.requestClientMove(scHandlerID, self, target, "", NULL)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -784,13 +829,15 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 		return 1;
 	}
 
-	// Find active server
+	// Find active server in the list
 	for(server=servers; *server!=NULL && *server!=scHandlerID; server++);
 
-	// Find the server
-	for(; *server!=NULL && server!=servers; (next)?server++:server--);
+	// Find the server in the direction given
+	if(next) server++;
+	else if(server != servers) server--;
 
-	if(*server != NULL && *server != scHandlerID) SetActiveServer(*server);
+	if(*server != NULL) SetActiveServer(*server);
+	else SetActiveServer(scHandlerID);
 
 	return 0;
 }
