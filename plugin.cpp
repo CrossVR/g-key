@@ -71,15 +71,18 @@ static HANDLE hMutex = NULL;
 static HANDLE hPttDelayTimer = (HANDLE)NULL;
 static LARGE_INTEGER dueTime;
 
-// Server connection handlers
-static uint64 scHandlerID = (uint64)NULL;
-static uint64 currentHandlerID = (uint64)NULL;
-
 /*********************************** Plugin functions ************************************/
 
 VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowValue,DWORD dwTimerHighValue)
 {
-	SetPushToTalk(scHandlerID, false);
+	// Acquire the mutex
+	WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT);
+
+	// Turn off PTT
+	SetPushToTalk(GetActiveServerConnectionHandlerID(), false);
+	
+	// Release the mutex
+	ReleaseMutex(hMutex);
 }
 
 void ParseCommand(char* cmd, char* arg)
@@ -88,7 +91,7 @@ void ParseCommand(char* cmd, char* arg)
 	WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT);
 
 	// Get the active server
-	scHandlerID = GetActiveServerConnectionHandlerID();
+	uint64 scHandlerID = GetActiveServerConnectionHandlerID();
 
 	/***** Communication *****/
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
@@ -773,7 +776,6 @@ int ts3plugin_processCommand(uint64 serverConnectionHandlerID, const char* comma
 
 /* Client changed current server connection handler */
 void ts3plugin_currentServerConnectionChanged(uint64 serverConnectionHandlerID) {
-	currentHandlerID = serverConnectionHandlerID;
 }
 
 /*
