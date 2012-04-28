@@ -16,6 +16,13 @@
 
 extern struct TS3Functions ts3Functions;
 
+/* Plugin global values */
+extern char* pluginID;
+extern bool pluginRunning;
+extern char* configFile;
+extern char* errorSound;
+extern char* infoIcon;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

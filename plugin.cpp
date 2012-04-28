@@ -47,11 +47,11 @@ struct TS3Functions ts3Functions;
 static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RETURNCODE_BUFSIZE];
 
 // Plugin values
-static char* pluginID = NULL;
-static bool pluginRunning = false;
-static char configFile[MAX_PATH];
-static char errorSound[MAX_PATH];
-static char infoIcon[MAX_PATH];
+char* pluginID = NULL;
+bool pluginRunning = false;
+char* configFile = NULL;
+char* errorSound = NULL;
+char* infoIcon = NULL;
 
 // Error codes
 enum PluginError {
@@ -199,9 +199,9 @@ void ParseCommand(char* cmd, char* arg)
 				SetPushToTalk(scHandlerID, false);
 				SetActiveServer(handle);
 			}
-			else ErrorMessage(scHandlerID, "Server not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Server not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERID"))
 	{
@@ -215,9 +215,9 @@ void ParseCommand(char* cmd, char* arg)
 				SetPushToTalk(scHandlerID, false);
 				SetActiveServer(handle);
 			}
-			else ErrorMessage(scHandlerID, "Server not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Server not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_NEXT"))
 	{
@@ -238,9 +238,9 @@ void ParseCommand(char* cmd, char* arg)
 			uint64 id;
 			GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME, &id);
 			if(id != (uint64)NULL) JoinChannel(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Channel not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_CHANNEL_JOINID"))
 	{
@@ -248,9 +248,9 @@ void ParseCommand(char* cmd, char* arg)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) JoinChannel(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Channel not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_CHANNEL_NEXT"))
 	{
@@ -267,9 +267,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
 			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
 	{
@@ -278,9 +278,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
 			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
 	{
@@ -289,9 +289,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
 			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
 	{
@@ -300,9 +300,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
 			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	/***** Whispering *****/
 	else if(!strcmp(cmd, "TS3_WHISPER_ACTIVATE"))
@@ -328,9 +328,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
 			if(id != (anyID)NULL) WhisperAddClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENTID"))
 	{
@@ -339,9 +339,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
 			if(id != (anyID)NULL) WhisperAddClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHAN"))
 	{
@@ -350,9 +350,9 @@ void ParseCommand(char* cmd, char* arg)
 			uint64 id;
 			GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME, &id);
 			if(id != (uint64)NULL) WhisperAddChannel(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Channel not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHANID"))
 	{
@@ -360,9 +360,9 @@ void ParseCommand(char* cmd, char* arg)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) WhisperAddChannel(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Channel not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Channel not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	/***** Miscellaneous *****/
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
@@ -372,9 +372,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
 			if(id != (anyID)NULL) MuteClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENTID"))
 	{
@@ -383,9 +383,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
 			if(id != (anyID)NULL) MuteClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENT"))
 	{
@@ -394,9 +394,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
 			if(id != (anyID)NULL) UnmuteClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENTID"))
 	{
@@ -405,9 +405,9 @@ void ParseCommand(char* cmd, char* arg)
 			anyID id;
 			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
 			if(id != (anyID)NULL) UnmuteClient(scHandlerID, id);
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENT"))
 	{
@@ -422,9 +422,9 @@ void ParseCommand(char* cmd, char* arg)
 				if(!muted) MuteClient(scHandlerID, id);
 				else UnmuteClient(scHandlerID, id);
 			}
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENTID"))
 	{
@@ -439,9 +439,9 @@ void ParseCommand(char* cmd, char* arg)
 				if(!muted) MuteClient(scHandlerID, id);
 				else UnmuteClient(scHandlerID, id);
 			}
-			else ErrorMessage(scHandlerID, "Client not found", infoIcon, errorSound);
+			else ErrorMessage(scHandlerID, "Client not found");
 		}
-		else ErrorMessage(scHandlerID, "Missing argument", infoIcon, errorSound);
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_UP"))
 	{
@@ -465,7 +465,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		ts3Functions.logMessage("Command not recognized:", LogLevel_WARNING, "G-Key Plugin", 0);
 		ts3Functions.logMessage(cmd, LogLevel_INFO, "G-Key Plugin", 0);
-		ErrorMessage(scHandlerID, "Command not recognized", infoIcon, errorSound);
+		ErrorMessage(scHandlerID, "Command not recognized");
 	}
 
 	// Release the mutex
@@ -652,10 +652,12 @@ int ts3plugin_init() {
 	size_t length;
 
 	// Find config file
+	configFile = (char*)malloc(MAX_PATH);
 	ts3Functions.getConfigPath(configFile, MAX_PATH);
 	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
 
 	// Find error sound
+	errorSound = (char*)malloc(MAX_PATH);
 	ts3Functions.getResourcesPath(errorSound, MAX_PATH);
 	strcat_s(errorSound, MAX_PATH, "sound/");
 	length = strlen(errorSound);
@@ -663,6 +665,7 @@ int ts3plugin_init() {
 	strcat_s(errorSound, MAX_PATH, "/error.wav");
 
 	// Find info icon
+	infoIcon = (char*)malloc(MAX_PATH);
 	ts3Functions.getResourcesPath(infoIcon, MAX_PATH);
 	strcat_s(infoIcon, MAX_PATH, "gfx/");
 	length = strlen(infoIcon);
@@ -822,10 +825,10 @@ void ts3plugin_onConnectStatusChangeEvent(uint64 serverConnectionHandlerID, int 
 			{
 				switch(errorCode)
 				{
-					case PLUGIN_ERROR_HOOK_FAILED: ErrorMessage(serverConnectionHandlerID, "Could not hook into Logitech software, make sure you're using the 64-bit version", infoIcon, errorSound); break;
-					case PLUGIN_ERROR_READ_FAILED: ErrorMessage(serverConnectionHandlerID, "Not enough permissions to hook into Logitech software, try running as as administrator", infoIcon, errorSound); break;
-					case PLUGIN_ERROR_NOT_FOUND: ErrorMessage(serverConnectionHandlerID, "Logitech software not running, start the Logitech software and reload the G-Key Plugin", infoIcon, errorSound); break;
-					default: ErrorMessage(serverConnectionHandlerID, "G-Key Plugin failed to start, check the clientlog for more info", infoIcon, errorSound); break;
+					case PLUGIN_ERROR_HOOK_FAILED: ErrorMessage(serverConnectionHandlerID, "Could not hook into Logitech software, make sure you're using the 64-bit version"); break;
+					case PLUGIN_ERROR_READ_FAILED: ErrorMessage(serverConnectionHandlerID, "Not enough permissions to hook into Logitech software, try running as as administrator"); break;
+					case PLUGIN_ERROR_NOT_FOUND: ErrorMessage(serverConnectionHandlerID, "Logitech software not running, start the Logitech software and reload the G-Key Plugin"); break;
+					default: ErrorMessage(serverConnectionHandlerID, "G-Key Plugin failed to start, check the clientlog for more info"); break;
 				}
 			}
 		}

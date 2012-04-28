@@ -17,7 +17,7 @@ extern bool whisperActive;
 /* High-level TeamSpeak functions */
 
 /* Error handler */
-void ErrorMessage(uint64 scHandlerID, char* message, char* icon, char* sound);
+void ErrorMessage(uint64 scHandlerID, char* message);
 
 /* Getters */
 uint64 GetActiveServerConnectionHandlerID();
