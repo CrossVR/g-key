@@ -248,6 +248,75 @@ int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* r
 	return 0;
 }
 
+uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel)
+{
+	unsigned int error;
+	char* path;
+	char* name;
+	uint64 parent;
+
+	// Retrieve the name of the subchannel
+	if((error = ts3Functions.getChannelVariableAsString(scHandlerID, subchannel, CHANNEL_NAME, &name)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving channel variable:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+	}
+
+	/*
+	 * There doesn't seem to be any upper limit to the length of the channel path.
+	 * As much as I hate doing this, 1024 characters should be more than enough,
+	 * getChannelConnectInfo is protected from buffer overflow.
+	 */
+	// Get the channel path
+	path = (char*)malloc(1024);
+	ts3Functions.getChannelConnectInfo(scHandlerID, subchannel, path, NULL, 1024);
+
+	// Split the string, following the hierachy until the subchannel is found
+	bool found = false;
+	char* str = path;
+	char* lastStr = path;
+	std::vector<char*> hierachy;
+	while(str != NULL && !found)
+	{
+		lastStr = str;
+		str = strchr(lastStr, '/');
+		if(str!=NULL)
+		{
+			*str = NULL;
+			str++;
+		}
+		if(!strcmp(lastStr, path)) found = true;
+		hierachy.push_back(lastStr);
+	}
+	hierachy.push_back(NULL); // Add NULL-terminator
+
+	// If the subchannel was not found, do not continue
+	if(strcmp(lastStr, name)) return NULL;
+	
+	/*
+	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
+	 */
+	if((error = ts3Functions.getChannelIDFromChannelNames(scHandlerID, &hierachy[0], &parent)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error getting parent channel ID:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return NULL;
+	}
+
+	free(path);
+	return parent;
+}
+
 int SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 {
 	unsigned int error;
@@ -777,13 +846,15 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 		return 1;
 	}
 	
-	// Find joinable channel
+	// Find a joinable channel
+	bool found = false;
 	uint64 target = ownChannel;
-	if(next)
+	while(target != NULL && !found)
 	{
-		while(result != 0)
+		if(next)
 		{
-			for(channel=channels; *channel!=NULL && result != target; channel++)
+			// Find the channel sorted after this channel
+			for(channel=channels; *channel!=NULL; channel++)
 			{
 				if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, *channel, CHANNEL_ORDER, &result)) != ERROR_ok)
 				{
@@ -797,24 +868,21 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 					return 1;
 				}
 			}
-			target = *(channel-1);
-			if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
+
+			// If the next channel was not found, go a level higher and go to the next channel
+			if(*channel == NULL)
 			{
-				char* errorMsg;
-				if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-				{
-					ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
-					ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-					ts3Functions.freeMemory(errorMsg);
-				}
-				return 1;
+				target = GetParentChannel(scHandlerID, target);
+				continue;
+			}
+			else
+			{
+				target = *(channel-1);
 			}
 		}
-	}
-	else
-	{
-		while(result != 0)
+		else
 		{
+			// Retrieve the channel sorted before this channel
 			if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_ORDER, &result)) != ERROR_ok)
 			{
 				char* errorMsg;
@@ -826,23 +894,28 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 				}
 				return 1;
 			}
-			target = (uint64)result;
-			if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
-			{
-				char* errorMsg;
-				if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-				{
-					ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
-					ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-					ts3Functions.freeMemory(errorMsg);
-				}
-				return 1;
-			}
+			if(result == 0) target = GetParentChannel(scHandlerID, target);
+			else target = (uint64)result;
 		}
+
+
+		// If this channel is not passworded, the target channel has been found
+		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+			{
+				ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
+			return 1;
+		};
+		if(!result) found = true;
 	}
 
 	// If a joinable channel was found, attempt to join it
-	if(!result && target != ownChannel)
+	if(found && target != ownChannel)
 	{
 		if((error = ts3Functions.requestClientMove(scHandlerID, self, target, "", NULL)) != ERROR_ok)
 		{

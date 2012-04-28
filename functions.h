@@ -24,6 +24,7 @@ uint64 GetActiveServerConnectionHandlerID();
 int GetServerHandleByVariable(char* value, size_t flag, uint64* result);
 int GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag, uint64* result);
 int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* result);
+uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel);
 
 /* Communication */
 int SetPushToTalk(uint64 scHandlerID, bool shouldTalk);
