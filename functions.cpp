@@ -660,13 +660,13 @@ int ChannelKickClient(uint64 scHandlerID, anyID client)
 int SetMasterVolume(uint64 scHandlerID, float value)
 {
 	unsigned int error;
-	char str[5];
+	char str[6];
 	
 	// Clamp value
 	if(value < -40.0) value = -40.0;
 	if(value > 20.0) value = 20.0;
 
-	snprintf(str, 5, "%.1f", value);
+	snprintf(str, 6, "%.1f", value);
 	if((error = ts3Functions.setPlaybackConfigValue(scHandlerID, "volume_modifier", str)) != ERROR_ok) {
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
