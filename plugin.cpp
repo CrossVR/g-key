@@ -88,10 +88,19 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 void ParseCommand(char* cmd, char* arg)
 {
 	// Acquire the mutex
-	if(WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT) != WAIT_OBJECT_0) return;
+	if(WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT) != WAIT_OBJECT_0)
+	{
+		ts3Functions.logMessage("Timeout while waiting for mutex", LogLevel_WARNING, "G-Key Plugin", 0);
+		return;
+	}
 
 	// Get the active server
 	uint64 scHandlerID = GetActiveServerConnectionHandlerID();
+	if(scHandlerID == NULL)
+	{
+		ts3Functions.logMessage("Failed to get an active server, falling back to current server", LogLevel_DEBUG, "G-Key Plugin", 0);
+		scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
+	}
 
 	/***** Communication *****/
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
@@ -464,7 +473,7 @@ void ParseCommand(char* cmd, char* arg)
 	else
 	{
 		ts3Functions.logMessage("Command not recognized:", LogLevel_WARNING, "G-Key Plugin", 0);
-		ts3Functions.logMessage(cmd, LogLevel_INFO, "G-Key Plugin", 0);
+		ts3Functions.logMessage(cmd, LogLevel_WARNING, "G-Key Plugin", 0);
 		ErrorMessage(scHandlerID, "Command not recognized");
 	}
 

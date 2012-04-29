@@ -78,10 +78,10 @@ void ErrorMessage(uint64 scHandlerID, char* message)
 uint64 GetActiveServerConnectionHandlerID()
 {
 	unsigned int error;
-	int result = 0;
 	uint64* servers;
 	uint64* server;
-	uint64 handle;
+	uint64 handle = NULL;
+	int result = 0;
 	
 	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
 	{
@@ -108,7 +108,7 @@ uint64 GetActiveServerConnectionHandlerID()
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
-		else if(!result)
+		else if(result)
 		{
 			handle = *server;
 		}
