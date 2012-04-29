@@ -293,10 +293,10 @@ uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel)
 		if(!strcmp(lastStr, path)) found = true;
 		hierachy.push_back(lastStr);
 	}
-	hierachy.push_back(NULL); // Add NULL-terminator
+	hierachy.push_back(""); // Add the terminator
 
 	// If the subchannel was not found, do not continue
-	if(strcmp(lastStr, name)) return NULL;
+	//if(strcmp(lastStr, name)) return NULL;
 	
 	/*
 	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
@@ -808,6 +808,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 	uint64* channel;
 	uint64 ownChannel;
 	int result = 1;
+	int pswdFlag = 1;
 
 	// Get channel list
 	if((error = ts3Functions.getChannelList(scHandlerID, &channels)) != ERROR_ok)
@@ -847,9 +848,8 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 	}
 	
 	// Find a joinable channel
-	bool found = false;
 	uint64 target = ownChannel;
-	while(target != NULL && !found)
+	do
 	{
 		if(next)
 		{
@@ -867,17 +867,18 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 					}
 					return 1;
 				}
+				else if(result == target)
+				{
+					target = *channel;
+					break;
+				}
 			}
 
-			// If the next channel was not found, go a level higher and go to the next channel
+			// If the next channel was not found, go a level higher and skip to the next channel
 			if(*channel == NULL)
 			{
 				target = GetParentChannel(scHandlerID, target);
 				continue;
-			}
-			else
-			{
-				target = *(channel-1);
 			}
 		}
 		else
@@ -898,9 +899,8 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 			else target = (uint64)result;
 		}
 
-
-		// If this channel is not passworded, the target channel has been found
-		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_FLAG_PASSWORD, &result)) != ERROR_ok)
+		// If this channel is passworded, join the next
+		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target, CHANNEL_FLAG_PASSWORD, &pswdFlag)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -910,12 +910,12 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 				ts3Functions.freeMemory(errorMsg);
 			}
 			return 1;
-		};
-		if(!result) found = true;
+		}
 	}
+	while(target != NULL && pswdFlag);
 
 	// If a joinable channel was found, attempt to join it
-	if(found && target != ownChannel)
+	if(target != NULL && target != ownChannel)
 	{
 		if((error = ts3Functions.requestClientMove(scHandlerID, self, target, "", NULL)) != ERROR_ok)
 		{
@@ -929,6 +929,8 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 			return 1;
 		}
 	}
+
+	ts3Functions.freeMemory(channels);
 
 	return 0;
 }
