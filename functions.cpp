@@ -118,12 +118,13 @@ uint64 GetActiveServerConnectionHandlerID()
 	return handle;
 }
 
-int GetServerHandleByVariable(char* value, size_t flag, uint64* result)
+uint64 GetServerHandleByVariable(char* value, size_t flag)
 {
 	unsigned int error;
 	char* variable;
 	uint64* servers;
 	uint64* server;
+	uint64 result;
 
 	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
 	{
@@ -134,11 +135,11 @@ int GetServerHandleByVariable(char* value, size_t flag, uint64* result)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return (uint64)NULL;
 	}
 	
 	// Find the first server that matches the criteria
-	for(server = servers, *result = (uint64)NULL; *server != (uint64)NULL && *result == (uint64)NULL; server++)
+	for(server = servers, result = (uint64)NULL; *server != (uint64)NULL && result == (uint64)NULL; server++)
 	{
 		if((error = ts3Functions.getServerVariableAsString(*server, flag, &variable)) != ERROR_ok)
 		{
@@ -153,21 +154,22 @@ int GetServerHandleByVariable(char* value, size_t flag, uint64* result)
 		else
 		{
 			// If the variable matches the value set the result, this will end the loop
-			if(!strcmp(value, variable)) *result = *server;
+			if(!strcmp(value, variable)) result = *server;
 			ts3Functions.freeMemory(variable);
 		}
 	}
 
 	ts3Functions.freeMemory(servers);
-	return 0;
+	return result;
 }
 
-int GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag, uint64* result)
+uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 {
 	unsigned int error;
 	char* variable;
 	uint64* channels;
 	uint64* channel;
+	uint64 result;
 	
 	if((error = ts3Functions.getChannelList(scHandlerID, &channels)) != ERROR_ok)
 	{
@@ -182,7 +184,7 @@ int GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag, uint64*
 	}
 	
 	// Find the first channel that matches the criteria
-	for(channel = channels, *result = (uint64)NULL; *channel != (uint64)NULL && *result == NULL; channel++)
+	for(channel = channels, result = (uint64)NULL; *channel != (uint64)NULL && result == NULL; channel++)
 	{
 		if((error = ts3Functions.getChannelVariableAsString(scHandlerID, *channel, flag, &variable)) != ERROR_ok)
 		{
@@ -197,21 +199,22 @@ int GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag, uint64*
 		else
 		{
 			// If the variable matches the value set the result, this will end the loop
-			if(!strcmp(value, variable)) *result = *channel;
+			if(!strcmp(value, variable)) result = *channel;
 			ts3Functions.freeMemory(variable);
 		}
 	}
 
 	ts3Functions.freeMemory(channels);
-	return 0;
+	return result;
 }
 
-int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* result)
+anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 {
 	unsigned int error;
 	char* variable;
 	anyID* clients;
 	anyID* client;
+	anyID result;
 
 	if((error = ts3Functions.getClientList(scHandlerID, &clients)) != ERROR_ok)
 	{
@@ -222,11 +225,11 @@ int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* r
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return (anyID)NULL;
 	}
 	
 	// Find the first client that matches the criteria
-	for(client = clients, *result = (anyID)NULL; *client != (uint64)NULL && *result == (anyID)NULL; client++)
+	for(client = clients, result = (anyID)NULL; *client != (uint64)NULL && result == (anyID)NULL; client++)
 	{
 		if((error = ts3Functions.getClientVariableAsString(scHandlerID, *client, flag, &variable)) != ERROR_ok)
 		{
@@ -241,84 +244,13 @@ int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* r
 		else
 		{
 			// If the variable matches the value set the result, this will end the loop
-			if(!strcmp(value, variable)) *result = *client;
+			if(!strcmp(value, variable)) result = *client;
 			ts3Functions.freeMemory(variable);
 		}
 	}
 	
-	*result = *client;
 	ts3Functions.freeMemory(clients);
-	return 0;
-}
-
-uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel)
-{
-	unsigned int error;
-	char* path;
-	char* name;
-	uint64 parent;
-
-	// Retrieve the name of the subchannel
-	if((error = ts3Functions.getChannelVariableAsString(scHandlerID, subchannel, CHANNEL_NAME, &name)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-		{
-			ts3Functions.logMessage("Error retrieving channel variable:", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-		}
-	}
-
-	/*
-	 * There doesn't seem to be any upper limit to the length of the channel path.
-	 * As much as I hate doing this, 1024 characters should be more than enough,
-	 * getChannelConnectInfo is protected from buffer overflow.
-	 */
-	// Get the channel path
-	path = (char*)malloc(1024);
-	ts3Functions.getChannelConnectInfo(scHandlerID, subchannel, path, NULL, 1024);
-
-	// Split the string, following the hierachy until the subchannel is found
-	bool found = false;
-	char* str = path;
-	char* lastStr = path;
-	std::vector<char*> hierachy;
-	while(str != NULL && !found)
-	{
-		lastStr = str;
-		str = strchr(lastStr, '/');
-		if(str!=NULL)
-		{
-			*str = NULL;
-			str++;
-		}
-		if(!strcmp(lastStr, path)) found = true;
-		hierachy.push_back(lastStr);
-	}
-	hierachy.push_back(""); // Add the terminator
-
-	// If the subchannel was not found, do not continue
-	if(strcmp(str, name)) return NULL;
-	
-	/*
-	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
-	 */
-	if((error = ts3Functions.getChannelIDFromChannelNames(scHandlerID, &hierachy[0], &parent)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-		{
-			ts3Functions.logMessage("Error getting parent channel ID:", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-		}
-		return NULL;
-	}
-
-	free(path);
-	ts3Functions.freeMemory(name);
-	return parent;
+	return result;
 }
 
 int SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
@@ -987,4 +919,116 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 
 	ts3Functions.freeMemory(servers);
 	return 0;
+}
+
+uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel)
+{
+	unsigned int error;
+	char* path;
+	char* name;
+	uint64 parent;
+
+	// Retrieve the name of the subchannel
+	if((error = ts3Functions.getChannelVariableAsString(scHandlerID, subchannel, CHANNEL_NAME, &name)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving channel variable:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+	}
+
+	/*
+	 * There doesn't seem to be any upper limit to the length of the channel path.
+	 * As much as I hate doing this, 1024 characters should be more than enough,
+	 * getChannelConnectInfo is protected from buffer overflow.
+	 */
+	// Get the channel path
+	path = (char*)malloc(1024);
+	ts3Functions.getChannelConnectInfo(scHandlerID, subchannel, path, NULL, 1024);
+
+	// Split the string, following the hierachy until the subchannel is found
+	bool found = false;
+	char* str = path;
+	char* lastStr = path;
+	std::vector<char*> hierachy;
+	while(str != NULL && !found)
+	{
+		lastStr = str;
+		str = strchr(lastStr, '/');
+		if(str!=NULL)
+		{
+			*str = NULL;
+			str++;
+		}
+		if(!strcmp(lastStr, name)) found = true;
+		else hierachy.push_back(lastStr);
+	}
+	hierachy.push_back(""); // Add the terminator
+
+	// If the subchannel was not found, do not continue
+	if(!found) return NULL;
+	
+	/*
+	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
+	 */
+	if((error = ts3Functions.getChannelIDFromChannelNames(scHandlerID, &hierachy[0], &parent)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error getting parent channel ID:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return NULL;
+	}
+
+	free(path);
+	ts3Functions.freeMemory(name);
+	return parent;
+}
+
+uint64 GetChannelIDFromPath(uint64 scHandlerID, char* path)
+{
+	unsigned int error;
+	uint64 parent;
+
+	// Split the string, following the hierachy
+	bool found = false;
+	char* str = path;
+	char* lastStr = path;
+	std::vector<char*> hierachy;
+	while(str != NULL && !found)
+	{
+		lastStr = str;
+		str = strchr(lastStr, '/');
+		if(str!=NULL)
+		{
+			*str = NULL;
+			str++;
+		}
+		hierachy.push_back(lastStr);
+	}
+	hierachy.push_back(""); // Add the terminator
+	
+	/*
+	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
+	 */
+	if((error = ts3Functions.getChannelIDFromChannelNames(scHandlerID, &hierachy[0], &parent)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error getting parent channel ID:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	free(path);
+	return parent;
 }

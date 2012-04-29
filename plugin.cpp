@@ -200,8 +200,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			uint64 handle;
-			GetServerHandleByVariable(arg, VIRTUALSERVER_NAME, &handle);
+			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_NAME);
 			if(handle != (uint64)NULL && handle != scHandlerID)
 			{
 				CancelWaitableTimer(hPttDelayTimer);
@@ -216,8 +215,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			uint64 handle;
-			GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER, &handle);
+			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
 			if(handle != (uint64)NULL)
 			{
 				CancelWaitableTimer(hPttDelayTimer);
@@ -244,8 +242,8 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			uint64 id;
-			GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME, &id);
+			uint64 id = GetChannelIDFromPath(scHandlerID, arg);
+			if(id == (uint64)NULL) id = GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) JoinChannel(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Channel not found");
 		}
@@ -273,8 +271,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -284,8 +281,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -295,8 +291,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -306,8 +301,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -334,8 +328,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) WhisperAddClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -345,8 +338,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) WhisperAddClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -356,8 +348,8 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			uint64 id;
-			GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME, &id);
+			uint64 id = GetChannelIDFromPath(scHandlerID, arg);
+			if(id == (uint64)NULL) id = GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) WhisperAddChannel(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Channel not found");
 		}
@@ -378,8 +370,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) MuteClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -389,8 +380,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) MuteClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -400,8 +390,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) UnmuteClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -411,8 +400,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) UnmuteClient(scHandlerID, id);
 			else ErrorMessage(scHandlerID, "Client not found");
 		}
@@ -422,8 +410,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL)
 			{
 				int muted;
@@ -439,8 +426,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
-			anyID id;
-			GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER, &id);
+			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL)
 			{
 				int muted;
@@ -766,7 +752,7 @@ const char* ts3plugin_commandKeyword() {
 
 /* Plugin processes console command. Return 0 if plugin handled the command, 1 if not handled. */
 int ts3plugin_processCommand(uint64 serverConnectionHandlerID, const char* command) {
-	int length = strlen(command);
+	size_t length = strlen(command);
 	char* str = (char*)malloc(length+1);
 	_strcpy(str, length+1, command);
 
