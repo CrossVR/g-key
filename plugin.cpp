@@ -88,7 +88,7 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 void ParseCommand(char* cmd, char* arg)
 {
 	// Acquire the mutex
-	WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT);
+	if(WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT) != WAIT_OBJECT_0) return;
 
 	// Get the active server
 	uint64 scHandlerID = GetActiveServerConnectionHandlerID();
