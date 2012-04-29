@@ -942,12 +942,12 @@ uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel)
 
 	/*
 	 * There doesn't seem to be any upper limit to the length of the channel path.
-	 * As much as I hate doing this, 1024 characters should be more than enough,
+	 * As much as I hate doing this, 256 characters should be more than enough,
 	 * getChannelConnectInfo is protected from buffer overflow.
 	 */
 	// Get the channel path
-	path = (char*)malloc(1024);
-	ts3Functions.getChannelConnectInfo(scHandlerID, subchannel, path, NULL, 1024);
+	path = (char*)malloc(256);
+	ts3Functions.getChannelConnectInfo(scHandlerID, subchannel, path, NULL, 256);
 
 	// Split the string, following the hierachy until the subchannel is found
 	bool found = false;
