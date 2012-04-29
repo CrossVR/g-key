@@ -96,7 +96,7 @@ uint64 GetActiveServerConnectionHandlerID()
 	}
 	
 	// Find the first server that matches the criteria
-	for(server=servers; *server!=(uint64)NULL && !result; server++)
+	for(server = servers; *server != (uint64)NULL && !result; server++)
 	{
 		if((error = ts3Functions.getClientSelfVariableAsInt(*server, CLIENT_INPUT_HARDWARE, &result)) != ERROR_ok)
 		{
@@ -108,9 +108,12 @@ uint64 GetActiveServerConnectionHandlerID()
 				ts3Functions.freeMemory(errorMsg);
 			}
 		}
+		else if(!result)
+		{
+			handle = *server;
+		}
 	}
 	
-	handle = *(server-1);
 	ts3Functions.freeMemory(servers);
 	return handle;
 }
@@ -135,7 +138,7 @@ int GetServerHandleByVariable(char* value, size_t flag, uint64* result)
 	}
 	
 	// Find the first server that matches the criteria
-	for(server = servers, *result = NULL; *server != (uint64)NULL && *result == NULL; server++)
+	for(server = servers, *result = (uint64)NULL; *server != (uint64)NULL && *result == (uint64)NULL; server++)
 	{
 		if((error = ts3Functions.getServerVariableAsString(*server, flag, &variable)) != ERROR_ok)
 		{
@@ -179,7 +182,7 @@ int GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag, uint64*
 	}
 	
 	// Find the first channel that matches the criteria
-	for(channel = channels, *result = NULL; *channel != (uint64)NULL && *result == NULL; channel++)
+	for(channel = channels, *result = (uint64)NULL; *channel != (uint64)NULL && *result == NULL; channel++)
 	{
 		if((error = ts3Functions.getChannelVariableAsString(scHandlerID, *channel, flag, &variable)) != ERROR_ok)
 		{
@@ -223,7 +226,7 @@ int GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag, anyID* r
 	}
 	
 	// Find the first client that matches the criteria
-	for(client = clients, *result = NULL; *client != (uint64)NULL && *result == NULL; client++)
+	for(client = clients, *result = (anyID)NULL; *client != (uint64)NULL && *result == (anyID)NULL; client++)
 	{
 		if((error = ts3Functions.getClientVariableAsString(scHandlerID, *client, flag, &variable)) != ERROR_ok)
 		{
@@ -314,6 +317,7 @@ uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel)
 	}
 
 	free(path);
+	ts3Functions.freeMemory(name);
 	return parent;
 }
 
@@ -539,7 +543,6 @@ int SetGlobalAway(bool isAway)
 	}
 
 	ts3Functions.freeMemory(servers);
-
 	return 0;
 }
 
@@ -833,6 +836,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
+		ts3Functions.freeMemory(channels);
 		return 1;
 	}
 	if((error = ts3Functions.getChannelOfClient(scHandlerID, self, &ownChannel)) != ERROR_ok)
@@ -844,6 +848,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
+		ts3Functions.freeMemory(channels);
 		return 1;
 	}
 	
@@ -854,7 +859,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 		if(next)
 		{
 			// Find the channel sorted after this channel
-			for(channel=channels; *channel!=NULL; channel++)
+			for(channel = channels; *channel != NULL; channel++)
 			{
 				if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, *channel, CHANNEL_ORDER, &result)) != ERROR_ok)
 				{
@@ -865,6 +870,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 						ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 						ts3Functions.freeMemory(errorMsg);
 					}
+					ts3Functions.freeMemory(channels);
 					return 1;
 				}
 				else if(result == target)
@@ -893,6 +899,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 					ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 					ts3Functions.freeMemory(errorMsg);
 				}
+				ts3Functions.freeMemory(channels);
 				return 1;
 			}
 			if(result == 0) target = GetParentChannel(scHandlerID, target);
@@ -909,6 +916,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
+			ts3Functions.freeMemory(channels);
 			return 1;
 		}
 	}
@@ -926,12 +934,12 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
+			ts3Functions.freeMemory(channels);
 			return 1;
 		}
 	}
 
 	ts3Functions.freeMemory(channels);
-
 	return 0;
 }
 
@@ -956,13 +964,13 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 	}
 
 	// Find active server in the list
-	for(server=servers; *server!=NULL && *server!=scHandlerID; server++);
+	for(server = servers; *server != (uint64)NULL && *server!=scHandlerID; server++);
 
 	// Find the server in the direction given
 	if(next && *(server+1) != NULL) server++;
 	else if(server != servers) server--;
 
-	
+	// Check if already active
 	if((error = ts3Functions.getClientSelfVariableAsInt(*server, CLIENT_INPUT_HARDWARE, &result)) != ERROR_ok)
 	{
 		char* errorMsg;
@@ -972,8 +980,11 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
+		ts3Functions.freeMemory(servers);
+		return 1;
 	}
 	if(!result) SetActiveServer(*server);
 
+	ts3Functions.freeMemory(servers);
 	return 0;
 }
