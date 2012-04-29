@@ -299,7 +299,7 @@ uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel)
 	hierachy.push_back(""); // Add the terminator
 
 	// If the subchannel was not found, do not continue
-	//if(strcmp(lastStr, name)) return NULL;
+	if(strcmp(str, name)) return NULL;
 	
 	/*
 	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
