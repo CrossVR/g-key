@@ -194,10 +194,12 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="channel.cpp" />
     <ClCompile Include="functions.cpp" />
     <ClCompile Include="plugin.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="channel.h" />
     <ClInclude Include="functions.h" />
     <ClInclude Include="include\clientlib_publicdefinitions.h" />
     <ClInclude Include="include\plugin_definitions.h" />

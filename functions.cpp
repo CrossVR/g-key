@@ -17,6 +17,7 @@
 #include "ts3_functions.h"
 #include "plugin.h"
 #include "functions.h"
+#include "channel.h"
 
 #include <vector>
 #include <map>
@@ -35,73 +36,6 @@ class WhisperList
 	public:
 		std::vector<anyID> clients;
 		std::vector<uint64> channels;
-};
-class Channel
-{
-	public:
-		uint64 id;
-		Channel* parent;
-		std::list<Channel> subchannels;
-
-		Channel(uint64 id, Channel* parent)
-			: id(id), parent(parent) {}
-
-		Channel* find(uint64 id)
-		{
-			if(id == this->id) return this;
-
-			for(std::list<Channel>::iterator it = subchannels.begin(); it != subchannels.end(); ++it)
-			{
-				Channel* result = it->find(id);
-				if(result != NULL) return result;
-			}
-
-			return NULL;
-		}
-
-		Channel* first()
-		{
-			if(subchannels.empty()) return this;
-			return &subchannels.front();
-		}
-
-		Channel* last()
-		{
-			if(subchannels.empty()) return this;
-			return subchannels.back().last();
-		}
-
-		Channel* next()
-		{
-			// If this is the root, there is no next
-			if(parent == NULL) return NULL;
-
-			// Find self in parent channel list
-			std::list<Channel>::iterator it;
-			for(it = parent->subchannels.begin(); it != parent->subchannels.end() && it->id != this->id; ++it);
-			if(it == parent->subchannels.end()) return NULL; // Abort if parent is not really the parent
-
-			// Return the next channel
-			it++;
-			if(it == parent->subchannels.end()) return parent->next();
-			return &(*it);
-		}
-
-		Channel* prev()
-		{
-			// If this is the root, there is no next
-			if(parent == NULL) return NULL;
-
-			// Find self in parent channel list
-			std::list<Channel>::iterator it;
-			for(it = parent->subchannels.begin(); it != parent->subchannels.end() && it->id != this->id; ++it);
-			if(it == parent->subchannels.end()) return NULL; // Abort if parent is not really the parent
-
-			// Return the next channel
-			if(it == parent->subchannels.begin()) return parent;
-			it--;
-			return it->last();
-		}
 };
 
 // Push-to-talk
@@ -809,23 +743,11 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 {
 	unsigned int error;
 	anyID self;
-	uint64* channels;
-	uint64* channel;
 	uint64 ownId;
-	Channel root(0, NULL);
+	Channel root;
 
-	// Get channel list
-	if((error = ts3Functions.getChannelList(scHandlerID, &channels)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-		{
-			ts3Functions.logMessage("Error retrieving list of channels:", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-		}
-		return 1;
-	}
+	// Get channel hierarchy
+	if(Channel::GetChannelHierarchy(scHandlerID, &root) != 0) return 1;
 
 	// Get own channel
 	if((error = ts3Functions.getClientID(scHandlerID, &self)) != ERROR_ok)
@@ -837,7 +759,6 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		ts3Functions.freeMemory(channels);
 		return 1;
 	}
 	if((error = ts3Functions.getChannelOfClient(scHandlerID, self, &ownId)) != ERROR_ok)
@@ -849,127 +770,27 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		ts3Functions.freeMemory(channels);
 		return 1;
-	}
-
-	// Sort channels
-	for(channel = channels; *channel != NULL; channel++)
-	{
-		Channel* parent = &root;
-
-		/*
-		 * There doesn't seem to be any upper limit to the length of the channel path.
-		 * As much as I hate doing this, 256 characters should be more than enough,
-		 * getChannelConnectInfo is protected from buffer overflow.
-		 */
-		// Get the channel path
-		char* path = (char*)malloc(256);
-		ts3Functions.getChannelConnectInfo(scHandlerID, *channel, path, NULL, 256);
-
-		// Split the string, following the hierachy until the subchannel is found
-		char* str = path;
-		char* lastStr = path;
-		std::vector<char*> hierachy;
-		while(str != NULL)
-		{
-			lastStr = str;
-			str = strchr(lastStr, '/');
-			if(str!=NULL)
-			{
-				*str = NULL;
-				str++;
-			}
-			hierachy.push_back(lastStr);
-
-			uint64 id;
-			hierachy.push_back(""); // Add the terminator
-			/*
-			 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
-			 */
-			if((error = ts3Functions.getChannelIDFromChannelNames(scHandlerID, &hierachy[0], &id)) != ERROR_ok)
-			{
-				char* errorMsg;
-				if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-				{
-					ts3Functions.logMessage("Error getting parent channel ID:", LogLevel_WARNING, "G-Key Plugin", 0);
-					ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-					ts3Functions.freeMemory(errorMsg);
-				}
-				ts3Functions.freeMemory(channels);
-				return 1;
-			}
-			hierachy.pop_back();
-
-			// Find the channel
-			std::list<Channel>::iterator it;
-			for(it = parent->subchannels.begin(); it != parent->subchannels.end() && it->id != id; ++it);
-
-			// If the channel was found, set the parent, else add it
-			if(it != parent->subchannels.end()) parent = &(*it);
-			else
-			{
-				// Get the channel order
-				int order;
-				if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, id, CHANNEL_ORDER, &order)) != ERROR_ok)
-				{
-					char* errorMsg;
-					if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-					{
-						ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
-						ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-						ts3Functions.freeMemory(errorMsg);
-					}
-					ts3Functions.freeMemory(channels);
-					return 1;
-				}
-
-				if(order == 0) // Top channel is added after parent
-				{
-					if(parent->subchannels.empty() || parent->subchannels.front().id != id) parent->subchannels.push_front(Channel(id, parent));
-					parent = &parent->subchannels.front();
-				}
-				else // Other channels need to be sorted
-				{
-					// Find the channel after which this channel is sorted
-					std::list<Channel>::iterator orderIt;
-					for(orderIt = parent->subchannels.begin(); orderIt != parent->subchannels.end() && orderIt->id != order; ++orderIt);
-
-					if(orderIt != parent->subchannels.end())
-					{
-						// If the channel was found, add it after
-						orderIt++;
-						parent = &(*parent->subchannels.insert(orderIt, Channel(id, parent)));
-					}
-					else
-					{
-						// If the channel was not found, add it to the back
-						parent->subchannels.push_back(Channel(id, parent));
-						parent = &parent->subchannels.back();
-					}
-				}
-			}
-		}
-		free(path);
 	}
 	
 	// Find own channel in sorted list
-	Channel* target = root.find(ownId);
+	Channel* channel = root.find(ownId);
 	
 	// Find a joinable channel
 	bool found = false;
-	while(target != NULL && !found)
+	while(channel != NULL && !found)
 	{
 		if(next)
 		{
-			if(!target->subchannels.empty()) target = target->first();
-			else target = target->next();
+			// If the channel has subchannels, go deeper
+			if(!channel->subchannels.empty()) channel = channel->first();
+			else channel = channel->next();
 		}
-		else target = target->prev();
+		else channel = channel->prev();
 			
 		// If this channel is passworded, join the next
 		int pswd;
-		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target->id, CHANNEL_FLAG_PASSWORD, &pswd)) != ERROR_ok)
+		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, channel->id, CHANNEL_FLAG_PASSWORD, &pswd)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -985,7 +806,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 	// If a joinable channel was found, attempt to join it
 	if(found)
 	{
-		if((error = ts3Functions.requestClientMove(scHandlerID, self, target->id, "", NULL)) != ERROR_ok)
+		if((error = ts3Functions.requestClientMove(scHandlerID, self, channel->id, "", NULL)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
@@ -994,13 +815,11 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
-			ts3Functions.freeMemory(channels);
 			return 1;
 		}
+		return 0;
 	}
-
-	ts3Functions.freeMemory(channels);
-	return 0;
+	return 1;
 }
 
 int SetActiveServerRelative(uint64 scHandlerID, bool next)
