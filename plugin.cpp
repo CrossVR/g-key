@@ -226,19 +226,19 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument");
 	}
-	else if(!strcmp(cmd, "TS3_ACTIVATE_NEXT"))
+	else if(!strcmp(cmd, "TS3_SERVER_NEXT"))
 	{
 		CancelWaitableTimer(hPttDelayTimer);
 		SetPushToTalk(scHandlerID, false);
 		SetNextActiveServer(scHandlerID);
 	}
-	else if(!strcmp(cmd, "TS3_ACTIVATE_PREV"))
+	else if(!strcmp(cmd, "TS3_SERVER_PREV"))
 	{
 		CancelWaitableTimer(hPttDelayTimer);
 		SetPushToTalk(scHandlerID, false);
 		SetPrevActiveServer(scHandlerID);
 	}
-	else if(!strcmp(cmd, "TS3_CHANNEL_JOIN"))
+	else if(!strcmp(cmd, "TS3_JOIN_CHANNEL"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
@@ -249,7 +249,7 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument");
 	}
-	else if(!strcmp(cmd, "TS3_CHANNEL_JOINID"))
+	else if(!strcmp(cmd, "TS3_JOIN_CHANNELID"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
@@ -324,7 +324,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		WhisperListClear(scHandlerID);
 	}
-	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENT"))
+	else if(!strcmp(cmd, "TS3_WHISPER_CLIENT"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
@@ -334,7 +334,7 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument");
 	}
-	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CLIENTID"))
+	else if(!strcmp(cmd, "TS3_WHISPER_CLIENTID"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
@@ -344,7 +344,7 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument");
 	}
-	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHAN"))
+	else if(!strcmp(cmd, "TS3_WHISPER_CHANNEL"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
@@ -355,7 +355,7 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument");
 	}
-	else if(!strcmp(cmd, "TS3_WHISPER_ADD_CHANID"))
+	else if(!strcmp(cmd, "TS3_WHISPER_CHANNELID"))
 	{
 		if(arg != NULL && *arg != (char)NULL)
 		{
