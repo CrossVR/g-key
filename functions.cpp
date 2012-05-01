@@ -997,11 +997,10 @@ uint64 GetChannelIDFromPath(uint64 scHandlerID, char* path)
 	uint64 parent;
 
 	// Split the string, following the hierachy
-	bool found = false;
 	char* str = path;
 	char* lastStr = path;
 	std::vector<char*> hierachy;
-	while(str != NULL && !found)
+	while(str != NULL)
 	{
 		lastStr = str;
 		str = strchr(lastStr, '/');
