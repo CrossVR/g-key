@@ -846,8 +846,20 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 	for(server = servers; *server != (uint64)NULL && *server!=scHandlerID; server++);
 
 	// Find the server in the direction given
-	if(next && *(server+1) != NULL) server++;
-	else if(server != servers) server--;
+	if(next)
+	{
+		if(*(server+1) != NULL) server++;
+		else server = servers; // Wrap around to first server
+	}
+	else
+	{
+		if(server != servers) server--;
+		else
+		{
+			for(server = servers; *server != (uint64)NULL; server++);
+			server--;
+		}
+	}
 
 	// Check if already active
 	if((error = ts3Functions.getClientSelfVariableAsInt(*server, CLIENT_INPUT_HARDWARE, &result)) != ERROR_ok)
