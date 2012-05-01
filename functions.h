@@ -24,7 +24,6 @@ uint64 GetActiveServerConnectionHandlerID();
 uint64 GetServerHandleByVariable(char* value, size_t flag);
 uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag);
 anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag);
-uint64 GetParentChannel(uint64 scHandlerID, uint64 subchannel);
 uint64 GetChannelIDFromPath(uint64 scHandlerID, char* path);
 
 /* Communication */
