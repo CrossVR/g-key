@@ -59,10 +59,48 @@ class Channel
 			return NULL;
 		}
 
+		Channel* first()
+		{
+			if(subchannels.empty()) return this;
+			return &subchannels.front();
+		}
+
 		Channel* last()
 		{
-			if(subchannels.size() == 0) return this;
+			if(subchannels.empty()) return this;
 			return subchannels.back().last();
+		}
+
+		Channel* next()
+		{
+			// If this is the root, there is no next
+			if(parent == NULL) return NULL;
+
+			// Find self in parent channel list
+			std::list<Channel>::iterator it;
+			for(it = parent->subchannels.begin(); it != parent->subchannels.end() && it->id != this->id; ++it);
+			if(it == parent->subchannels.end()) return NULL; // Abort if parent is not really the parent
+
+			// Return the next channel
+			it++;
+			if(it == parent->subchannels.end()) return parent->next();
+			return &(*it);
+		}
+
+		Channel* prev()
+		{
+			// If this is the root, there is no next
+			if(parent == NULL) return NULL;
+
+			// Find self in parent channel list
+			std::list<Channel>::iterator it;
+			for(it = parent->subchannels.begin(); it != parent->subchannels.end() && it->id != this->id; ++it);
+			if(it == parent->subchannels.end()) return NULL; // Abort if parent is not really the parent
+
+			// Return the next channel
+			if(it == parent->subchannels.begin()) return parent;
+			it--;
+			return it->last();
 		}
 };
 
@@ -917,72 +955,37 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 	
 	// Find own channel in sorted list
 	Channel* target = root.find(ownId);
-
-	// Find own channel in subchannel list of parent
-	std::list<Channel>::iterator it;
-	for(it = target->parent->subchannels.begin(); it != target->parent->subchannels.end() && it->id != target->id; ++it);
 	
 	// Find a joinable channel
 	bool found = false;
-	while(target->id != 0 && !found)
+	while(target != NULL && !found)
 	{
 		if(next)
 		{
-			for(; it != target->parent->subchannels.end() && !found; ++it);
+			if(!target->subchannels.empty()) target = target->first();
+			else target = target->next();
+		}
+		else target = target->prev();
+			
+		// If this channel is passworded, join the next
+		int pswd;
+		if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, target->id, CHANNEL_FLAG_PASSWORD, &pswd)) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
 			{
-				// If this channel is passworded, join the next
-				int pswd;
-				if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, it->id, CHANNEL_FLAG_PASSWORD, &pswd)) != ERROR_ok)
-				{
-					char* errorMsg;
-					if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-					{
-						ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
-						ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-						ts3Functions.freeMemory(errorMsg);
-					}
-				}
-				if(!pswd) found = true;
+				ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
 			}
 		}
-		else
-		{
-			for(; it != target->parent->subchannels.begin() && !found; --it);
-			{
-				// If this channel is passworded, join the next
-				int pswd;
-				if((error = ts3Functions.getChannelVariableAsInt(scHandlerID, it->id, CHANNEL_FLAG_PASSWORD, &pswd)) != ERROR_ok)
-				{
-					char* errorMsg;
-					if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-					{
-						ts3Functions.logMessage("Error getting channel info:", LogLevel_WARNING, "G-Key Plugin", 0);
-						ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-						ts3Functions.freeMemory(errorMsg);
-					}
-				}
-				if(!pswd) found = true;
-			}
-		}
-
-		// If no joinable channel was found, go a level higher
-		target = target->parent;
-		if(next)
-		{
-			it = target->subchannels.end();
-			it--;
-		}
-		else
-		{
-			target = target->last()->parent;
-			it = target->subchannels.begin();
-		}
+		if(!pswd) found = true;
 	}
 
 	// If a joinable channel was found, attempt to join it
 	if(found)
 	{
-		if((error = ts3Functions.requestClientMove(scHandlerID, self, it->id, "", NULL)) != ERROR_ok)
+		if((error = ts3Functions.requestClientMove(scHandlerID, self, target->id, "", NULL)) != ERROR_ok)
 		{
 			char* errorMsg;
 			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
