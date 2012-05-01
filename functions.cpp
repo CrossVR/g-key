@@ -773,7 +773,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 		return 1;
 	}
 	
-	// Find own channel in sorted list
+	// Find own channel in hierarchy
 	Channel* channel = root.find(ownId);
 	
 	// Find a joinable channel
