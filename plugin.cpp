@@ -442,18 +442,22 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		float value;
 		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
-		SetMasterVolume(scHandlerID, value+1.0f);
+		SetMasterVolume(scHandlerID, value+(arg!=NULL)?atof(arg):1.0f);
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_DOWN"))
 	{
 		float value;
 		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
-		SetMasterVolume(scHandlerID, value-1.0f);
+		SetMasterVolume(scHandlerID, value-(arg!=NULL)?atof(arg):1.0f);
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_SET"))
 	{
-		float value = (float)atof(arg);
-		SetMasterVolume(scHandlerID, value);
+		if(arg != NULL && *arg != (char)NULL)
+		{
+			float value = (float)atof(arg);
+			SetMasterVolume(scHandlerID, value);
+		}
+		else ErrorMessage(scHandlerID, "Missing argument");
 	}
 	/***** Error handler *****/
 	else
