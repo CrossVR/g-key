@@ -8,11 +8,14 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include <vector>
+
 /* Global variables */
 extern bool pttActive;
 extern bool vadActive;
 extern bool inputActive;
 extern bool whisperActive;
+extern bool replyActive;
 
 /* High-level TeamSpeak functions */
 
@@ -34,11 +37,13 @@ int SetInputMute(uint64 scHandlerID, bool shouldMute);
 int SetOutputMute(uint64 scHandlerID, bool shouldMute);
 
 /* Whispering */
-void GetWhisperList(uint64 scHandlerID);
 int SetWhisperList(uint64 scHandlerID, bool shouldWhisper);
 void WhisperListClear(uint64 scHandlerID);
 void WhisperAddClient(uint64 scHandlerID, anyID client);
 void WhisperAddChannel(uint64 scHandlerID, uint64 channel);
+int SetReplyList(uint64 scHandlerID, bool shouldReply);
+void ReplyListClear(uint64 scHandlerID);
+void ReplyAddClient(uint64 scHandlerID, anyID client);
 
 /* Server interaction */
 int SetActiveServer(uint64 handle);

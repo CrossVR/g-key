@@ -365,6 +365,22 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument");
 	}
+	else if(!strcmp(cmd, "TS3_REPLY_ACTIVATE"))
+	{
+		SetReplyList(scHandlerID, TRUE);
+	}
+	else if(!strcmp(cmd, "TS3_REPLY_DEACTIVATE"))
+	{
+		SetReplyList(scHandlerID, FALSE);
+	}
+	else if(!strcmp(cmd, "TS3_REPLY_TOGGLE"))
+	{
+		SetReplyList(scHandlerID, !whisperActive);
+	}
+	else if(!strcmp(cmd, "TS3_REPLY_CLEAR"))
+	{
+		ReplyListClear(scHandlerID);
+	}
 	/***** Miscellaneous *****/
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
 	{
@@ -834,4 +850,9 @@ void ts3plugin_onConnectStatusChangeEvent(uint64 serverConnectionHandlerID, int 
 			}
 		}
 	}
+}
+
+/* Add whisper clients to reply list */
+void ts3plugin_onTalkStatusChangeEvent(uint64 serverConnectionHandlerID, int status, int isReceivedWhisper, anyID clientID) {
+	if(isReceivedWhisper) ReplyAddClient(GetActiveServerConnectionHandlerID(), clientID);
 }

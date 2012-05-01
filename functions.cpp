@@ -47,6 +47,9 @@ bool inputActive = false;
 bool whisperActive = false;
 std::map<uint64, WhisperList> whisperLists;
 typedef std::map<uint64, WhisperList>::iterator WhisperIterator;
+bool replyActive = false;
+std::map<uint64, std::vector<anyID>> replyLists;
+typedef std::map<uint64, std::vector<anyID>>::iterator ReplyIterator;
 
 void ErrorMessage(uint64 scHandlerID, char* message)
 {
@@ -598,6 +601,74 @@ void WhisperAddChannel(uint64 scHandlerID, uint64 channel)
 
 	list->second.channels.push_back(channel);
 	if(whisperActive) SetWhisperList(scHandlerID, true);
+}
+
+int SetReplyList(uint64 scHandlerID, bool shouldReply)
+{
+	unsigned int error;
+	ReplyIterator list;
+
+	if(shouldReply)
+	{
+		list = replyLists.find(scHandlerID);
+		if(list == replyLists.end()) shouldReply = false;
+		else
+		{
+			// Add the NULL-terminator
+			list->second.push_back((anyID)NULL);
+		}
+	}
+
+	/*
+	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
+	 */
+	if((error = ts3Functions.requestClientSetWhisperList(scHandlerID, (anyID)NULL, NULL, shouldReply?&list->second[0]:(anyID*)NULL, NULL)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error setting reply list:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return 1;
+	}
+
+	if(shouldReply)
+	{
+		// Remove the NULL-terminator
+		list->second.pop_back();
+	}
+
+	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
+	replyActive = shouldReply;
+
+	if(!shouldReply) return SetWhisperList(scHandlerID, true);
+	return 0;
+}
+
+void ReplyListClear(uint64 scHandlerID)
+{
+	SetReplyList(scHandlerID, false);
+	replyLists.erase(scHandlerID);
+}
+
+void ReplyAddClient(uint64 scHandlerID, anyID client)
+{
+	// Find the whisperlist, create it if it doesn't exist
+	std::pair<ReplyIterator,bool> result = replyLists.insert(std::pair<uint64,std::vector<anyID>>(scHandlerID, std::vector<anyID>()));
+	ReplyIterator list = result.first;
+	
+	/*
+	 * Do not add if duplicate. I could use a set, but that would be inefficient as
+	 * ordering is unimportant and it would require me to convert to C arrays when
+	 * activating the whisper list.
+	 */
+	for(std::vector<anyID>::iterator it=list->second.begin(); it!=list->second.end(); it++)
+		if(*it == client) return;
+
+	list->second.push_back(client);
+	if(replyActive) SetReplyList(scHandlerID, true);
 }
 
 int SetActiveServer(uint64 handle)
