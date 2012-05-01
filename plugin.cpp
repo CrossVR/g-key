@@ -440,15 +440,17 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_UP"))
 	{
+		float diff = (arg!=NULL && *arg != (char)NULL)?atof(arg):1.0f;
 		float value;
 		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
-		SetMasterVolume(scHandlerID, value+(arg!=NULL)?atof(arg):1.0f);
+		SetMasterVolume(scHandlerID, value+diff);
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_DOWN"))
 	{
+		float diff = (arg!=NULL && *arg != (char)NULL)?atof(arg):1.0f;
 		float value;
 		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
-		SetMasterVolume(scHandlerID, value-(arg!=NULL)?atof(arg):1.0f);
+		SetMasterVolume(scHandlerID, value-diff);
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_SET"))
 	{
