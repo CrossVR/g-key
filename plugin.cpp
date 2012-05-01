@@ -375,7 +375,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_TOGGLE"))
 	{
-		SetReplyList(scHandlerID, !whisperActive);
+		SetReplyList(scHandlerID, !replyActive);
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_CLEAR"))
 	{
