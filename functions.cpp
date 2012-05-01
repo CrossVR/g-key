@@ -904,7 +904,5 @@ uint64 GetChannelIDFromPath(uint64 scHandlerID, char* path)
 		}
 		return 1;
 	}
-
-	free(path);
 	return parent;
 }
