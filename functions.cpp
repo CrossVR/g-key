@@ -88,7 +88,6 @@ uint64 GetActiveServerConnectionHandlerID()
 	uint64* servers;
 	uint64* server;
 	uint64 handle = NULL;
-	int result = 0;
 	
 	if((error = ts3Functions.getServerConnectionHandlerList(&servers)) != ERROR_ok)
 	{
@@ -103,8 +102,9 @@ uint64 GetActiveServerConnectionHandlerID()
 	}
 	
 	// Find the first server that matches the criteria
-	for(server = servers; *server != (uint64)NULL && !result; server++)
+	for(server = servers; *server != (uint64)NULL && handle == NULL; server++)
 	{
+		int result;
 		if((error = ts3Functions.getClientSelfVariableAsInt(*server, CLIENT_INPUT_HARDWARE, &result)) != ERROR_ok)
 		{
 			char* errorMsg;

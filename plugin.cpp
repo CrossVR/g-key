@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "public_errors.h"
+#include "public_errors_rare.h"
 #include "public_definitions.h"
 #include "public_rare_definitions.h"
 #include "ts3_functions.h"
@@ -87,6 +89,8 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 
 void ParseCommand(char* cmd, char* arg)
 {
+	unsigned int error;
+
 	// Acquire the mutex
 	if(WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT) != WAIT_OBJECT_0)
 	{
@@ -100,7 +104,21 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		ts3Functions.logMessage("Failed to get an active server, falling back to current server", LogLevel_DEBUG, "G-Key Plugin", 0);
 		scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
+		if(scHandlerID == NULL) return;
 	}
+
+	int status;
+	if((error = ts3Functions.getConnectionStatus(scHandlerID, &status)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving connection status:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+	}
+	if(status == STATUS_DISCONNECTED) return;
 
 	/***** Communication *****/
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
