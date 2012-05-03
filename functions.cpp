@@ -69,15 +69,19 @@ void ErrorMessage(uint64 scHandlerID, char* message)
 	ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
 	free(styledMsg);
 
-	// Play the error sound
-	if((error = ts3Functions.playWaveFile(scHandlerID, errorSound)) != ERROR_ok)
+	// If an error sound has been found
+	if(errorSound != NULL)
 	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		// Play the error sound
+		if((error = ts3Functions.playWaveFile(scHandlerID, errorSound)) != ERROR_ok)
 		{
-			ts3Functions.logMessage("Error playing error sound:", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+			{
+				ts3Functions.logMessage("Error playing error sound:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
 		}
 	}
 }

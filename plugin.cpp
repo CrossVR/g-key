@@ -731,7 +731,25 @@ int ts3plugin_init() {
 	strcat_s(errorSound, MAX_PATH, "sound/");
 	length = strlen(errorSound);
 	GetPrivateProfileStringA("Notifications", "SoundPack", "default", errorSound+length, MAX_PATH-(DWORD)length, configFile);
-	strcat_s(errorSound, MAX_PATH, "/error.wav");
+
+	char filename[MAX_PATH];
+	strcat_s(errorSound, MAX_PATH, "/settings.ini");
+	GetPrivateProfileStringA("soundfiles", "SERVER_ERROR", NULL, filename, MAX_PATH, errorSound);
+	length = strlen(errorSound);
+	if(strlen(filename) > 0)
+	{
+		errorSound[length-13] = NULL;
+		*strrchr(filename, '\"') = NULL;
+		char* file = strchr(filename, '\"');
+		*file = '/';
+		strcat_s(errorSound, MAX_PATH, file);
+		ts3Functions.logMessage(errorSound, LogLevel_DEBUG, "G-Key Plugin", 0);
+	}
+	else
+	{
+		free(errorSound);
+		errorSound = NULL;
+	}
 
 	// Find info icon
 	infoIcon = (char*)malloc(MAX_PATH);
