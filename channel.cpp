@@ -5,6 +5,7 @@
 #include "plugin.h"
 #include <list>
 #include <vector>
+#include <stack>
 
 Channel::Channel(void)
 	: id(0), parent(NULL)
@@ -99,49 +100,20 @@ int Channel::GetChannelHierarchy(uint64 scHandlerID, Channel* root)
 	for(uint64* channel = channels; *channel != NULL; channel++)
 	{
 		Channel* parent = root;
+		uint64 id = *channel;
+		std::stack<uint64> hierachy;
 
-		/*
-		 * There doesn't seem to be any upper limit to the length of the channel path.
-		 * As much as I hate doing this, 256 characters should be more than enough,
-		 * getChannelConnectInfo is protected from buffer overflow.
-		 */
-		// Get the channel path
-		char* path = (char*)malloc(256);
-		ts3Functions.getChannelConnectInfo(scHandlerID, *channel, path, NULL, 256);
-
-		// Split the string, following the hierachy until the subchannel is found
-		char* str = path;
-		char* lastStr = path;
-		std::vector<char*> hierachy;
-		while(str != NULL)
+		// Build the hierarchy stack
+		while(id != 0)
 		{
-			lastStr = str;
-			str = strchr(lastStr, '/');
-			if(str!=NULL)
-			{
-				*str = NULL;
-				str++;
-			}
-			hierachy.push_back(lastStr);
+			hierachy.push(id);
+			ts3Functions.getParentChannelOfChannel(scHandlerID, id, &id);
+		}
 
-			uint64 id;
-			hierachy.push_back(""); // Add the terminator
-			/*
-			 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
-			 */
-			if((error = ts3Functions.getChannelIDFromChannelNames(scHandlerID, &hierachy[0], &id)) != ERROR_ok)
-			{
-				char* errorMsg;
-				if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-				{
-					ts3Functions.logMessage("Error getting parent channel ID:", LogLevel_WARNING, "G-Key Plugin", 0);
-					ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-					ts3Functions.freeMemory(errorMsg);
-				}
-				ts3Functions.freeMemory(channels);
-				return 1;
-			}
-			hierachy.pop_back();
+		while(!hierachy.empty())
+		{
+			id = hierachy.top();
+			hierachy.pop();
 
 			// Find the channel
 			std::list<Channel>::iterator it;
@@ -192,7 +164,6 @@ int Channel::GetChannelHierarchy(uint64 scHandlerID, Channel* root)
 				}
 			}
 		}
-		free(path);
 	}
 
 	ts3Functions.freeMemory(channels);
