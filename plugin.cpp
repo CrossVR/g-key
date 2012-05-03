@@ -118,86 +118,110 @@ void ParseCommand(char* cmd, char* arg)
 			ts3Functions.freeMemory(errorMsg);
 		}
 	}
-	if(status == STATUS_DISCONNECTED) return;
 
 	/***** Communication *****/
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
-		if(pttActive) CancelWaitableTimer(hPttDelayTimer);
-		SetPushToTalk(scHandlerID, true);
+		if(status != STATUS_DISCONNECTED)
+		{
+			if(pttActive) CancelWaitableTimer(hPttDelayTimer);
+			SetPushToTalk(scHandlerID, true);
+		}
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
 	{
-		char str[6];
-		GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
-		if(!strcmp(str, "true"))
+		if(status != STATUS_DISCONNECTED)
 		{
-			GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "300", str, 10, configFile);
-			dueTime.QuadPart = 0 - atoi(str) * TIMER_MSEC;
+			char str[6];
+			GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
+			if(!strcmp(str, "true"))
+			{
+				GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "300", str, 10, configFile);
+				dueTime.QuadPart = 0 - atoi(str) * TIMER_MSEC;
 
-			SetWaitableTimer(hPttDelayTimer, &dueTime, 0, PTTDelayCallback, NULL, FALSE);
-		}
-		else
-		{
-			SetPushToTalk(scHandlerID, false);
+				SetWaitableTimer(hPttDelayTimer, &dueTime, 0, PTTDelayCallback, NULL, FALSE);
+			}
+			else
+			{
+				SetPushToTalk(scHandlerID, false);
+			}
 		}
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
 	{
-		if(pttActive) CancelWaitableTimer(hPttDelayTimer);
-		SetPushToTalk(scHandlerID, !pttActive);
+		if(status != STATUS_DISCONNECTED)
+		{
+			if(pttActive) CancelWaitableTimer(hPttDelayTimer);
+			SetPushToTalk(scHandlerID, !pttActive);
+		}
 	}
 	else if(!strcmp(cmd, "TS3_VAD_ACTIVATE"))
 	{
-		SetVoiceActivation(scHandlerID, true);
+		if(status != STATUS_DISCONNECTED)
+			SetVoiceActivation(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_VAD_DEACTIVATE"))
 	{
-		SetVoiceActivation(scHandlerID, false);
+		if(status != STATUS_DISCONNECTED)
+			SetVoiceActivation(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_VAD_TOGGLE"))
 	{
-		SetVoiceActivation(scHandlerID, !vadActive);
+		if(status != STATUS_DISCONNECTED)
+			SetVoiceActivation(scHandlerID, !vadActive);
 	}
 	else if(!strcmp(cmd, "TS3_CT_ACTIVATE"))
 	{
-		SetContinuousTransmission(scHandlerID, true);
+		if(status != STATUS_DISCONNECTED)
+			SetContinuousTransmission(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_CT_DEACTIVATE"))
 	{
-		SetContinuousTransmission(scHandlerID, false);
+		if(status != STATUS_DISCONNECTED)
+			SetContinuousTransmission(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_CT_TOGGLE"))
 	{
-		SetContinuousTransmission(scHandlerID, !inputActive);
+		if(status != STATUS_DISCONNECTED)
+			SetContinuousTransmission(scHandlerID, !inputActive);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
 	{
-		SetInputMute(scHandlerID, true);
+		if(status != STATUS_DISCONNECTED)
+			SetInputMute(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_UNMUTE"))
 	{
-		SetInputMute(scHandlerID, false);
+		if(status != STATUS_DISCONNECTED)
+			SetInputMute(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
 	{
-		int muted;
-		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
-		SetInputMute(scHandlerID, !muted);
+		if(status == STATUS_DISCONNECTED)
+		{
+			int muted;
+			ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
+			SetInputMute(scHandlerID, !muted);
+		}
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_MUTE"))
 	{
-		SetOutputMute(scHandlerID, true);
+		if(status != STATUS_DISCONNECTED)
+			SetOutputMute(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_UNMUTE"))
 	{
-		SetOutputMute(scHandlerID, false);
+		if(status != STATUS_DISCONNECTED)
+			SetOutputMute(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
 	{
-		int muted;
-		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
-		SetOutputMute(scHandlerID, !muted);
+		if(status != STATUS_DISCONNECTED)
+		{
+			int muted;
+			ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
+			SetOutputMute(scHandlerID, !muted);
+		}
 	}
 	/***** Server interaction *****/
 	else if(!strcmp(cmd, "TS3_AWAY_ZZZ"))
@@ -222,7 +246,6 @@ void ParseCommand(char* cmd, char* arg)
 			if(handle != (uint64)NULL && handle != scHandlerID)
 			{
 				CancelWaitableTimer(hPttDelayTimer);
-				SetPushToTalk(scHandlerID, false);
 				SetActiveServer(handle);
 			}
 			else ErrorMessage(scHandlerID, "Server not found");
@@ -237,7 +260,6 @@ void ParseCommand(char* cmd, char* arg)
 			if(handle != (uint64)NULL)
 			{
 				CancelWaitableTimer(hPttDelayTimer);
-				SetPushToTalk(scHandlerID, false);
 				SetActiveServer(handle);
 			}
 			else ErrorMessage(scHandlerID, "Server not found");
@@ -247,18 +269,16 @@ void ParseCommand(char* cmd, char* arg)
 	else if(!strcmp(cmd, "TS3_SERVER_NEXT"))
 	{
 		CancelWaitableTimer(hPttDelayTimer);
-		SetPushToTalk(scHandlerID, false);
 		SetNextActiveServer(scHandlerID);
 	}
 	else if(!strcmp(cmd, "TS3_SERVER_PREV"))
 	{
 		CancelWaitableTimer(hPttDelayTimer);
-		SetPushToTalk(scHandlerID, false);
 		SetPrevActiveServer(scHandlerID);
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANNEL"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			uint64 id = GetChannelIDFromPath(scHandlerID, arg);
 			if(id == (uint64)NULL) id = GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
@@ -269,7 +289,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANNELID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) JoinChannel(scHandlerID, id);
@@ -279,15 +299,17 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANNEL_NEXT"))
 	{
-		JoinNextChannel(scHandlerID);
+		if(status == STATUS_DISCONNECTED)
+			JoinNextChannel(scHandlerID);
 	}
 	else if(!strcmp(cmd, "TS3_CHANNEL_PREV"))
 	{
-		JoinPrevChannel(scHandlerID);
+		if(status != STATUS_DISCONNECTED)
+			JoinPrevChannel(scHandlerID);
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
@@ -297,7 +319,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ServerKickClient(scHandlerID, id);
@@ -307,7 +329,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
@@ -317,7 +339,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) ChannelKickClient(scHandlerID, id);
@@ -328,15 +350,18 @@ void ParseCommand(char* cmd, char* arg)
 	/***** Whispering *****/
 	else if(!strcmp(cmd, "TS3_WHISPER_ACTIVATE"))
 	{
-		SetWhisperList(scHandlerID, TRUE);
+		if(status != STATUS_DISCONNECTED)
+			SetWhisperList(scHandlerID, TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_DEACTIVATE"))
 	{
-		SetWhisperList(scHandlerID, FALSE);
+		if(status != STATUS_DISCONNECTED)
+			SetWhisperList(scHandlerID, FALSE);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_TOGGLE"))
 	{
-		SetWhisperList(scHandlerID, !whisperActive);
+		if(status != STATUS_DISCONNECTED)
+			SetWhisperList(scHandlerID, !whisperActive);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CLEAR"))
 	{
@@ -344,7 +369,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CLIENT"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) WhisperAddClient(scHandlerID, id);
@@ -354,7 +379,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CLIENTID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) WhisperAddClient(scHandlerID, id);
@@ -364,7 +389,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CHANNEL"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			uint64 id = GetChannelIDFromPath(scHandlerID, arg);
 			if(id == (uint64)NULL) id = GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
@@ -375,7 +400,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CHANNELID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) WhisperAddChannel(scHandlerID, id);
@@ -385,15 +410,18 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_ACTIVATE"))
 	{
-		SetReplyList(scHandlerID, TRUE);
+		if(status != STATUS_DISCONNECTED)
+			SetReplyList(scHandlerID, TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_DEACTIVATE"))
 	{
-		SetReplyList(scHandlerID, FALSE);
+		if(status != STATUS_DISCONNECTED)
+			SetReplyList(scHandlerID, FALSE);
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_TOGGLE"))
 	{
-		SetReplyList(scHandlerID, !replyActive);
+		if(status != STATUS_DISCONNECTED)
+			SetReplyList(scHandlerID, !replyActive);
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_CLEAR"))
 	{
@@ -402,7 +430,7 @@ void ParseCommand(char* cmd, char* arg)
 	/***** Miscellaneous *****/
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) MuteClient(scHandlerID, id);
@@ -412,7 +440,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENTID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) MuteClient(scHandlerID, id);
@@ -422,7 +450,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENT"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) UnmuteClient(scHandlerID, id);
@@ -432,7 +460,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENTID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) UnmuteClient(scHandlerID, id);
@@ -442,7 +470,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENT"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL)
@@ -458,7 +486,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENTID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			anyID id = GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL)
@@ -474,21 +502,27 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_UP"))
 	{
-		float diff = (arg!=NULL && *arg != (char)NULL)?(float)atof(arg):1.0f;
-		float value;
-		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
-		SetMasterVolume(scHandlerID, value+diff);
+		if(status != STATUS_DISCONNECTED)
+		{
+			float diff = (arg!=NULL && *arg != (char)NULL)?(float)atof(arg):1.0f;
+			float value;
+			ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
+			SetMasterVolume(scHandlerID, value+diff);
+		}
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_DOWN"))
 	{
-		float diff = (arg!=NULL && *arg != (char)NULL)?(float)atof(arg):1.0f;
-		float value;
-		ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
-		SetMasterVolume(scHandlerID, value-diff);
+		if(status != STATUS_DISCONNECTED)
+		{
+			float diff = (arg!=NULL && *arg != (char)NULL)?(float)atof(arg):1.0f;
+			float value;
+			ts3Functions.getPlaybackConfigValueAsFloat(scHandlerID, "volume_modifier", &value);
+			SetMasterVolume(scHandlerID, value-diff);
+		}
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_SET"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
 		{
 			float value = (float)atof(arg);
 			SetMasterVolume(scHandlerID, value);
