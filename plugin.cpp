@@ -197,7 +197,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
 	{
-		if(status == STATUS_DISCONNECTED)
+		if(status != STATUS_DISCONNECTED)
 		{
 			int muted;
 			ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
@@ -299,7 +299,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANNEL_NEXT"))
 	{
-		if(status == STATUS_DISCONNECTED)
+		if(status != STATUS_DISCONNECTED)
 			JoinNextChannel(scHandlerID);
 	}
 	else if(!strcmp(cmd, "TS3_CHANNEL_PREV"))
