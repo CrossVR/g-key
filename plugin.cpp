@@ -266,6 +266,16 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else ErrorMessage(scHandlerID, "Missing argument");
 	}
+	else if(!strcmp(cmd, "TS3_ACTIVATE_CURRENT"))
+	{
+		uint64 handle = ts3Functions.getCurrentServerConnectionHandlerID();
+		if(handle != (uint64)NULL)
+		{
+			CancelWaitableTimer(hPttDelayTimer);
+			SetActiveServer(handle);
+		}
+		else ErrorMessage(scHandlerID, "Server not found");
+	}
 	else if(!strcmp(cmd, "TS3_SERVER_NEXT"))
 	{
 		CancelWaitableTimer(hPttDelayTimer);
