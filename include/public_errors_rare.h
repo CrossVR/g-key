@@ -40,6 +40,7 @@ const unsigned int ERROR_file_transfer_interrupted              = 0x0813;
 const unsigned int ERROR_file_transfer_server_quota_exceeded    = 0x0814;
 const unsigned int ERROR_file_transfer_client_quota_exceeded    = 0x0815;
 const unsigned int ERROR_file_transfer_reset                    = 0x0816;
+const unsigned int ERROR_file_transfer_limit_reached            = 0x0817;
 
 //permissions
 const unsigned int ERROR_permission_invalid_group_id            = 0x0a00;

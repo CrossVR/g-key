@@ -101,6 +101,9 @@ struct TS3Functions {
 	unsigned int (*requestClientIDs)(uint64 serverConnectionHandlerID, const char* clientUniqueIdentifier, const char* returnCode);
 	unsigned int (*clientChatClosed)(uint64 serverConnectionHandlerID, const char* clientUniqueIdentifier, anyID clientID, const char* returnCode);
 	unsigned int (*clientChatComposing)(uint64 serverConnectionHandlerID, anyID clientID, const char* returnCode);
+	unsigned int (*requestServerTemporaryPasswordAdd)(uint64 serverConnectionHandlerID, const char* password, const char* description, uint64 duration, uint64 targetChannelID, const char* targetChannelPW, const char* returnCode);
+	unsigned int (*requestServerTemporaryPasswordDel)(uint64 serverConnectionHandlerID, const char* password, const char* returnCode);
+	unsigned int (*requestServerTemporaryPasswordList)(uint64 serverConnectionHandlerID, const char* returnCode);
 
 	/* Access clientlib information */
 
@@ -261,6 +264,7 @@ struct TS3Functions {
 	void         (*showHotkeySetup)();
 	void         (*requestHotkeyInputDialog)(const char* pluginID, const char* keyword, void* qParentWindow);
 	unsigned int (*getHotkeyFromKeyword)(const char* pluginID, const char** keywords, char** hotkeys, size_t arrayLen, size_t hotkeyBufSize);
+	unsigned int (*getClientDisplayName)(uint64 scHandlerID, anyID clientID, char* result, size_t maxLen);
 };
 
 #ifdef __cplusplus

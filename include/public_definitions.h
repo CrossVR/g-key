@@ -280,5 +280,8 @@ enum GroupWhisperTargetMode {
 #define SPEAKER_TOP_BACK_CENTER         0x10000
 #define SPEAKER_TOP_BACK_RIGHT          0x20000
 #endif
+#define SPEAKER_HEADPHONES_LEFT         0x10000000
+#define SPEAKER_HEADPHONES_RIGHT        0x20000000
+#define SPEAKER_MONO                    0x40000000
 
 #endif //PUBLIC_DEFINITIONS_H

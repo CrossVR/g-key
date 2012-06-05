@@ -15,8 +15,11 @@
 #define TS3_MAX_SIZE_HOSTBUTTON_TOOLTIP 50
 #define TS3_MAX_SIZE_POKE_MESSAGE 100
 
+
 //limited length, measured in bytes (utf8 encoded)
 #define TS3_MAX_SIZE_PLUGIN_COMMAND 1024*8
+#define TS3_MAX_SIZE_VIRTUALSERVER_HOSTBANNER_GFX_URL 2000
+
 
 enum GroupShowNameTreeMode {
 	GroupShowNameTreeMode_NONE= 0, //dont group show name
@@ -63,8 +66,9 @@ enum {
 };
 
 enum ClientType {
-	TYPE_NORMAL = 0,
-	TYPE_SERVERQUERY,
+	ClientType_NORMAL = 0,
+	ClientType_SERVERQUERY,
+	ClientType_VOIP,
 };
 
 enum AwayStatus {
