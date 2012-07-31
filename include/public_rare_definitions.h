@@ -68,7 +68,6 @@ enum {
 enum ClientType {
 	ClientType_NORMAL = 0,
 	ClientType_SERVERQUERY,
-	ClientType_VOIP,
 };
 
 enum AwayStatus {

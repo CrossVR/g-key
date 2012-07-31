@@ -41,4 +41,34 @@ struct PluginHotkey {
 	char description[PLUGIN_HOTKEY_BUFSZ];
 };
 
+struct PluginBookmarkList;
+struct PluginBookmarkItem {
+	char*         name;
+	unsigned char isFolder;
+	unsigned char reserved[3];
+	union{
+		char*         uuid;
+		struct PluginBookmarkList* folder;
+	};
+};
+
+struct PluginBookmarkList{
+	int itemcount;
+	struct PluginBookmarkItem items[1]; //should be 0 but compiler complains
+};
+
+enum PluginGuiProfile{
+	PLUGIN_GUI_SOUND_CAPTURE = 0,
+	PLUGIN_GUI_SOUND_PLAYBACK,
+	PLUGIN_GUI_HOTKEY,
+	PLUGIN_GUI_SOUNDPACK,
+	PLUGIN_GUI_IDENTITY
+};
+
+enum PluginConnectTab{
+	PLUGIN_CONNECT_TAB_NEW = 0,
+	PLUGIN_CONNECT_TAB_CURRENT,
+	PLUGIN_CONNECT_TAB_NEW_IF_CURRENT_CONNECTED
+};
+
 #endif

@@ -130,8 +130,8 @@ struct TS3Functions {
 	unsigned int (*setChannelVariableAsInt)(uint64 serverConnectionHandlerID, uint64 channelID, size_t flag, int value);
 	unsigned int (*setChannelVariableAsUInt64)(uint64 serverConnectionHandlerID, uint64 channelID, size_t flag, uint64 value);
 	unsigned int (*setChannelVariableAsString)(uint64 serverConnectionHandlerID, uint64 channelID, size_t flag, const char* value);
-	unsigned int (*flushChannelUpdates)(uint64 serverConnectionHandlerID, uint64 channelID);
-	unsigned int (*flushChannelCreation)(uint64 serverConnectionHandlerID, uint64 channelParentID);
+	unsigned int (*flushChannelUpdates)(uint64 serverConnectionHandlerID, uint64 channelID, const char* returnCode);
+	unsigned int (*flushChannelCreation)(uint64 serverConnectionHandlerID, uint64 channelParentID, const char* returnCode);
 	unsigned int (*getChannelList)(uint64 serverConnectionHandlerID, uint64** result);
 	unsigned int (*getChannelClientList)(uint64 serverConnectionHandlerID, uint64 channelID,  anyID** result);
 	unsigned int (*getParentChannelOfChannel)(uint64 serverConnectionHandlerID, uint64 channelID, uint64* result);
@@ -212,25 +212,25 @@ struct TS3Functions {
 	unsigned int (*requestServerGroupAddClient)(uint64 serverConnectionHandlerID, uint64 serverGroupID, uint64 clientDatabaseID, const char* returnCode);
 	unsigned int (*requestServerGroupDelClient)(uint64 serverConnectionHandlerID, uint64 serverGroupID, uint64 clientDatabaseID, const char* returnCode);
 	unsigned int (*requestServerGroupsByClientID)(uint64 serverConnectionHandlerID, uint64 clientDatabaseID, const char* returnCode);
-	unsigned int (*requestServerGroupAddPerm)(uint64 serverConnectionHandlerID, uint64 serverGroupID, int continueonerror, const anyID* permissionIDArray, const int* permissionValueArray, const int* permissionNegatedArray, const int* permissionSkipArray, int arraySize, const char* returnCode);
-	unsigned int (*requestServerGroupDelPerm)(uint64 serverConnectionHandlerID, uint64 serverGroupID, int continueOnError, const anyID* permissionIDArray, int arraySize, const char* returnCode);
+	unsigned int (*requestServerGroupAddPerm)(uint64 serverConnectionHandlerID, uint64 serverGroupID, int continueonerror, const unsigned int* permissionIDArray, const int* permissionValueArray, const int* permissionNegatedArray, const int* permissionSkipArray, int arraySize, const char* returnCode);
+	unsigned int (*requestServerGroupDelPerm)(uint64 serverConnectionHandlerID, uint64 serverGroupID, int continueOnError, const unsigned int* permissionIDArray, int arraySize, const char* returnCode);
 	unsigned int (*requestServerGroupPermList)(uint64 serverConnectionHandlerID, uint64 serverGroupID, const char* returnCode);
 	unsigned int (*requestServerGroupClientList)(uint64 serverConnectionHandlerID, uint64 serverGroupID, int withNames, const char* returnCode);
 	unsigned int (*requestChannelGroupList)(uint64 serverConnectionHandlerID, const char* returnCode);
 	unsigned int (*requestChannelGroupAdd)(uint64 serverConnectionHandlerID, const char* groupName, int groupType, const char* returnCode);
 	unsigned int (*requestChannelGroupDel)(uint64 serverConnectionHandlerID, uint64 channelGroupID, int force, const char* returnCode);
-	unsigned int (*requestChannelGroupAddPerm)(uint64 serverConnectionHandlerID, uint64 channelGroupID, int continueonerror, const anyID* permissionIDArray, const int* permissionValueArray, int arraySize, const char* returnCode);
-	unsigned int (*requestChannelGroupDelPerm)(uint64 serverConnectionHandlerID, uint64 channelGroupID, int continueOnError, const anyID* permissionIDArray, int arraySize, const char* returnCode);
+	unsigned int (*requestChannelGroupAddPerm)(uint64 serverConnectionHandlerID, uint64 channelGroupID, int continueonerror, const unsigned int* permissionIDArray, const int* permissionValueArray, int arraySize, const char* returnCode);
+	unsigned int (*requestChannelGroupDelPerm)(uint64 serverConnectionHandlerID, uint64 channelGroupID, int continueOnError, const unsigned int* permissionIDArray, int arraySize, const char* returnCode);
 	unsigned int (*requestChannelGroupPermList)(uint64 serverConnectionHandlerID, uint64 channelGroupID, const char* returnCode);
 	unsigned int (*requestSetClientChannelGroup)(uint64 serverConnectionHandlerID, const uint64* channelGroupIDArray, const uint64* channelIDArray, const uint64* clientDatabaseIDArray, int arraySize, const char* returnCode);
-	unsigned int (*requestChannelAddPerm)(uint64 serverConnectionHandlerID, uint64 channelID, const anyID* permissionIDArray, const int* permissionValueArray, int arraySize, const char* returnCode);
-	unsigned int (*requestChannelDelPerm)(uint64 serverConnectionHandlerID, uint64 channelID, const anyID* permissionIDArray, int arraySize, const char* returnCode);
+	unsigned int (*requestChannelAddPerm)(uint64 serverConnectionHandlerID, uint64 channelID, const unsigned int* permissionIDArray, const int* permissionValueArray, int arraySize, const char* returnCode);
+	unsigned int (*requestChannelDelPerm)(uint64 serverConnectionHandlerID, uint64 channelID, const unsigned int* permissionIDArray, int arraySize, const char* returnCode);
 	unsigned int (*requestChannelPermList)(uint64 serverConnectionHandlerID, uint64 channelID, const char* returnCode);
-	unsigned int (*requestClientAddPerm)(uint64 serverConnectionHandlerID, uint64 clientDatabaseID, const anyID* permissionIDArray, const int* permissionValueArray, const int* permissionSkipArray, int arraySize, const char* returnCode);
-	unsigned int (*requestClientDelPerm)(uint64 serverConnectionHandlerID, uint64 clientDatabaseID, const anyID* permissionIDArray, int arraySize, const char* returnCode);
+	unsigned int (*requestClientAddPerm)(uint64 serverConnectionHandlerID, uint64 clientDatabaseID, const unsigned int* permissionIDArray, const int* permissionValueArray, const int* permissionSkipArray, int arraySize, const char* returnCode);
+	unsigned int (*requestClientDelPerm)(uint64 serverConnectionHandlerID, uint64 clientDatabaseID, const unsigned int* permissionIDArray, int arraySize, const char* returnCode);
 	unsigned int (*requestClientPermList)(uint64 serverConnectionHandlerID, uint64 clientDatabaseID, const char* returnCode);
-	unsigned int (*requestChannelClientAddPerm)(uint64 serverConnectionHandlerID, uint64 channelID, uint64 clientDatabaseID, const anyID* permissionIDArray, const int* permissionValueArray, int arraySize, const char* returnCode);
-	unsigned int (*requestChannelClientDelPerm)(uint64 serverConnectionHandlerID, uint64 channelID, uint64 clientDatabaseID, const anyID* permissionIDArray, int arraySize, const char* returnCode);
+	unsigned int (*requestChannelClientAddPerm)(uint64 serverConnectionHandlerID, uint64 channelID, uint64 clientDatabaseID, const unsigned int* permissionIDArray, const int* permissionValueArray, int arraySize, const char* returnCode);
+	unsigned int (*requestChannelClientDelPerm)(uint64 serverConnectionHandlerID, uint64 channelID, uint64 clientDatabaseID, const unsigned int* permissionIDArray, int arraySize, const char* returnCode);
 	unsigned int (*requestChannelClientPermList)(uint64 serverConnectionHandlerID, uint64 channelID, uint64 clientDatabaseID, const char* returnCode);
 	unsigned int (*privilegeKeyUse)(uint64 serverConnectionHandler, const char* tokenKey, const char* returnCode);
 	unsigned int (*requestPermissionList)(uint64 serverConnectionHandler, const char* returnCode);
@@ -265,6 +265,11 @@ struct TS3Functions {
 	void         (*requestHotkeyInputDialog)(const char* pluginID, const char* keyword, void* qParentWindow);
 	unsigned int (*getHotkeyFromKeyword)(const char* pluginID, const char** keywords, char** hotkeys, size_t arrayLen, size_t hotkeyBufSize);
 	unsigned int (*getClientDisplayName)(uint64 scHandlerID, anyID clientID, char* result, size_t maxLen);
+	unsigned int (*getBookmarkList)(struct PluginBookmarkList** list);
+	unsigned int (*getProfileList)(enum PluginGuiProfile profile, int* defaultProfileIdx, char*** result);
+	unsigned int (*guiConnect)(enum PluginConnectTab connectTab, const char* serverLabel, const char* serverAddress, const char* serverPassword, const char* nickname, const char* channel, const char* channelPassword, const char* captureProfile, const char* playbackProfile, const char* hotkeyProfile, const char* soundProfile, const char* userIdentity, const char* oneTimeKey, const char* phoneticName, uint64* scHandlerID);
+	unsigned int (*guiConnectBookmark)(enum PluginConnectTab connectTab, const char* bookmarkuuid, uint64* scHandlerID);
+	unsigned int (*createBookmark)(const char* bookmarkuuid, const char* serverLabel, const char* serverAddress, const char* serverPassword, const char* nickname, const char* channel, const char* channelPassword, const char* captureProfile, const char* playbackProfile, const char* hotkeyProfile, const char* soundProfile, const char* uniqueUserId, const char* oneTimeKey, const char* phoneticName);
 };
 
 #ifdef __cplusplus
