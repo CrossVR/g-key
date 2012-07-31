@@ -753,7 +753,6 @@ int ts3plugin_init() {
 		char* file = strchr(filename, '\"');
 		*file = '/';
 		strcat_s(errorSound, MAX_PATH, file);
-		ts3Functions.logMessage(errorSound, LogLevel_DEBUG, "G-Key Plugin", 0);
 	}
 	else
 	{
