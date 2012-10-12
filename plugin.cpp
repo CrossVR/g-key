@@ -226,17 +226,31 @@ void ParseCommand(char* cmd, char* arg)
 	/***** Server interaction *****/
 	else if(!strcmp(cmd, "TS3_AWAY_ZZZ"))
 	{
-		SetGlobalAway(true);
+		SetAway(scHandlerID, true, arg);
 	}
 	else if(!strcmp(cmd, "TS3_AWAY_NONE"))
 	{
-		SetGlobalAway(false);
+		SetAway(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_AWAY_TOGGLE"))
 	{
 		int away;
 		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
-		SetGlobalAway(!away);
+		SetAway(scHandlerID, !away, arg);
+	}
+	else if(!strcmp(cmd, "TS3_GLOBALAWAY_ZZZ"))
+	{
+		SetGlobalAway(true, arg);
+	}
+	else if(!strcmp(cmd, "TS3_GLOBALAWAY_NONE"))
+	{
+		SetGlobalAway(false);
+	}
+	else if(!strcmp(cmd, "TS3_GLOBALAWAY_TOGGLE"))
+	{
+		int away;
+		ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, &away);
+		SetGlobalAway(!away, arg);
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER"))
 	{
@@ -257,6 +271,20 @@ void ParseCommand(char* cmd, char* arg)
 		if(arg != NULL && *arg != (char)NULL)
 		{
 			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
+			if(handle != (uint64)NULL)
+			{
+				CancelWaitableTimer(hPttDelayTimer);
+				SetActiveServer(handle);
+			}
+			else ErrorMessage(scHandlerID, "Server not found");
+		}
+		else ErrorMessage(scHandlerID, "Missing argument");
+	}
+	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERIP"))
+	{
+		if(arg != NULL && *arg != (char)NULL)
+		{
+			uint64 handle = GetServerHandleByVariable(arg, VIRTUALSERVER_IP);
 			if(handle != (uint64)NULL)
 			{
 				CancelWaitableTimer(hPttDelayTimer);
@@ -700,7 +728,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.5.5";
+    return "0.5.6";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */

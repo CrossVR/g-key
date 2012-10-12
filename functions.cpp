@@ -448,7 +448,7 @@ int SetOutputMute(uint64 scHandlerID, bool shouldMute)
 	return 0;
 }
 
-int SetGlobalAway(bool isAway)
+int SetGlobalAway(bool isAway, char* msg)
 {
 	unsigned int error;
 	uint64* servers;
@@ -466,26 +466,46 @@ int SetGlobalAway(bool isAway)
 		}
 		return 1;
 	}
-
+	
 	handle = servers[0];
 	for(i = 1; handle != (uint64)NULL; i++)
 	{
-		if((error = ts3Functions.setClientSelfVariableAsInt(handle, CLIENT_AWAY, 
-			isAway ? AWAY_ZZZ : AWAY_NONE)) != ERROR_ok)
-		{
-			char* errorMsg;
-			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-			{
-				ts3Functions.logMessage("Error flushing after toggling away status:", LogLevel_WARNING, "G-Key Plugin", 0);
-				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-				ts3Functions.freeMemory(errorMsg);
-			}
-		}
-		ts3Functions.flushClientSelfUpdates(handle, NULL);
+		SetAway(handle, isAway, msg);
 		handle = servers[i];
 	}
 
 	ts3Functions.freeMemory(servers);
+	return 0;
+}
+
+int SetAway(uint64 scHandlerID, bool isAway, char* msg)
+{
+	unsigned int error;
+	
+	if((error = ts3Functions.setClientSelfVariableAsInt(scHandlerID, CLIENT_AWAY, 
+		isAway ? AWAY_ZZZ : AWAY_NONE)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error flushing after toggling away status:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+	}
+	if((error = ts3Functions.setClientSelfVariableAsString(scHandlerID, CLIENT_AWAY_MESSAGE, msg)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error flushing after setting away message:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+	}
+
+	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
+
 	return 0;
 }
 

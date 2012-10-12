@@ -47,7 +47,8 @@ void ReplyAddClient(uint64 scHandlerID, anyID client);
 
 /* Server interaction */
 int SetActiveServer(uint64 handle);
-int SetGlobalAway(bool isAway);
+int SetAway(uint64 scHandlerID, bool isAway, char* msg = NULL);
+int SetGlobalAway(bool isAway, char* msg = NULL);
 int JoinChannel(uint64 scHandlerID, uint64 channel);
 int ServerKickClient(uint64 scHandlerID, anyID client);
 int ChannelKickClient(uint64 scHandlerID, anyID client);
