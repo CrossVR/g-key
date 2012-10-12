@@ -877,7 +877,7 @@ void ts3plugin_registerPluginID(const char* id) {
 
 /* Plugin command keyword. Return NULL or "" if not used. */
 const char* ts3plugin_commandKeyword() {
-	return "g-key";
+	return "gkey";
 }
 
 /* Plugin processes console command. Return 0 if plugin handled the command, 1 if not handled. */
