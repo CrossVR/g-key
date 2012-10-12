@@ -30,28 +30,20 @@
 #define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
 #endif
 
-// Class definitions
-class WhisperList
+GKeyFunctions::GKeyFunctions(void) : 
+	pttActive(false),
+	vadActive(false),
+	inputActive(false),
+	whisperActive(false),
+	replyActive(false)
 {
-	public:
-		std::vector<anyID> clients;
-		std::vector<uint64> channels;
-};
+}
 
-// Push-to-talk
-bool pttActive = false;
-bool vadActive = false;
-bool inputActive = false;
+GKeyFunctions::~GKeyFunctions(void)
+{
+}
 
-// Whisper list
-bool whisperActive = false;
-std::map<uint64, WhisperList> whisperLists;
-typedef std::map<uint64, WhisperList>::iterator WhisperIterator;
-bool replyActive = false;
-std::map<uint64, std::vector<anyID>> replyLists;
-typedef std::map<uint64, std::vector<anyID>>::iterator ReplyIterator;
-
-void ErrorMessage(uint64 scHandlerID, char* message)
+void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 {
 	unsigned int error;
 	time_t timer;
@@ -86,7 +78,7 @@ void ErrorMessage(uint64 scHandlerID, char* message)
 	}
 }
 
-uint64 GetActiveServerConnectionHandlerID()
+uint64 GKeyFunctions::GetActiveServerConnectionHandlerID()
 {
 	unsigned int error;
 	uint64* servers;
@@ -129,7 +121,7 @@ uint64 GetActiveServerConnectionHandlerID()
 	return handle;
 }
 
-uint64 GetServerHandleByVariable(char* value, size_t flag)
+uint64 GKeyFunctions::GetServerHandleByVariable(char* value, size_t flag)
 {
 	unsigned int error;
 	char* variable;
@@ -174,7 +166,7 @@ uint64 GetServerHandleByVariable(char* value, size_t flag)
 	return result;
 }
 
-uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag)
+uint64 GKeyFunctions::GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 {
 	unsigned int error;
 	char* variable;
@@ -219,7 +211,7 @@ uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 	return result;
 }
 
-anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag)
+anyID GKeyFunctions::GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 {
 	unsigned int error;
 	char* variable;
@@ -264,7 +256,7 @@ anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag)
 	return result;
 }
 
-int SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
+int GKeyFunctions::SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 {
 	unsigned int error;
 
@@ -340,7 +332,7 @@ int SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 	return 0;
 }
 
-int SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
+int GKeyFunctions::SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
 {
 	unsigned int error;
 
@@ -381,7 +373,7 @@ int SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
 	return 0;
 }
 
-int SetContinuousTransmission(uint64 scHandlerID, bool shouldActivate)
+int GKeyFunctions::SetContinuousTransmission(uint64 scHandlerID, bool shouldActivate)
 {
 	unsigned int error;
 
@@ -408,7 +400,7 @@ int SetContinuousTransmission(uint64 scHandlerID, bool shouldActivate)
 	return 0;
 }
 
-int SetInputMute(uint64 scHandlerID, bool shouldMute)
+int GKeyFunctions::SetInputMute(uint64 scHandlerID, bool shouldMute)
 {
 	unsigned int error;
 
@@ -428,7 +420,7 @@ int SetInputMute(uint64 scHandlerID, bool shouldMute)
 	return 0;
 }
 
-int SetOutputMute(uint64 scHandlerID, bool shouldMute)
+int GKeyFunctions::SetOutputMute(uint64 scHandlerID, bool shouldMute)
 {
 	unsigned int error;
 
@@ -448,7 +440,7 @@ int SetOutputMute(uint64 scHandlerID, bool shouldMute)
 	return 0;
 }
 
-int SetGlobalAway(bool isAway, char* msg)
+int GKeyFunctions::SetGlobalAway(bool isAway, char* msg)
 {
 	unsigned int error;
 	uint64* servers;
@@ -478,7 +470,7 @@ int SetGlobalAway(bool isAway, char* msg)
 	return 0;
 }
 
-int SetAway(uint64 scHandlerID, bool isAway, char* msg)
+int GKeyFunctions::SetAway(uint64 scHandlerID, bool isAway, char* msg)
 {
 	unsigned int error;
 	
@@ -509,7 +501,7 @@ int SetAway(uint64 scHandlerID, bool isAway, char* msg)
 	return 0;
 }
 
-int JoinChannel(uint64 scHandlerID, uint64 channel)
+int GKeyFunctions::JoinChannel(uint64 scHandlerID, uint64 channel)
 {
 	unsigned int error;
 	anyID self;
@@ -540,7 +532,7 @@ int JoinChannel(uint64 scHandlerID, uint64 channel)
 	return 0;
 }
 
-int SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
+int GKeyFunctions::SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 {
 	unsigned int error;
 	WhisperIterator list;
@@ -585,13 +577,13 @@ int SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 	return 0;
 }
 
-void WhisperListClear(uint64 scHandlerID)
+void GKeyFunctions::WhisperListClear(uint64 scHandlerID)
 {
 	SetWhisperList(scHandlerID, false);
 	whisperLists.erase(scHandlerID);
 }
 
-void WhisperAddClient(uint64 scHandlerID, anyID client)
+void GKeyFunctions::WhisperAddClient(uint64 scHandlerID, anyID client)
 {
 	// Find the whisperlist, create it if it doesn't exist
 	std::pair<WhisperIterator,bool> result = whisperLists.insert(std::pair<uint64,WhisperList>(scHandlerID, WhisperList()));
@@ -609,7 +601,7 @@ void WhisperAddClient(uint64 scHandlerID, anyID client)
 	if(whisperActive) SetWhisperList(scHandlerID, true);
 }
 
-void WhisperAddChannel(uint64 scHandlerID, uint64 channel)
+void GKeyFunctions::WhisperAddChannel(uint64 scHandlerID, uint64 channel)
 {
 	// Find the whisperlist, create it if it doesn't exist
 	std::pair<WhisperIterator,bool> result = whisperLists.insert(std::pair<uint64,WhisperList>(scHandlerID, WhisperList()));
@@ -627,7 +619,7 @@ void WhisperAddChannel(uint64 scHandlerID, uint64 channel)
 	if(whisperActive) SetWhisperList(scHandlerID, true);
 }
 
-int SetReplyList(uint64 scHandlerID, bool shouldReply)
+int GKeyFunctions::SetReplyList(uint64 scHandlerID, bool shouldReply)
 {
 	unsigned int error;
 	ReplyIterator list;
@@ -671,13 +663,13 @@ int SetReplyList(uint64 scHandlerID, bool shouldReply)
 	return 0;
 }
 
-void ReplyListClear(uint64 scHandlerID)
+void GKeyFunctions::ReplyListClear(uint64 scHandlerID)
 {
 	SetReplyList(scHandlerID, false);
 	replyLists.erase(scHandlerID);
 }
 
-void ReplyAddClient(uint64 scHandlerID, anyID client)
+void GKeyFunctions::ReplyAddClient(uint64 scHandlerID, anyID client)
 {
 	// Find the whisperlist, create it if it doesn't exist
 	std::pair<ReplyIterator,bool> result = replyLists.insert(std::pair<uint64,std::vector<anyID>>(scHandlerID, std::vector<anyID>()));
@@ -695,7 +687,7 @@ void ReplyAddClient(uint64 scHandlerID, anyID client)
 	if(replyActive) SetReplyList(scHandlerID, true);
 }
 
-int SetActiveServer(uint64 handle)
+int GKeyFunctions::SetActiveServer(uint64 handle)
 {
 	unsigned int error;
 
@@ -714,7 +706,7 @@ int SetActiveServer(uint64 handle)
 	return 0;
 }
 
-int MuteClient(uint64 scHandlerID, anyID client)
+int GKeyFunctions::MuteClient(uint64 scHandlerID, anyID client)
 {
 	unsigned int error;
 
@@ -743,7 +735,7 @@ int MuteClient(uint64 scHandlerID, anyID client)
 	return 0;
 }
 
-int UnmuteClient(uint64 scHandlerID, anyID client)
+int GKeyFunctions::UnmuteClient(uint64 scHandlerID, anyID client)
 {
 	unsigned int error;
 
@@ -772,7 +764,7 @@ int UnmuteClient(uint64 scHandlerID, anyID client)
 	return 0;
 }
 
-int ServerKickClient(uint64 scHandlerID, anyID client)
+int GKeyFunctions::ServerKickClient(uint64 scHandlerID, anyID client)
 {
 	unsigned int error;
 
@@ -791,7 +783,7 @@ int ServerKickClient(uint64 scHandlerID, anyID client)
 	return 0;
 }
 
-int ChannelKickClient(uint64 scHandlerID, anyID client)
+int GKeyFunctions::ChannelKickClient(uint64 scHandlerID, anyID client)
 {
 	unsigned int error;
 
@@ -810,7 +802,7 @@ int ChannelKickClient(uint64 scHandlerID, anyID client)
 	return 0;
 }
 
-int SetMasterVolume(uint64 scHandlerID, float value)
+int GKeyFunctions::SetMasterVolume(uint64 scHandlerID, float value)
 {
 	unsigned int error;
 	char str[6];
@@ -834,7 +826,7 @@ int SetMasterVolume(uint64 scHandlerID, float value)
 	return 0;
 }
 
-int JoinChannelRelative(uint64 scHandlerID, bool next)
+int GKeyFunctions::JoinChannelRelative(uint64 scHandlerID, bool next)
 {
 	unsigned int error;
 	anyID self;
@@ -917,7 +909,7 @@ int JoinChannelRelative(uint64 scHandlerID, bool next)
 	return 1;
 }
 
-int SetActiveServerRelative(uint64 scHandlerID, bool next)
+int GKeyFunctions::SetActiveServerRelative(uint64 scHandlerID, bool next)
 {
 	unsigned int error;
 	uint64* servers;
@@ -975,7 +967,7 @@ int SetActiveServerRelative(uint64 scHandlerID, bool next)
 	return 0;
 }
 
-uint64 GetChannelIDFromPath(uint64 scHandlerID, char* path)
+uint64 GKeyFunctions::GetChannelIDFromPath(uint64 scHandlerID, char* path)
 {
 	unsigned int error;
 	uint64 parent;
