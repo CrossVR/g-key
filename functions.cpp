@@ -493,7 +493,7 @@ int SetAway(uint64 scHandlerID, bool isAway, char* msg)
 			ts3Functions.freeMemory(errorMsg);
 		}
 	}
-	if((error = ts3Functions.setClientSelfVariableAsString(scHandlerID, CLIENT_AWAY_MESSAGE, isAway ? msg : NULL)) != ERROR_ok)
+	if((error = ts3Functions.setClientSelfVariableAsString(scHandlerID, CLIENT_AWAY_MESSAGE, isAway && msg != NULL ? msg : "")) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
