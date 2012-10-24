@@ -52,9 +52,6 @@ static char requestClientMoveReturnCodes[REQUESTCLIENTMOVERETURNCODES_SLOTS][RET
 // Plugin values
 char* pluginID = NULL;
 bool pluginRunning = false;
-char* configFile = NULL;
-char* errorSound = NULL;
-char* infoIcon = NULL;
 
 // Error codes
 enum PluginError {
@@ -133,19 +130,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(status != STATUS_DISCONNECTED)
 		{
-			char str[6];
-			GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt", "false", str, 10, configFile);
-			if(!strcmp(str, "true"))
-			{
-				GetPrivateProfileStringA("Profiles", "Capture\\Default\\PreProcessing\\delay_ptt_msecs", "300", str, 10, configFile);
-				dueTime.QuadPart = 0 - atoi(str) * TIMER_MSEC;
-
-				SetWaitableTimer(hPttDelayTimer, &dueTime, 0, PTTDelayCallback, NULL, FALSE);
-			}
-			else
-			{
-				gkeyFunctions.SetPushToTalk(scHandlerID, false);
-			}
+			gkeyFunctions.SetPushToTalk(scHandlerID, false);
 		}
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
@@ -757,46 +742,6 @@ void ts3plugin_setFunctionPointers(const struct TS3Functions funcs) {
  * If the function returns 1 on failure, the plugin will be unloaded again.
  */
 int ts3plugin_init() {
-	size_t length;
-
-	// Find config file
-	configFile = (char*)malloc(MAX_PATH);
-	ts3Functions.getConfigPath(configFile, MAX_PATH);
-	strcat_s(configFile, MAX_PATH, "ts3clientui_qt.conf");
-
-	// Find error sound
-	errorSound = (char*)malloc(MAX_PATH);
-	ts3Functions.getResourcesPath(errorSound, MAX_PATH);
-	strcat_s(errorSound, MAX_PATH, "sound/");
-	length = strlen(errorSound);
-	GetPrivateProfileStringA("Notifications", "SoundPack", "default", errorSound+length, MAX_PATH-(DWORD)length, configFile);
-
-	char filename[MAX_PATH];
-	strcat_s(errorSound, MAX_PATH, "/settings.ini");
-	GetPrivateProfileStringA("soundfiles", "SERVER_ERROR", NULL, filename, MAX_PATH, errorSound);
-	length = strlen(errorSound);
-	if(strlen(filename) > 0)
-	{
-		errorSound[length-13] = NULL;
-		*strrchr(filename, '\"') = NULL;
-		char* file = strchr(filename, '\"');
-		*file = '/';
-		strcat_s(errorSound, MAX_PATH, file);
-	}
-	else
-	{
-		free(errorSound);
-		errorSound = NULL;
-	}
-
-	// Find info icon
-	infoIcon = (char*)malloc(MAX_PATH);
-	ts3Functions.getResourcesPath(infoIcon, MAX_PATH);
-	strcat_s(infoIcon, MAX_PATH, "gfx/");
-	length = strlen(infoIcon);
-	GetPrivateProfileStringA("Application", "IconPack", "default", infoIcon+length, MAX_PATH-(DWORD)length, configFile);
-	strcat_s(infoIcon, MAX_PATH, "/16x16_message_info.png");
-
 	// Create the command mutex
 	hMutex = CreateMutex(NULL, FALSE, NULL);
 

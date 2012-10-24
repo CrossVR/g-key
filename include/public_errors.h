@@ -9,6 +9,7 @@ const unsigned int ERROR_undefined                              = 0x0001;
 const unsigned int ERROR_not_implemented                        = 0x0002;
 const unsigned int ERROR_ok_no_update                           = 0x0003;
 const unsigned int ERROR_dont_notify                            = 0x0004;
+const unsigned int ERROR_lib_time_limit_reached                 = 0x0005; 
 
 //dunno
 const unsigned int ERROR_command_not_found                      = 0x0100;
@@ -61,6 +62,7 @@ const unsigned int ERROR_parameter_not_found                    = 0x0603;
 const unsigned int ERROR_parameter_convert                      = 0x0604;
 const unsigned int ERROR_parameter_invalid_size                 = 0x0605;
 const unsigned int ERROR_parameter_missing                      = 0x0606;
+const unsigned int ERROR_parameter_checksum                     = 0x0607;
 
 //unsorted, need further investigation
 const unsigned int ERROR_vs_critical                            = 0x0700;
@@ -134,6 +136,10 @@ const unsigned int ERROR_provisioning_too_many_reserved         = 0x1108;
 const unsigned int ERROR_provisioning_could_not_connect         = 0x1109;
 const unsigned int ERROR_provisioning_auth_server_not_connected = 0x1110;
 const unsigned int ERROR_provisioning_auth_data_too_large       = 0x1111;
-
-
+const unsigned int ERROR_provisioning_already_initialized       = 0x1112;
+const unsigned int ERROR_provisioning_not_initialized           = 0x1113;
+const unsigned int ERROR_provisioning_connecting                = 0x1114;
+const unsigned int ERROR_provisioning_already_connected         = 0x1115;
+const unsigned int ERROR_provisioning_not_connected             = 0x1116;
+const unsigned int ERROR_provisioning_io_error                  = 0x1117;
 #endif

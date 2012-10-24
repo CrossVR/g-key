@@ -45,37 +45,14 @@ GKeyFunctions::~GKeyFunctions(void)
 
 void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 {
-	unsigned int error;
-	time_t timer;
-	char timeStr[11];
-	size_t newLength = strlen(message)+strlen(infoIcon)+69;
+	size_t newLength = strlen(message)+20;
 	char* styledMsg = (char*)malloc(newLength*sizeof(char));
-
-	// Get the time
-	time(&timer);
-	strftime(timeStr, 11, "<%X>", localtime(&timer));
 
 	// Format and print the error message and play the error sound
 	// Use a transparent underscore because a double space will be collapsed
-	snprintf(styledMsg, newLength, "[img]%s[/img][color=red]%s[color=transparent]_[/color]%s[/color]", infoIcon, timeStr, message);
+	snprintf(styledMsg, newLength, "[color=red]%s[/color]", message);
 	ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
 	free(styledMsg);
-
-	// If an error sound has been found
-	if(errorSound != NULL)
-	{
-		// Play the error sound
-		if((error = ts3Functions.playWaveFile(scHandlerID, errorSound)) != ERROR_ok)
-		{
-			char* errorMsg;
-			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-			{
-				ts3Functions.logMessage("Error playing error sound:", LogLevel_WARNING, "G-Key Plugin", 0);
-				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-				ts3Functions.freeMemory(errorMsg);
-			}
-		}
-	}
 }
 
 uint64 GKeyFunctions::GetActiveServerConnectionHandlerID()

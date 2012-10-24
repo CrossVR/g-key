@@ -64,6 +64,7 @@ struct TS3Functions {
 	/* Playback */
 	unsigned int (*getPlaybackConfigValueAsFloat)(uint64 serverConnectionHandlerID, const char* ident, float* result);
 	unsigned int (*setPlaybackConfigValue)(uint64 serverConnectionHandlerID, const char* ident, const char* value);
+	unsigned int (*setClientVolumeModifier)(uint64 serverConnectionHandlerID, anyID clientID, float value);
 
 	/* Recording */
 	unsigned int (*startVoiceRecording)(uint64 serverConnectionHandlerID);
@@ -270,6 +271,8 @@ struct TS3Functions {
 	unsigned int (*guiConnect)(enum PluginConnectTab connectTab, const char* serverLabel, const char* serverAddress, const char* serverPassword, const char* nickname, const char* channel, const char* channelPassword, const char* captureProfile, const char* playbackProfile, const char* hotkeyProfile, const char* soundProfile, const char* userIdentity, const char* oneTimeKey, const char* phoneticName, uint64* scHandlerID);
 	unsigned int (*guiConnectBookmark)(enum PluginConnectTab connectTab, const char* bookmarkuuid, uint64* scHandlerID);
 	unsigned int (*createBookmark)(const char* bookmarkuuid, const char* serverLabel, const char* serverAddress, const char* serverPassword, const char* nickname, const char* channel, const char* channelPassword, const char* captureProfile, const char* playbackProfile, const char* hotkeyProfile, const char* soundProfile, const char* uniqueUserId, const char* oneTimeKey, const char* phoneticName);
+	unsigned int (*getPermissionIDByName)(uint64 serverConnectionHandlerID, const char* permissionName, unsigned int* result);
+	unsigned int (*getClientNeededPermission)(uint64 serverConnectionHandlerID, const char* permissionName, int* result);
 };
 
 #ifdef __cplusplus
