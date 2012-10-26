@@ -8,6 +8,9 @@ const unsigned int ERROR_client_invalid_password                = 0x0208;
 const unsigned int ERROR_client_too_many_clones_connected       = 0x0209;
 const unsigned int ERROR_client_is_online                       = 0x020b;
 
+//channel
+const unsigned int ERROR_channel_is_private_channel             = 0x030e;
+
 //database
 const unsigned int ERROR_database                               = 0x0500;
 const unsigned int ERROR_database_empty_result                  = 0x0501;
