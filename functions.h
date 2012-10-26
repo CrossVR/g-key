@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 
 typedef struct
 {
@@ -31,6 +32,9 @@ public:
 	bool whisperActive;
 	bool replyActive;
 
+	/* Resources */
+	std::string infoIcon;
+	std::string errorSound;
 private:
 	std::map<uint64, WhisperList> whisperLists;
 	std::map<uint64, std::vector<anyID>> replyLists;

@@ -45,14 +45,49 @@ GKeyFunctions::~GKeyFunctions(void)
 
 void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 {
-	size_t newLength = strlen(message)+20;
-	char* styledMsg = (char*)malloc(newLength*sizeof(char));
+	// If an info icon has been found create a styled message
+	if(!infoIcon.empty())
+	{
+		// Get the time
+		time_t timer;
+		char timeStr[11];
+		time(&timer);
+		strftime(timeStr, 11, "<%X>", localtime(&timer));
 
-	// Format and print the error message and play the error sound
-	// Use a transparent underscore because a double space will be collapsed
-	snprintf(styledMsg, newLength, "[color=red]%s[/color]", message);
-	ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
-	free(styledMsg);
+		// Format and print the error message, use a transparent underscore because a double space will be collapsed
+		size_t newLength = strlen(message)+infoIcon.length()+69;
+		char* styledMsg = (char*)malloc(newLength*sizeof(char));
+		snprintf(styledMsg, newLength, "[img]%s[/img][color=red]%s[color=transparent]_[/color]%s[/color]", infoIcon.c_str(), timeStr, message);
+		ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
+		free(styledMsg);
+	}
+	// Else create a simplified styled message
+	else
+	{
+		// Format and print the error message
+		size_t newLength = strlen(message)+20;
+		char* styledMsg = (char*)malloc(newLength*sizeof(char));
+		snprintf(styledMsg, newLength, "[color=red]%s[/color]", message);
+		ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
+		free(styledMsg);
+	}
+
+	// If an error sound has been found play it
+	if(!errorSound.empty())
+	{
+		// Play the error sound
+		unsigned int error;
+		if((error = ts3Functions.playWaveFile(scHandlerID, errorSound.c_str())) != ERROR_ok)
+		{
+			char* errorMsg;
+			if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+			{
+				ts3Functions.logMessage("Error playing error sound:", LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+				ts3Functions.freeMemory(errorMsg);
+			}
+		}
+	}
 }
 
 uint64 GKeyFunctions::GetActiveServerConnectionHandlerID()
