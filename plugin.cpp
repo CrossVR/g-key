@@ -128,7 +128,7 @@ int infoIcon_sqlcallback(void *arg, int argc, char **argv, char **azColName)
 int infoIcon_sqlquery()
 {
 	char *errMsg;
-	int ret = sqlite3_exec(settings, "SELECT value FROM Application WHERE key='IconPack'", infoIcon_sqlcallback, 0, &errMsg);
+	int ret = sqlite3_exec(settings, "SELECT value FROM Application WHERE key='IconPack'", infoIcon_sqlcallback, NULL, &errMsg);
 	if(ret != SQLITE_OK) {
 		ts3Functions.logMessage(errMsg, LogLevel_ERROR, "G-Key Plugin", 0);
 		sqlite3_free(errMsg);
@@ -167,7 +167,7 @@ int errorSound_sqlcallback(void *arg, int argc, char **argv, char **azColName)
 int errorSound_sqlquery()
 {
 	char *errMsg;
-	int ret = sqlite3_exec(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", errorSound_sqlcallback, 0, &errMsg);
+	int ret = sqlite3_exec(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", errorSound_sqlcallback, NULL, &errMsg);
 	if(ret != SQLITE_OK)
 	{
 		ts3Functions.logMessage(errMsg, LogLevel_ERROR, "G-Key Plugin", 0);
