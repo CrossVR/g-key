@@ -838,7 +838,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.5.6";
+    return "0.5.7";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */
@@ -853,7 +853,7 @@ const char* ts3plugin_author() {
 
 /* Plugin description */
 const char* ts3plugin_description() {
-    return "This plugin allows you to use the macro G-keys on any Logitech device to control TeamSpeak 3 without rebinding them to other keys.\n\nPlease read the G-Key ReadMe in the plugins folder for instructions, also available at http://jules.aerix.nl/g-key";
+    return "This plugin allows you to use the macro G-keys on any Logitech device to control TeamSpeak 3 without rebinding them to other keys.\n\nPlease read the G-Key ReadMe for instructions by pressing the Settings button, or read it online at http://jules.aerix.nl/g-key";
 }
 
 /* Set TeamSpeak 3 callback functions */
