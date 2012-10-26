@@ -949,11 +949,15 @@ int ts3plugin_offersConfigure() {
 	 * PLUGIN_OFFERS_CONFIGURE_NEW_THREAD - Plugin does implement ts3plugin_configure and requests to run this function in an own thread
 	 * PLUGIN_OFFERS_CONFIGURE_QT_THREAD  - Plugin does implement ts3plugin_configure and requests to run this function in the Qt GUI thread
 	 */
-	return PLUGIN_OFFERS_NO_CONFIGURE;  /* In this case ts3plugin_configure does not need to be implemented */
+	return PLUGIN_OFFERS_CONFIGURE_QT_THREAD;  /* In this case ts3plugin_configure does not need to be implemented */
 }
 
 /* Plugin might offer a configuration window. If ts3plugin_offersConfigure returns 0, this function does not need to be implemented. */
 void ts3plugin_configure(void* handle, void* qParentWidget) {
+	char path[MAX_PATH];
+	ts3Functions.getPluginPath(path, MAX_PATH);
+	strcat_s(path, MAX_PATH, "/G-Key_ReadMe.pdf");
+	ShellExecute(NULL, "open", path, NULL, NULL, SW_SHOW);
 }
 
 /*
