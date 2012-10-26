@@ -689,7 +689,7 @@ void ParseCommand(char* cmd, char* arg)
 	ReleaseMutex(hMutex);
 }
 
-int GetLogitechProcessId(DWORD* ProcessId)
+int GetLogitechProcessId(LPDWORD ProcessId)
 {
 	PROCESSENTRY32 entry;
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, (DWORD)NULL);
