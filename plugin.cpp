@@ -24,7 +24,6 @@
 #include "functions.h"
 #include "sqlite3.h"
 
-#include <string>
 #include <sstream>
 
 struct TS3Functions ts3Functions;
@@ -59,7 +58,8 @@ char* pluginID = NULL;
 bool pluginRunning = false;
 
 // Error codes
-enum PluginError {
+enum PluginError
+{
 	PLUGIN_ERROR_NONE = 0,
 	PLUGIN_ERROR_HOOK_FAILED,
 	PLUGIN_ERROR_READ_FAILED,
@@ -80,19 +80,17 @@ static LARGE_INTEGER dueTime;
 static sqlite3* settings;
 
 // Convience function
-std::string GetPreProcessingValue(char* pp, char* key)
+bool GetValueFromData(char* data, char* key, char* buf, int bufSize)
 {
-	std::stringstream ss(pp);
-	std::string str;
+	std::stringstream ss(data);
 	bool found = false;
 	while(!ss.eof() && !found)
 	{
-		std::getline(ss, str, '=');
-		if(!str.compare(key)) found = true;
-		std::getline(ss, str);
+		ss.getline(buf, bufSize, '=');
+		found = !strcmp(buf, key);
+		ss.getline(buf, bufSize);
 	}
-	if(found) return str;
-	else return std::string();
+	return found;
 }
 
 
@@ -110,6 +108,8 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 	ReleaseMutex(hMutex);
 }
 
+/*********************************** Plugin sql queries ************************************/
+
 int infoIcon_sqlcallback(void *arg, int argc, char **argv, char **azColName)
 {
 	if(argc != 1) return 1;
@@ -123,6 +123,17 @@ int infoIcon_sqlcallback(void *arg, int argc, char **argv, char **azColName)
 	gkeyFunctions.infoIcon = path;
 
 	return 0;
+}
+
+int infoIcon_sqlquery()
+{
+	char *errMsg;
+	int ret = sqlite3_exec(settings, "SELECT value FROM Application WHERE key='IconPack'", infoIcon_sqlcallback, 0, &errMsg);
+	if(ret != SQLITE_OK) {
+		ts3Functions.logMessage(errMsg, LogLevel_ERROR, "G-Key Plugin", 0);
+		sqlite3_free(errMsg);
+	}
+	return ret;
 }
 
 int errorSound_sqlcallback(void *arg, int argc, char **argv, char **azColName)
@@ -153,15 +164,26 @@ int errorSound_sqlcallback(void *arg, int argc, char **argv, char **azColName)
 	return 0;
 }
 
+int errorSound_sqlquery()
+{
+	char *errMsg;
+	int ret = sqlite3_exec(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", errorSound_sqlcallback, 0, &errMsg);
+	if(ret != SQLITE_OK)
+	{
+		ts3Functions.logMessage(errMsg, LogLevel_ERROR, "G-Key Plugin", 0);
+		sqlite3_free(errMsg);
+	}
+	return ret;
+}
+
 int pttDelay_sqlcallback(void *arg, int argc, char **argv, char **azColName)
 {
 	if(argc != 1) return 1;
 	
-	std::string val = GetPreProcessingValue(argv[0], "delay_ptt");
-	if(val == "true")
+	char val[256];
+	if(GetValueFromData(argv[0], "delay_ptt", val, 256) && !strcmp(val, "true") && GetValueFromData(argv[0], "delay_ptt_msecs", val, 256))
 	{
-		val = GetPreProcessingValue(argv[0], "delay_ptt_msecs");
-		dueTime.QuadPart = 0 - atoi(val.c_str()) * TIMER_MSEC;
+		dueTime.QuadPart = 0 - atoi(val) * TIMER_MSEC;
 		SetWaitableTimer(hPttDelayTimer, &dueTime, 0, PTTDelayCallback, arg, FALSE);
 	}
 	else
@@ -172,16 +194,16 @@ int pttDelay_sqlcallback(void *arg, int argc, char **argv, char **azColName)
 	return 0;
 }
 
-int pttDelay()
+int pttDelay_sqlquery()
 {
-	char* zErrMsg;
-	int ret = sqlite3_exec(settings, "SELECT value FROM Profiles WHERE key='Capture/Default/PreProcessing'", pttDelay_sqlcallback, NULL, &zErrMsg);
-	if(ret != SQLITE_OK) {
-		ts3Functions.logMessage(zErrMsg, LogLevel_ERROR, "G-Key Plugin", 0);
-		sqlite3_free(zErrMsg);
-		return 1;
+	char* errMsg;
+	int ret = sqlite3_exec(settings, "SELECT value FROM Profiles WHERE key='Capture/Default/PreProcessing'", pttDelay_sqlcallback, NULL, &errMsg);
+	if(ret != SQLITE_OK)
+	{
+		ts3Functions.logMessage(errMsg, LogLevel_ERROR, "G-Key Plugin", 0);
+		sqlite3_free(errMsg);
 	}
-	return 0;
+	return ret;
 }
 
 /*********************************** Plugin functions ************************************/
@@ -231,10 +253,8 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(status != STATUS_DISCONNECTED)
 		{
-			if(pttDelay()) // If delay failed
-			{
+			if(pttDelay_sqlquery() != SQLITE_OK) // If query failed
 				gkeyFunctions.SetPushToTalk(scHandlerID, false);
-			}
 		}
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
@@ -861,24 +881,17 @@ int ts3plugin_init() {
 	
 	// Find the settings database
 	ret = sqlite3_open(path, &settings);
-	if(ret) {
+	if(ret)
+	{
 		ts3Functions.logMessage(sqlite3_errmsg(settings), LogLevel_ERROR, "G-Key Plugin", 0);
+		ts3Functions.logMessage("Failed to open settings db, unloading plugin", LogLevel_ERROR, "G-Key Plugin", 0);
 		sqlite3_close(settings);
 		return 1;
 	}
 
 	// Find the error sound and info icon
-	char *zErrMsg;
-	ret = sqlite3_exec(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", errorSound_sqlcallback, 0, &zErrMsg);
-	if(ret != SQLITE_OK) {
-		ts3Functions.logMessage(zErrMsg, LogLevel_ERROR, "G-Key Plugin", 0);
-		sqlite3_free(zErrMsg);
-	}
-	ret = sqlite3_exec(settings, "SELECT value FROM Application WHERE key='IconPack'", infoIcon_sqlcallback, 0, &zErrMsg);
-	if(ret != SQLITE_OK) {
-		ts3Functions.logMessage(zErrMsg, LogLevel_ERROR, "G-Key Plugin", 0);
-		sqlite3_free(zErrMsg);
-	}
+	errorSound_sqlquery();
+	infoIcon_sqlquery();
 
 	// Start the plugin threads
 	pluginRunning = true;
