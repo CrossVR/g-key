@@ -143,8 +143,8 @@ bool PTTDelay()
 	// Get default capture profile and preprocessor data
 	std::string profile;
 	std::string data;
-	if(!ts3Settings.GetDefaultCaptureProfile(profile));
-	ts3Settings.GetPreProcessorData(profile, data);
+	if(!ts3Settings.GetDefaultCaptureProfile(profile)) return false;
+	if(!ts3Settings.GetPreProcessorData(profile, data)) return false;
 
 	if(ts3Settings.GetValueFromData(data, "delay_ptt") != "true") return false;
 
@@ -818,8 +818,6 @@ void ts3plugin_setFunctionPointers(const struct TS3Functions funcs) {
  * If the function returns 1 on failure, the plugin will be unloaded again.
  */
 int ts3plugin_init() {
-	int ret;
-
 	// Create the command mutex
 	hMutex = CreateMutex(NULL, FALSE, NULL);
 

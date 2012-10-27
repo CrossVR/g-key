@@ -52,15 +52,6 @@ bool TS3Settings::OpenDatabase(std::string path)
 
 	if(CheckAndHandle(sqlite3_open(path.c_str(), &settings)))
 		return false;
-	
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Application WHERE key='IconPack'", 51, &sqlIconPack, NULL)))
-		return false;
-	
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", 54, &sqlSoundPack, NULL)))
-		return false;
-	
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Profiles WHERE key='DefaultCaptureProfile'", 61, &sqlDefaultCaptureProfile, NULL)))
-		return false;
 
 	return true;
 }
@@ -89,17 +80,29 @@ std::string TS3Settings::GetValueFromData(std::string data, std::string key)
 
 bool TS3Settings::GetIconPack(std::string& result)
 {
-	return GetValueForStatement(sqlIconPack, result);
+	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Application WHERE key='IconPack'", 51, &sqlIconPack, NULL)))
+		return false;
+	bool ret = GetValueForStatement(sqlIconPack, result);
+	sqlite3_finalize(sqlIconPack);
+	return ret;
 }
 
 bool TS3Settings::GetSoundPack(std::string& result)
 {
-	return GetValueForStatement(sqlSoundPack, result);
+	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", 54, &sqlSoundPack, NULL)))
+		return false;
+	bool ret = GetValueForStatement(sqlSoundPack, result);
+	sqlite3_finalize(sqlSoundPack);
+	return ret;
 }
 
 bool TS3Settings::GetDefaultCaptureProfile(std::string& result)
 {
-	return GetValueForStatement(sqlDefaultCaptureProfile, result);
+	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Profiles WHERE key='DefaultCaptureProfile'", 61, &sqlDefaultCaptureProfile, NULL)))
+		return false;
+	bool ret = GetValueForStatement(sqlDefaultCaptureProfile, result);
+	sqlite3_finalize(sqlDefaultCaptureProfile);
+	return ret;
 }
 
 bool TS3Settings::GetPreProcessorData(std::string profile, std::string& result)
@@ -108,7 +111,7 @@ bool TS3Settings::GetPreProcessorData(std::string profile, std::string& result)
 	std::stringstream ss;
 	ss << "SELECT value FROM Profiles WHERE key='Capture/" << profile << "/PreProcessing'";
 	std::string query = ss.str();
-	sqlite3_prepare_v2(settings, query.c_str(), query.length(), &sqlIconPack, NULL);
+	sqlite3_prepare_v2(settings, query.c_str(), query.length(), &sql, NULL);
 	bool ret = GetValueForStatement(sql, result);
 	sqlite3_finalize(sql);
 	return ret;
