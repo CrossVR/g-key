@@ -93,7 +93,6 @@ bool GetValueFromData(char* data, char* key, char* buf, int bufSize)
 	return found;
 }
 
-
 /*********************************** Plugin callbacks ************************************/
 
 VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowValue,DWORD dwTimerHighValue)
