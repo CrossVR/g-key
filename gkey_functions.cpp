@@ -16,19 +16,12 @@
 #include "public_rare_definitions.h"
 #include "ts3_functions.h"
 #include "plugin.h"
-#include "functions.h"
+#include "gkey_functions.h"
 #include "channel.h"
 
 #include <vector>
 #include <map>
 #include <list>
-
-#ifdef _WIN32
-#define _strcpy(dest, destSize, src) strcpy_s(dest, destSize, src)
-#define snprintf sprintf_s
-#else
-#define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
-#endif
 
 GKeyFunctions::GKeyFunctions(void) : 
 	pttActive(false),

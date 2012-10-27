@@ -14,6 +14,15 @@
 #define PLUGINS_EXPORTDLL __attribute__ ((visibility("default")))
 #endif
 
+#ifdef _WIN32
+#define _strcpy(dest, destSize, src) strcpy_s(dest, destSize, src)
+#define snprintf sprintf_s
+#define _strcat(dest, destSize, src) strcat_s(dest, destSize, src)
+#else
+#define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
+#define _strcat(dest, destSize, src) strncat(dest, src, destSize)
+#endif
+
 extern struct TS3Functions ts3Functions;
 
 #ifdef __cplusplus

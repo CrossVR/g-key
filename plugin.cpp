@@ -21,20 +21,15 @@
 #include "public_rare_definitions.h"
 #include "ts3_functions.h"
 #include "plugin.h"
-#include "functions.h"
-#include "sqlite3.h"
+#include "gkey_functions.h"
+#include "ts3_settings.h"
 
 #include <sstream>
+#include <string>
 
 struct TS3Functions ts3Functions;
 GKeyFunctions gkeyFunctions;
-
-#ifdef _WIN32
-#define _strcpy(dest, destSize, src) strcpy_s(dest, destSize, src)
-#define snprintf sprintf_s
-#else
-#define _strcpy(dest, destSize, src) { strncpy(dest, src, destSize-1); dest[destSize-1] = '\0'; }
-#endif
+TS3Settings ts3Settings;
 
 #define PLUGIN_API_VERSION 19
 
@@ -76,23 +71,6 @@ static HANDLE hMutex = NULL;
 static HANDLE hPttDelayTimer = (HANDLE)NULL;
 static LARGE_INTEGER dueTime;
 
-// Settings database
-static sqlite3* settings;
-
-// Parse a data string for a value based on a key
-bool GetValueFromData(char* data, char* key, char* buf, int bufSize)
-{
-	std::stringstream ss(data);
-	bool found = false;
-	while(!ss.eof() && !found)
-	{
-		ss.getline(buf, bufSize, '=');
-		found = !strcmp(buf, key);
-		ss.getline(buf, bufSize);
-	}
-	return found;
-}
-
 /*********************************** Plugin callbacks ************************************/
 
 VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowValue,DWORD dwTimerHighValue)
@@ -107,105 +85,80 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 	ReleaseMutex(hMutex);
 }
 
-/*********************************** Plugin sql queries ************************************/
+/*********************************** Plugin functions ************************************/
 
-int infoIcon_sqlcallback(void *arg, int argc, char **argv, char **azColName)
+bool SetInfoIcon()
 {
-	if(argc != 1) return 1;
+	// Find the icon pack
+	std::string iconPack;
+	if(!ts3Settings.GetIconPack(iconPack)) return false;
 
 	// Find the path to the skin
 	char path[MAX_PATH];
 	ts3Functions.getResourcesPath(path, MAX_PATH);
-	sprintf_s(path, MAX_PATH, "%sgfx/%s/16x16_message_info.png", path, argv[0]);
 
-	// Commit the path
-	gkeyFunctions.infoIcon = path;
+	// Build and commit the path
+	std::stringstream ss(path);
+	ss << '/' << iconPack << "/16x16_message_info.png";
+	gkeyFunctions.infoIcon = ss.str();
 
-	return 0;
+	return true;
 }
 
-int infoIcon_sqlquery()
+bool SetErrorSound()
 {
-	char *errMsg;
-	int ret = sqlite3_exec(settings, "SELECT value FROM Application WHERE key='IconPack'", infoIcon_sqlcallback, NULL, &errMsg);
-	if(ret != SQLITE_OK) {
-		ts3Functions.logMessage(errMsg, LogLevel_ERROR, "G-Key Plugin", 0);
-		sqlite3_free(errMsg);
-	}
-	return ret;
-}
-
-int errorSound_sqlcallback(void *arg, int argc, char **argv, char **azColName)
-{
-	if(argc != 1) return 1;
+	// Find the sound pack
+	std::string soundPack;
+	if(!ts3Settings.GetSoundPack(soundPack)) return false;
 
 	// Find the path to the soundpack
 	char path[MAX_PATH];
 	ts3Functions.getResourcesPath(path, MAX_PATH);
-	sprintf_s(path, MAX_PATH, "%ssound/%s", path, argv[0]);
+	std::stringstream ss(path);
+	ss << "sound/" << soundPack;
 
-	// Find the config file
-	char config[MAX_PATH];
-	sprintf_s(config, MAX_PATH, "%s/settings.ini", path);
+	// Build the path to the config file
+	std::string tmp = ss.str();
+	ss << "/settings.ini";
+	std::string config = ss.str();
+	ss.str(tmp);
 
 	// Parse the config file for the sound file
 	char file[MAX_PATH];
-	int size = GetPrivateProfileString("soundfiles", "SERVER_ERROR", NULL, file, MAX_PATH, config);
-	if(size == 0) return 1;
+	int size = GetPrivateProfileString("soundfiles", "SERVER_ERROR", NULL, file, MAX_PATH, config.c_str());
+	if(size == 0) return false;
 
 	// Filter out the filename: play("file.wav")
 	*(strrchr(file, '\"')) = NULL;
-	sprintf_s(path, MAX_PATH, "%s/%s", path, strchr(file, '\"')+1);
+	ss << '/' << strchr(file, '\"')+1;
 
 	// Commit the path
-	gkeyFunctions.errorSound = path;
+	gkeyFunctions.errorSound = ss.str();
 
-	return 0;
+	return true;
 }
 
-int errorSound_sqlquery()
+bool PTTDelay()
 {
-	char *errMsg;
-	int ret = sqlite3_exec(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", errorSound_sqlcallback, NULL, &errMsg);
-	if(ret != SQLITE_OK)
-	{
-		ts3Functions.logMessage(errMsg, LogLevel_ERROR, "G-Key Plugin", 0);
-		sqlite3_free(errMsg);
-	}
-	return ret;
-}
+	// Get default capture profile and preprocessor data
+	std::string profile;
+	std::string data;
+	if(!ts3Settings.GetDefaultCaptureProfile(profile));
+	ts3Settings.GetPreProcessorData(profile, data);
 
-int pttDelay_sqlcallback(void *arg, int argc, char **argv, char **azColName)
-{
-	if(argc != 1) return 1;
-	
-	char val[256];
-	if(GetValueFromData(argv[0], "delay_ptt", val, 256) && !strcmp(val, "true") && GetValueFromData(argv[0], "delay_ptt_msecs", val, 256))
+	if(ts3Settings.GetValueFromData(data, "delay_ptt") != "true") return false;
+
+	int msecs = atoi(ts3Settings.GetValueFromData(data, "delay_ptt_msecs").c_str());
+
+	if(msecs > 0)
 	{
-		dueTime.QuadPart = -(atoi(val) * TIMER_MSEC);
+		dueTime.QuadPart = -(msecs * TIMER_MSEC);
 		SetWaitableTimer(hPttDelayTimer, &dueTime, 0, PTTDelayCallback, NULL, FALSE);
+		return true;
 	}
-	else
-	{
-		gkeyFunctions.SetPushToTalk(gkeyFunctions.GetActiveServerConnectionHandlerID(), false);
-	}
-	
-	return 0;
-}
 
-int pttDelay_sqlquery()
-{
-	char* errMsg;
-	int ret = sqlite3_exec(settings, "SELECT value FROM Profiles WHERE key='Capture/Default/PreProcessing'", pttDelay_sqlcallback, NULL, &errMsg);
-	if(ret != SQLITE_OK)
-	{
-		ts3Functions.logMessage(errMsg, LogLevel_ERROR, "G-Key Plugin", 0);
-		sqlite3_free(errMsg);
-	}
-	return ret;
+	return false;
 }
-
-/*********************************** Plugin functions ************************************/
 
 void ParseCommand(char* cmd, char* arg)
 {
@@ -252,7 +205,7 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		if(status != STATUS_DISCONNECTED)
 		{
-			if(pttDelay_sqlquery() != SQLITE_OK) // If query failed
+			if(!PTTDelay()) // If query failed
 				gkeyFunctions.SetPushToTalk(scHandlerID, false);
 		}
 	}
@@ -837,7 +790,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.5.7";
+    return "0.5.8";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */
@@ -873,24 +826,15 @@ int ts3plugin_init() {
 	// Create the PTT delay timer
 	hPttDelayTimer = CreateWaitableTimer(NULL, FALSE, NULL);
 
-	// Find the settings database
-	char path[MAX_PATH];
-	ts3Functions.getConfigPath(path, MAX_PATH);
-	strcat_s(path, MAX_PATH, "settings.db");
-	
-	// Find the settings database
-	ret = sqlite3_open(path, &settings);
-	if(ret)
-	{
-		ts3Functions.logMessage(sqlite3_errmsg(settings), LogLevel_ERROR, "G-Key Plugin", 0);
-		ts3Functions.logMessage("Failed to open settings db, unloading plugin", LogLevel_ERROR, "G-Key Plugin", 0);
-		sqlite3_close(settings);
-		return 1;
-	}
+	// Find and open the settings database
+	char db[MAX_PATH];
+	ts3Functions.getConfigPath(db, MAX_PATH);
+	_strcat(db, MAX_PATH, "settings.db");
+	ts3Settings.OpenDatabase(db);
 
 	// Find the error sound and info icon
-	errorSound_sqlquery();
-	infoIcon_sqlquery();
+	SetErrorSound();
+	SetInfoIcon();
 
 	// Start the plugin threads
 	pluginRunning = true;
@@ -911,10 +855,10 @@ int ts3plugin_init() {
 /* Custom code called right before the plugin is unloaded */
 void ts3plugin_shutdown() {
 	// Stop the plugin threads
-	pluginRunning = FALSE;
+	pluginRunning = false;
 
 	// Close settings database
-	sqlite3_close(settings);
+	ts3Settings.CloseDatabase();
 	
 	// Cancel PTT delay timer
 	CancelWaitableTimer(hPttDelayTimer);
@@ -955,7 +899,7 @@ int ts3plugin_offersConfigure() {
 void ts3plugin_configure(void* handle, void* qParentWidget) {
 	char path[MAX_PATH];
 	ts3Functions.getPluginPath(path, MAX_PATH);
-	strcat_s(path, MAX_PATH, "/G-Key_ReadMe.pdf");
+	_strcat(path, MAX_PATH, "/G-Key_ReadMe.pdf");
 	ShellExecute(NULL, "open", path, NULL, NULL, SW_SHOW);
 }
 
