@@ -37,13 +37,14 @@ bool TS3Settings::CheckAndHandle(int returnCode)
 
 bool TS3Settings::GetValueForStatement(sqlite3_stmt* statement, std::string& result)
 {
-	if(CheckAndHandle(sqlite3_step(statement))) return false;
+	if(sqlite3_step(statement) != SQLITE_ROW) return false;
 	if(sqlite3_column_count(statement) != 1) return false;
 	if(sqlite3_column_type(statement, 0) != SQLITE_TEXT) return false;
 	result = std::string(reinterpret_cast<const char*>(
 		sqlite3_column_text(statement, 0)
 	));
 	if(CheckAndHandle(sqlite3_reset(statement))) return false;
+	return true;
 }
 
 bool TS3Settings::OpenDatabase(std::string path)
