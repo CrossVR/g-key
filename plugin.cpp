@@ -183,7 +183,7 @@ int pttDelay_sqlcallback(void *arg, int argc, char **argv, char **azColName)
 	char val[256];
 	if(GetValueFromData(argv[0], "delay_ptt", val, 256) && !strcmp(val, "true") && GetValueFromData(argv[0], "delay_ptt_msecs", val, 256))
 	{
-		dueTime.QuadPart = 0 - atoi(val) * TIMER_MSEC;
+		dueTime.QuadPart = -(atoi(val) * TIMER_MSEC);
 		SetWaitableTimer(hPttDelayTimer, &dueTime, 0, PTTDelayCallback, arg, FALSE);
 	}
 	else
