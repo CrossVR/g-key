@@ -79,7 +79,7 @@ static LARGE_INTEGER dueTime;
 // Settings database
 static sqlite3* settings;
 
-// Convience function
+// Parse a data string for a value based on a key
 bool GetValueFromData(char* data, char* key, char* buf, int bufSize)
 {
 	std::stringstream ss(data);
