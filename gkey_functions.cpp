@@ -6,6 +6,10 @@
  * Copyright (c) 2008-2012 TeamSpeak Systems GmbH
  */
 
+#ifdef _WIN32
+#pragma warning(disable : 4996)  /* Disable unsafe localtime warning */
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -37,7 +41,6 @@ GKeyFunctions::~GKeyFunctions(void)
 {
 }
 
-#pragma warning( disable : 4996 )
 void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 {
 	// If an info icon has been found create a styled message
