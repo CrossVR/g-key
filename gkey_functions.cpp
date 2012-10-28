@@ -82,11 +82,7 @@ void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 	}
 
 	// If an error sound has been found play it
-	if(!errorSound.empty())
-	{
-		// Play the error sound
-		CheckAndLog(ts3Functions.playWaveFile(scHandlerID, errorSound.c_str()), "Error playing error sound");
-	}
+	if(!errorSound.empty()) CheckAndLog(ts3Functions.playWaveFile(scHandlerID, errorSound.c_str()), "Error playing error sound");
 }
 
 uint64 GKeyFunctions::GetActiveServerConnectionHandlerID()
@@ -420,7 +416,7 @@ bool GKeyFunctions::SetReplyList(uint64 scHandlerID, bool shouldReply)
 	}
 
 	/*
-	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
+	 * For efficiency I will violate the vector abstraction and give a direct pointer to its internal C array
 	 */
 	if(CheckAndLog(ts3Functions.requestClientSetWhisperList(scHandlerID, (anyID)NULL, NULL, shouldReply?&list->second[0]:(anyID*)NULL, NULL), "Error setting reply list"))
 		return false;
@@ -605,7 +601,7 @@ uint64 GKeyFunctions::GetChannelIDFromPath(uint64 scHandlerID, char* path)
 	hierachy.push_back(""); // Add the terminator
 	
 	/*
-	 * For efficiency purposes I will violate the vector abstraction and give a direct pointer to its internal C array
+	 * For efficiency I will violate the vector abstraction and give a direct pointer to its internal C array
 	 */
 	if(CheckAndLog(ts3Functions.getChannelIDFromChannelNames(scHandlerID, &hierachy[0], &parent), "Error getting parent channel ID"))
 		return false;
@@ -625,10 +621,14 @@ bool GKeyFunctions::ConnectToBookmark(char* label, PluginConnectTab connectTab, 
 	for(int i=0; i<bookmarks->itemcount; i++)
 	{
 		PluginBookmarkItem item = bookmarks->items[i];
+		
+		// Seems pretty useless to try to connect to a folder, skip it
 		if(!item.isFolder)
 		{
+			// If the name matches the label we're looking for
 			if(!strcmp(item.name, label))
 			{
+				// Connect to the bookmark
 				ret = !CheckAndLog(ts3Functions.guiConnectBookmark(connectTab, item.uuid, scHandlerID), "Failed to connect to bookmark");
 			}
 		}
