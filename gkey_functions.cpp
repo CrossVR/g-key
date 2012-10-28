@@ -39,6 +39,7 @@ GKeyFunctions::~GKeyFunctions(void)
 {
 }
 
+#pragma warning( disable : 4996 )
 void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 {
 	// If an info icon has been found create a styled message
