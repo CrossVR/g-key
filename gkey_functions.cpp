@@ -71,14 +71,14 @@ void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 		// Format and print the error message, use a transparent underscore because a double space will be collapsed
 		std::stringstream ss;
 		ss << "[img]" << infoIcon << "[/img][color=red]" << timeStr << "[color=transparent]_[/color]" << message << "[/color]";
-		ts3Functions.printMessage(scHandlerID, ss.str().c_str(), PLUGIN_MESSAGE_TARGET_SERVER);
+		ts3Functions.printMessageToCurrentTab(ss.str().c_str());
 	}
 	else
 	{
 		// Format a simplified styled error message
 		std::stringstream ss;
 		ss << "[color=red]" << message << "[/color]";
-		ts3Functions.printMessage(scHandlerID, ss.str().c_str(), PLUGIN_MESSAGE_TARGET_SERVER);
+		ts3Functions.printMessageToCurrentTab(ss.str().c_str());
 	}
 
 	// If an error sound has been found play it
