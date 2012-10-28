@@ -31,15 +31,19 @@ bool TS3Settings::CheckAndHandle(int returnCode)
 	return returnCode != SQLITE_OK;
 }
 
-bool TS3Settings::GetValueForStatement(sqlite3_stmt* statement, std::string& result)
+bool TS3Settings::GetValueForQuery(std::string query, std::string& result)
 {
-	if(sqlite3_step(statement) != SQLITE_ROW) return false;
-	if(sqlite3_column_count(statement) != 1) return false;
-	if(sqlite3_column_type(statement, 0) != SQLITE_TEXT) return false;
+	sqlite3_stmt* sql;
+	if(CheckAndHandle(sqlite3_prepare_v2(settings, query.c_str(), query.length(), &sql, NULL)))
+		return false;
+	if(sqlite3_step(sql) != SQLITE_ROW) return false;
+	if(sqlite3_column_count(sql) != 1) return false;
+	if(sqlite3_column_type(sql, 0) != SQLITE_TEXT) return false;
 	result = std::string(reinterpret_cast<const char*>(
-		sqlite3_column_text(statement, 0)
+		sqlite3_column_text(sql, 0)
 	));
-	if(CheckAndHandle(sqlite3_reset(statement))) return false;
+	if(CheckAndHandle(sqlite3_reset(sql))) return false;
+	if(CheckAndHandle(sqlite3_finalize(sql))) return false;
 	return true;
 }
 
@@ -74,42 +78,22 @@ std::string TS3Settings::GetValueFromData(std::string data, std::string key)
 
 bool TS3Settings::GetIconPack(std::string& result)
 {
-	sqlite3_stmt* sql;
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Application WHERE key='IconPack'", 51, &sql, NULL)))
-		return false;
-	bool ret = GetValueForStatement(sqlIconPack, result);
-	sqlite3_finalize(sql);
-	return ret;
+	return GetValueForQuery("SELECT value FROM Application WHERE key='IconPack'", result);
 }
 
 bool TS3Settings::GetSoundPack(std::string& result)
 {
-	sqlite3_stmt* sql;
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", 54, &sql, NULL)))
-		return false;
-	bool ret = GetValueForStatement(sqlSoundPack, result);
-	sqlite3_finalize(sql);
-	return ret;
+	return GetValueForQuery("SELECT value FROM Notifications WHERE key='SoundPack'", result);
 }
 
 bool TS3Settings::GetDefaultCaptureProfile(std::string& result)
 {
-	sqlite3_stmt* sql;
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Profiles WHERE key='DefaultCaptureProfile'", 61, &sql, NULL)))
-		return false;
-	bool ret = GetValueForStatement(sqlDefaultCaptureProfile, result);
-	sqlite3_finalize(sql);
-	return ret;
+	return GetValueForQuery("SELECT value FROM Profiles WHERE key='DefaultCaptureProfile'", result);
 }
 
 bool TS3Settings::GetPreProcessorData(std::string profile, std::string& result)
 {
-	sqlite3_stmt* sql;
 	std::stringstream ss;
 	ss << "SELECT value FROM Profiles WHERE key='Capture/" << profile << "/PreProcessing'";
-	std::string query = ss.str();
-	sqlite3_prepare_v2(settings, query.c_str(), query.length(), &sql, NULL);
-	bool ret = GetValueForStatement(sql, result);
-	sqlite3_finalize(sql);
-	return ret;
+	return GetValueForQuery(ss.str(), result);
 }
