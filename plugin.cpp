@@ -446,6 +446,14 @@ void ParseCommand(char* cmd, char* arg)
 		}
 		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
+	else if(!strcmp(cmd, "TS3_BOOKMARK_CONNECT"))
+	{
+		if(arg != NULL && *arg != (char)NULL)
+		{
+			gkeyFunctions.ConnectToBookmark(arg, PLUGIN_CONNECT_TAB_NEW_IF_CURRENT_CONNECTED, &scHandlerID);
+		}
+		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
+	}
 	/***** Whispering *****/
 	else if(!strcmp(cmd, "TS3_WHISPER_ACTIVATE"))
 	{

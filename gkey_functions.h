@@ -9,6 +9,7 @@
 #define FUNCTIONS_H
 
 #include "public_definitions.h"
+#include "plugin_definitions.h"
 
 #include <vector>
 #include <map>
@@ -84,6 +85,7 @@ public:
 	bool SetActiveServerRelative(uint64 scHandlerID, bool next);
 	inline bool SetNextActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, true); }
 	inline bool SetPrevActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, false); }
+	bool ConnectToBookmark(char* label, PluginConnectTab connectTab, uint64* scHandlerID);
 
 	// Miscellaneous
 	bool SetMasterVolume(uint64 scHandlerID, float value);

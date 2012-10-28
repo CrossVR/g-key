@@ -1010,3 +1010,47 @@ uint64 GKeyFunctions::GetChannelIDFromPath(uint64 scHandlerID, char* path)
 	}
 	return parent;
 }
+
+bool GKeyFunctions::ConnectToBookmark(char* label, PluginConnectTab connectTab, uint64* scHandlerID)
+{
+	unsigned int error;
+
+	// Get the bookmark list
+	PluginBookmarkList* bookmarks;
+	if((error = ts3Functions.getBookmarkList(&bookmarks)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error getting bookmark list:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+		}
+		return false;
+	}
+
+	for(int i=0; i<bookmarks->itemcount; i++)
+	{
+		PluginBookmarkItem item = bookmarks->items[i];
+		if(!item.isFolder)
+		{
+			if(!strcmp(item.name, label))
+			{
+				if((error = ts3Functions.guiConnectBookmark(connectTab, item.uuid, scHandlerID)) != ERROR_ok)
+				{
+					char* errorMsg;
+					if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+					{
+						ts3Functions.logMessage("Failed to connec to bookmark:", LogLevel_WARNING, "G-Key Plugin", 0);
+						ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+						ts3Functions.freeMemory(errorMsg);
+					}
+					return false;
+				}
+			}
+		}
+	}
+	
+	ts3Functions.freeMemory(bookmarks);
+	return true;
+}
