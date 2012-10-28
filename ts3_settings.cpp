@@ -27,17 +27,21 @@ TS3Settings::~TS3Settings(void)
 	CloseDatabase();
 }
 
-bool TS3Settings::CheckAndHandle(int returnCode)
+bool TS3Settings::CheckAndLog(int returnCode)
 {
-	if(returnCode != SQLITE_OK) ts3Functions.logMessage(sqlite3_errmsg(settings), LogLevel_ERROR, "G-Key Plugin", 0);
-	return returnCode != SQLITE_OK;
+	if(returnCode != SQLITE_OK)
+	{
+		ts3Functions.logMessage(sqlite3_errmsg(settings), LogLevel_ERROR, "G-Key Plugin", 0);
+		return true;
+	}
+	return false;
 }
 
 bool TS3Settings::GetValueForQuery(std::string query, std::string& result)
 {
 	// Prepare the statement
 	sqlite3_stmt* sql;
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, query.c_str(), (int)query.length(), &sql, NULL)))
+	if(CheckAndLog(sqlite3_prepare_v2(settings, query.c_str(), (int)query.length(), &sql, NULL)))
 		return false;
 
 	// Get the value
@@ -49,7 +53,7 @@ bool TS3Settings::GetValueForQuery(std::string query, std::string& result)
 	));
 
 	// Finalize the statement
-	if(CheckAndHandle(sqlite3_finalize(sql))) return false;
+	if(CheckAndLog(sqlite3_finalize(sql))) return false;
 
 	return true;
 }
@@ -58,8 +62,11 @@ bool TS3Settings::OpenDatabase(std::string path)
 {
 	if(settings != NULL) CloseDatabase();
 
-	if(CheckAndHandle(sqlite3_open(path.c_str(), &settings)))
+	if(CheckAndLog(sqlite3_open(path.c_str(), &settings)))
+	{
+		CloseDatabase();
 		return false;
+	}
 
 	return true;
 }

@@ -42,6 +42,7 @@ private:
 	std::map<uint64, WhisperList> whisperLists;
 	std::map<uint64, std::vector<anyID>> replyLists;
 
+	inline bool CheckAndLog(unsigned int returnCode, char* message = NULL);
 public:
 	GKeyFunctions(void);
 	~GKeyFunctions(void);

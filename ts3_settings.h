@@ -8,7 +8,7 @@ class TS3Settings
 private:
 	sqlite3* settings;
 
-	inline bool CheckAndHandle(int returnCode);
+	inline bool CheckAndLog(int returnCode);
 	bool GetValueForQuery(std::string query, std::string& result);
 public:
 	TS3Settings(void);
