@@ -161,8 +161,6 @@ bool PTTDelay()
 
 void ParseCommand(char* cmd, char* arg)
 {
-	unsigned int error;
-
 	// Acquire the mutex
 	if(WaitForSingleObject(hMutex, PLUGIN_THREAD_TIMEOUT) != WAIT_OBJECT_0)
 	{
@@ -180,12 +178,13 @@ void ParseCommand(char* cmd, char* arg)
 	}
 
 	int status;
+	unsigned int error;
 	if((error = ts3Functions.getConnectionStatus(scHandlerID, &status)) != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
 		{
-			ts3Functions.logMessage("Error retrieving connection status:", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage("Error retrieving connection status", LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
