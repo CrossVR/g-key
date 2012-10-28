@@ -8,11 +8,6 @@ class TS3Settings
 private:
 	sqlite3* settings;
 
-	// Prepared SQL statements
-	sqlite3_stmt* sqlIconPack;
-	sqlite3_stmt* sqlSoundPack;
-	sqlite3_stmt* sqlDefaultCaptureProfile;
-
 	inline bool CheckAndHandle(int returnCode);
 	bool GetValueForStatement(sqlite3_stmt* statement, std::string& result);
 public:

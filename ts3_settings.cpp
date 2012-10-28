@@ -78,28 +78,31 @@ std::string TS3Settings::GetValueFromData(std::string data, std::string key)
 
 bool TS3Settings::GetIconPack(std::string& result)
 {
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Application WHERE key='IconPack'", 51, &sqlIconPack, NULL)))
+	sqlite3_stmt* sql;
+	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Application WHERE key='IconPack'", 51, &sql, NULL)))
 		return false;
 	bool ret = GetValueForStatement(sqlIconPack, result);
-	sqlite3_finalize(sqlIconPack);
+	sqlite3_finalize(sql);
 	return ret;
 }
 
 bool TS3Settings::GetSoundPack(std::string& result)
 {
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", 54, &sqlSoundPack, NULL)))
+	sqlite3_stmt* sql;
+	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Notifications WHERE key='SoundPack'", 54, &sql, NULL)))
 		return false;
 	bool ret = GetValueForStatement(sqlSoundPack, result);
-	sqlite3_finalize(sqlSoundPack);
+	sqlite3_finalize(sql);
 	return ret;
 }
 
 bool TS3Settings::GetDefaultCaptureProfile(std::string& result)
 {
-	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Profiles WHERE key='DefaultCaptureProfile'", 61, &sqlDefaultCaptureProfile, NULL)))
+	sqlite3_stmt* sql;
+	if(CheckAndHandle(sqlite3_prepare_v2(settings, "SELECT value FROM Profiles WHERE key='DefaultCaptureProfile'", 61, &sql, NULL)))
 		return false;
 	bool ret = GetValueForStatement(sqlDefaultCaptureProfile, result);
-	sqlite3_finalize(sqlDefaultCaptureProfile);
+	sqlite3_finalize(sql);
 	return ret;
 }
 
