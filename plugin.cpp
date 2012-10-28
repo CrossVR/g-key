@@ -159,6 +159,40 @@ bool PTTDelay()
 	return false;
 }
 
+bool IsConnected(uint64 scHandlerID)
+{
+	int status;
+	unsigned int error;
+	if((error = ts3Functions.getConnectionStatus(scHandlerID, &status)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving connection status", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+			return false; // Assume we're not connected
+		}
+	}
+
+	if(status == STATUS_DISCONNECTED)
+	{
+		gkeyFunctions.ErrorMessage(scHandlerID, "Not connected to server");
+		return false;
+	}
+	return true;
+}
+
+inline bool IsArgumentEmpty(uint64 scHandlerID, char* arg)
+{
+	if(arg != NULL && *arg != (char)NULL)
+	{
+		gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
+		return true;
+	}
+	return false;
+}
+
 void ParseCommand(char* cmd, char* arg)
 {
 	// Acquire the mutex
@@ -177,23 +211,10 @@ void ParseCommand(char* cmd, char* arg)
 		if(scHandlerID == NULL) return;
 	}
 
-	int status;
-	unsigned int error;
-	if((error = ts3Functions.getConnectionStatus(scHandlerID, &status)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-		{
-			ts3Functions.logMessage("Error retrieving connection status", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-		}
-	}
-
 	/***** Communication *****/
 	if(!strcmp(cmd, "TS3_PTT_ACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 		{
 			CancelWaitableTimer(hPttDelayTimer);
 			gkeyFunctions.SetPushToTalk(scHandlerID, true);
@@ -201,7 +222,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_PTT_DEACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 		{
 			if(!PTTDelay()) // If query failed
 				gkeyFunctions.SetPushToTalk(scHandlerID, false);
@@ -209,7 +230,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_PTT_TOGGLE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 		{
 			if(gkeyFunctions.pttActive) CancelWaitableTimer(hPttDelayTimer);
 			gkeyFunctions.SetPushToTalk(scHandlerID, !gkeyFunctions.pttActive);
@@ -217,47 +238,47 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_VAD_ACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetVoiceActivation(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_VAD_DEACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetVoiceActivation(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_VAD_TOGGLE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetVoiceActivation(scHandlerID, !gkeyFunctions.vadActive);
 	}
 	else if(!strcmp(cmd, "TS3_CT_ACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetContinuousTransmission(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_CT_DEACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetContinuousTransmission(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_CT_TOGGLE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetContinuousTransmission(scHandlerID, !gkeyFunctions.inputActive);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_MUTE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetInputMute(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_UNMUTE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetInputMute(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_INPUT_TOGGLE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 		{
 			int muted;
 			ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_INPUT_MUTED, &muted);
@@ -266,17 +287,17 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_MUTE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetOutputMute(scHandlerID, true);
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_UNMUTE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetOutputMute(scHandlerID, false);
 	}
 	else if(!strcmp(cmd, "TS3_OUTPUT_TOGGLE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 		{
 			int muted;
 			ts3Functions.getClientSelfVariableAsInt(scHandlerID, CLIENT_OUTPUT_MUTED, &muted);
@@ -314,7 +335,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 handle = gkeyFunctions.GetServerHandleByVariable(arg, VIRTUALSERVER_NAME);
 			if(handle != (uint64)NULL && handle != scHandlerID)
@@ -324,11 +345,10 @@ void ParseCommand(char* cmd, char* arg)
 			}
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Server not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERID"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 handle = gkeyFunctions.GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
 			if(handle != (uint64)NULL)
@@ -338,11 +358,10 @@ void ParseCommand(char* cmd, char* arg)
 			}
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Server not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERIP"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
+		if(IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 handle = gkeyFunctions.GetServerHandleByVariable(arg, VIRTUALSERVER_IP);
 			if(handle != (uint64)NULL)
@@ -352,7 +371,6 @@ void ParseCommand(char* cmd, char* arg)
 			}
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Server not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_CURRENT"))
 	{
@@ -376,97 +394,88 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANNEL"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 id = gkeyFunctions.GetChannelIDFromPath(scHandlerID, arg);
 			if(id == (uint64)NULL) id = gkeyFunctions.GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) gkeyFunctions.JoinChannel(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Channel not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANNELID"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) gkeyFunctions.JoinChannel(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Channel not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_CHANNEL_NEXT"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.JoinNextChannel(scHandlerID);
 	}
 	else if(!strcmp(cmd, "TS3_CHANNEL_PREV"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.JoinPrevChannel(scHandlerID);
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.ServerKickClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.ServerKickClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.ChannelKickClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.ChannelKickClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_BOOKMARK_CONNECT"))
 	{
-		if(arg != NULL && *arg != (char)NULL)
-		{
+		if(IsArgumentEmpty(scHandlerID, arg))
 			gkeyFunctions.ConnectToBookmark(arg, PLUGIN_CONNECT_TAB_NEW_IF_CURRENT_CONNECTED, &scHandlerID);
-		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	/***** Whispering *****/
 	else if(!strcmp(cmd, "TS3_WHISPER_ACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetWhisperList(scHandlerID, TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_DEACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetWhisperList(scHandlerID, FALSE);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_TOGGLE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetWhisperList(scHandlerID, !gkeyFunctions.whisperActive);
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CLEAR"))
@@ -475,58 +484,54 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CLIENT"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.WhisperAddClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CLIENTID"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.WhisperAddClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CHANNEL"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 id = gkeyFunctions.GetChannelIDFromPath(scHandlerID, arg);
 			if(id == (uint64)NULL) id = gkeyFunctions.GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
 			if(id != (uint64)NULL) gkeyFunctions.WhisperAddChannel(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Channel not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CHANNELID"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) gkeyFunctions.WhisperAddChannel(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Channel not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_ACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetReplyList(scHandlerID, TRUE);
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_DEACTIVATE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetReplyList(scHandlerID, FALSE);
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_TOGGLE"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 			gkeyFunctions.SetReplyList(scHandlerID, !gkeyFunctions.replyActive);
 	}
 	else if(!strcmp(cmd, "TS3_REPLY_CLEAR"))
@@ -536,47 +541,43 @@ void ParseCommand(char* cmd, char* arg)
 	/***** Miscellaneous *****/
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.MuteClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENTID"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.MuteClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENT"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.UnmuteClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENTID"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.UnmuteClient(scHandlerID, id);
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENT"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL)
@@ -588,11 +589,10 @@ void ParseCommand(char* cmd, char* arg)
 			}
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENTID"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL)
@@ -604,11 +604,10 @@ void ParseCommand(char* cmd, char* arg)
 			}
 			else gkeyFunctions.ErrorMessage(scHandlerID, "Client not found");
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_UP"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 		{
 			float diff = (arg!=NULL && *arg != (char)NULL)?(float)atof(arg):1.0f;
 			float value;
@@ -618,7 +617,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_DOWN"))
 	{
-		if(status != STATUS_DISCONNECTED)
+		if(IsConnected(scHandlerID))
 		{
 			float diff = (arg!=NULL && *arg != (char)NULL)?(float)atof(arg):1.0f;
 			float value;
@@ -628,12 +627,11 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_SET"))
 	{
-		if(status != STATUS_DISCONNECTED && arg != NULL && *arg != (char)NULL)
+		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
 		{
 			float value = (float)atof(arg);
 			gkeyFunctions.SetMasterVolume(scHandlerID, value);
 		}
-		else gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 	}
 	/***** Error handler *****/
 	else
