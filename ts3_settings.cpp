@@ -16,11 +16,7 @@
 #include <sstream>
 #include <string>
 
-TS3Settings::TS3Settings(void) :
-	settings(NULL),
-	sqlIconPack(NULL),
-	sqlSoundPack(NULL),
-	sqlDefaultCaptureProfile(NULL)
+TS3Settings::TS3Settings(void)
 {
 }
 
