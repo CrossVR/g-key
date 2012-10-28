@@ -1041,7 +1041,7 @@ bool GKeyFunctions::ConnectToBookmark(char* label, PluginConnectTab connectTab, 
 					char* errorMsg;
 					if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
 					{
-						ts3Functions.logMessage("Failed to connec to bookmark:", LogLevel_WARNING, "G-Key Plugin", 0);
+						ts3Functions.logMessage("Failed to connect to bookmark:", LogLevel_WARNING, "G-Key Plugin", 0);
 						ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 						ts3Functions.freeMemory(errorMsg);
 					}
