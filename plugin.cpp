@@ -334,7 +334,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVER"))
 	{
-		if(IsArgumentEmpty(scHandlerID, arg))
+		if(!IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 handle = gkeyFunctions.GetServerHandleByVariable(arg, VIRTUALSERVER_NAME);
 			if(handle != (uint64)NULL && handle != scHandlerID)
@@ -347,7 +347,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERID"))
 	{
-		if(IsArgumentEmpty(scHandlerID, arg))
+		if(!IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 handle = gkeyFunctions.GetServerHandleByVariable(arg, VIRTUALSERVER_UNIQUE_IDENTIFIER);
 			if(handle != (uint64)NULL)
@@ -360,7 +360,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_ACTIVATE_SERVERIP"))
 	{
-		if(IsArgumentEmpty(scHandlerID, arg))
+		if(!IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 handle = gkeyFunctions.GetServerHandleByVariable(arg, VIRTUALSERVER_IP);
 			if(handle != (uint64)NULL)
@@ -393,7 +393,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANNEL"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 id = gkeyFunctions.GetChannelIDFromPath(scHandlerID, arg);
 			if(id == (uint64)NULL) id = gkeyFunctions.GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
@@ -403,7 +403,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_JOIN_CHANNELID"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) gkeyFunctions.JoinChannel(scHandlerID, id);
@@ -422,7 +422,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENT"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.ServerKickClient(scHandlerID, id);
@@ -431,7 +431,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_KICK_CLIENTID"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.ServerKickClient(scHandlerID, id);
@@ -440,7 +440,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENT"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.ChannelKickClient(scHandlerID, id);
@@ -449,7 +449,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_CHANKICK_CLIENTID"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.ChannelKickClient(scHandlerID, id);
@@ -458,7 +458,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_BOOKMARK_CONNECT"))
 	{
-		if(IsArgumentEmpty(scHandlerID, arg))
+		if(!IsArgumentEmpty(scHandlerID, arg))
 			gkeyFunctions.ConnectToBookmark(arg, PLUGIN_CONNECT_TAB_NEW_IF_CURRENT_CONNECTED, &scHandlerID);
 	}
 	/***** Whispering *****/
@@ -483,7 +483,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CLIENT"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.WhisperAddClient(scHandlerID, id);
@@ -492,7 +492,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CLIENTID"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.WhisperAddClient(scHandlerID, id);
@@ -501,7 +501,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CHANNEL"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 id = gkeyFunctions.GetChannelIDFromPath(scHandlerID, arg);
 			if(id == (uint64)NULL) id = gkeyFunctions.GetChannelIDByVariable(scHandlerID, arg, CHANNEL_NAME);
@@ -511,7 +511,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_WHISPER_CHANNELID"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			uint64 id = atoi(arg);
 			if(id != (uint64)NULL) gkeyFunctions.WhisperAddChannel(scHandlerID, id);
@@ -540,7 +540,7 @@ void ParseCommand(char* cmd, char* arg)
 	/***** Miscellaneous *****/
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENT"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.MuteClient(scHandlerID, id);
@@ -549,7 +549,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_CLIENTID"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.MuteClient(scHandlerID, id);
@@ -558,7 +558,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENT"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL) gkeyFunctions.UnmuteClient(scHandlerID, id);
@@ -567,7 +567,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_UNMUTE_CLIENTID"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL) gkeyFunctions.UnmuteClient(scHandlerID, id);
@@ -576,7 +576,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENT"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_NICKNAME);
 			if(id != (anyID)NULL)
@@ -591,7 +591,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_MUTE_TOGGLE_CLIENTID"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			anyID id = gkeyFunctions.GetClientIDByVariable(scHandlerID, arg, CLIENT_UNIQUE_IDENTIFIER);
 			if(id != (anyID)NULL)
@@ -626,7 +626,7 @@ void ParseCommand(char* cmd, char* arg)
 	}
 	else if(!strcmp(cmd, "TS3_VOLUME_SET"))
 	{
-		if(IsConnected(scHandlerID) && IsArgumentEmpty(scHandlerID, arg))
+		if(IsConnected(scHandlerID) && !IsArgumentEmpty(scHandlerID, arg))
 		{
 			float value = (float)atof(arg);
 			gkeyFunctions.SetMasterVolume(scHandlerID, value);
