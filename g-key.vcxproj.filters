@@ -9,6 +9,15 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Header Files\PluginSDK">
+      <UniqueIdentifier>{e59b2230-7710-4efc-86a2-ba7ca5ff7ff5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SQLite">
+      <UniqueIdentifier>{bacb0b83-7bdb-45f8-a011-476153112f0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SQLite">
+      <UniqueIdentifier>{bc3e0c3e-2fa4-4075-9c57-bfcdebe57173}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="plugin.cpp">
@@ -17,51 +26,24 @@
     <ClCompile Include="channel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="shell.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sqlite3.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ts3_settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gkey_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shell.c">
+      <Filter>Source Files\SQLite</Filter>
+    </ClCompile>
+    <ClCompile Include="sqlite3.c">
+      <Filter>Source Files\SQLite</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="plugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\clientlib_publicdefinitions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\plugin_definitions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\public_definitions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\public_errors.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\public_rare_definitions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ts3_functions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\public_errors_rare.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="channel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlite3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlite3ext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ts3_settings.h">
@@ -69,6 +51,33 @@
     </ClInclude>
     <ClInclude Include="gkey_functions.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\clientlib_publicdefinitions.h">
+      <Filter>Header Files\PluginSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="include\plugin_definitions.h">
+      <Filter>Header Files\PluginSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="include\public_definitions.h">
+      <Filter>Header Files\PluginSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="include\public_errors.h">
+      <Filter>Header Files\PluginSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="include\public_errors_rare.h">
+      <Filter>Header Files\PluginSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="include\public_rare_definitions.h">
+      <Filter>Header Files\PluginSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ts3_functions.h">
+      <Filter>Header Files\PluginSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="sqlite3.h">
+      <Filter>Header Files\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="sqlite3ext.h">
+      <Filter>Header Files\SQLite</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
