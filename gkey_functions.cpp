@@ -98,9 +98,9 @@ uint64 GKeyFunctions::GetActiveServerConnectionHandlerID()
 	for(server = servers; *server != (uint64)NULL && handle == NULL; server++)
 	{
 		int result;
-		if(!CheckAndLog(ts3Functions.getClientSelfVariableAsInt(*server, CLIENT_INPUT_HARDWARE, &result), "Error retrieving client variable") && result)
+		if(!CheckAndLog(ts3Functions.getClientSelfVariableAsInt(*server, CLIENT_INPUT_HARDWARE, &result), "Error retrieving client variable"))
 		{
-			handle = *server;
+			if(result) handle = *server;
 		}
 	}
 	
