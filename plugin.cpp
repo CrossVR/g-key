@@ -72,6 +72,42 @@ static HANDLE hMutex = NULL;
 static HANDLE hPttDelayTimer = (HANDLE)NULL;
 static LARGE_INTEGER dueTime;
 
+/*********************************** Plugin error handlers ************************************/
+
+bool IsConnected(uint64 scHandlerID)
+{
+	int status;
+	unsigned int error;
+	if((error = ts3Functions.getConnectionStatus(scHandlerID, &status)) != ERROR_ok)
+	{
+		char* errorMsg;
+		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
+		{
+			ts3Functions.logMessage("Error retrieving connection status", LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
+			ts3Functions.freeMemory(errorMsg);
+			return false; // Assume we're not connected
+		}
+	}
+
+	if(status == STATUS_DISCONNECTED)
+	{
+		gkeyFunctions.ErrorMessage(scHandlerID, "Not connected to server");
+		return false;
+	}
+	return true;
+}
+
+inline bool IsArgumentEmpty(uint64 scHandlerID, char* arg)
+{
+	if(arg != NULL && *arg != (char)NULL)
+	{
+		gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
+		return true;
+	}
+	return false;
+}
+
 /*********************************** Plugin callbacks ************************************/
 
 VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowValue,DWORD dwTimerHighValue)
@@ -156,40 +192,6 @@ bool PTTDelay()
 		return true;
 	}
 
-	return false;
-}
-
-bool IsConnected(uint64 scHandlerID)
-{
-	int status;
-	unsigned int error;
-	if((error = ts3Functions.getConnectionStatus(scHandlerID, &status)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-		{
-			ts3Functions.logMessage("Error retrieving connection status", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-			return false; // Assume we're not connected
-		}
-	}
-
-	if(status == STATUS_DISCONNECTED)
-	{
-		gkeyFunctions.ErrorMessage(scHandlerID, "Not connected to server");
-		return false;
-	}
-	return true;
-}
-
-inline bool IsArgumentEmpty(uint64 scHandlerID, char* arg)
-{
-	if(arg != NULL && *arg != (char)NULL)
-	{
-		gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
-		return true;
-	}
 	return false;
 }
 
