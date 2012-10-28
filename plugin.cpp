@@ -100,7 +100,7 @@ bool IsConnected(uint64 scHandlerID)
 
 inline bool IsArgumentEmpty(uint64 scHandlerID, char* arg)
 {
-	if(arg != NULL && *arg != (char)NULL)
+	if(arg == NULL && *arg == (char)NULL)
 	{
 		gkeyFunctions.ErrorMessage(scHandlerID, "Missing argument");
 		return true;
