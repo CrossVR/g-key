@@ -6,23 +6,21 @@
  * Copyright (c) 2008-2012 TeamSpeak Systems GmbH
  */
 
-#include <Windows.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#include "gkey_functions.h"
 #include "public_errors.h"
 #include "public_errors_rare.h"
 #include "public_definitions.h"
 #include "public_rare_definitions.h"
 #include "ts3_functions.h"
 #include "plugin.h"
-#include "gkey_functions.h"
 #include "channel.h"
 
 #include <vector>
 #include <map>
-#include <list>
 #include <string>
 #include <sstream>
 

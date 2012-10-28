@@ -8,6 +8,8 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include "public_definitions.h"
+
 #include <vector>
 #include <map>
 #include <string>
