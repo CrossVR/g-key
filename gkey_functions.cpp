@@ -22,6 +22,8 @@
 #include <vector>
 #include <map>
 #include <list>
+#include <string>
+#include <sstream>
 
 GKeyFunctions::GKeyFunctions(void) : 
 	pttActive(false),
@@ -48,21 +50,17 @@ void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 		strftime(timeStr, 11, "<%X>", localtime(&timer));
 
 		// Format and print the error message, use a transparent underscore because a double space will be collapsed
-		size_t newLength = strlen(message)+infoIcon.length()+69;
-		char* styledMsg = (char*)malloc(newLength*sizeof(char));
-		snprintf(styledMsg, newLength, "[img]%s[/img][color=red]%s[color=transparent]_[/color]%s[/color]", infoIcon.c_str(), timeStr, message);
-		ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
-		free(styledMsg);
+		std::stringstream ss;
+		ss << "[img]" << infoIcon << "[/img][color=red]" << timeStr << "[color=transparent]_[/color]" << message << "[/color]";
+		ts3Functions.printMessage(scHandlerID, ss.str().c_str(), PLUGIN_MESSAGE_TARGET_SERVER);
 	}
 	// Else create a simplified styled message
 	else
 	{
 		// Format and print the error message
-		size_t newLength = strlen(message)+20;
-		char* styledMsg = (char*)malloc(newLength*sizeof(char));
-		snprintf(styledMsg, newLength, "[color=red]%s[/color]", message);
-		ts3Functions.printMessage(scHandlerID, styledMsg, PLUGIN_MESSAGE_TARGET_SERVER);
-		free(styledMsg);
+		std::stringstream ss;
+		ss << "[color=red]" << message << "[/color]";
+		ts3Functions.printMessage(scHandlerID, ss.str().c_str(), PLUGIN_MESSAGE_TARGET_SERVER);
 	}
 
 	// If an error sound has been found play it
