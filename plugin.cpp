@@ -208,7 +208,6 @@ void ParseCommand(char* cmd, char* arg)
 	{
 		ts3Functions.logMessage("Failed to get an active server, falling back to current server", LogLevel_DEBUG, "G-Key Plugin", 0);
 		scHandlerID = ts3Functions.getCurrentServerConnectionHandlerID();
-		if(scHandlerID == NULL) return;
 	}
 
 	/***** Communication *****/
