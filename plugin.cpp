@@ -774,7 +774,7 @@ DWORD WINAPI DebugThread(LPVOID pData)
 	// Close the handle to the Logitech software
 	CloseHandle(hProcess);
 
-	return 0;
+	return PLUGIN_ERROR_NONE;
 }
 
 /*********************************** Required functions ************************************/
@@ -983,7 +983,7 @@ void ts3plugin_onConnectStatusChangeEvent(uint64 serverConnectionHandlerID, int 
 		if(!pluginRunning) 
 		{
 			DWORD errorCode;
-			if(GetExitCodeThread(hDebugThread, &errorCode))
+			if(GetExitCodeThread(hDebugThread, &errorCode) && errorCode != PLUGIN_ERROR_NONE)
 			{
 				switch(errorCode)
 				{
