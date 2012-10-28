@@ -98,8 +98,8 @@ bool SetInfoIcon()
 	ts3Functions.getResourcesPath(path, MAX_PATH);
 
 	// Build and commit the path
-	std::stringstream ss(path);
-	ss << '/' << iconPack << "/16x16_message_info.png";
+	std::stringstream ss;
+	ss << path << "gfx/" << iconPack << "/16x16_message_info.png";
 	gkeyFunctions.infoIcon = ss.str();
 
 	return true;
@@ -114,14 +114,12 @@ bool SetErrorSound()
 	// Find the path to the soundpack
 	char path[MAX_PATH];
 	ts3Functions.getResourcesPath(path, MAX_PATH);
-	std::stringstream ss(path);
-	ss << "sound/" << soundPack;
+	std::stringstream ss;
+	ss << path << "sound/" << soundPack;
 
 	// Build the path to the config file
-	std::string tmp = ss.str();
-	ss << "/settings.ini";
 	std::string config = ss.str();
-	ss.str(tmp);
+	config.append("/settings.ini");
 
 	// Parse the config file for the sound file
 	char file[MAX_PATH];

@@ -59,9 +59,6 @@ bool TS3Settings::OpenDatabase(std::string path)
 
 void TS3Settings::CloseDatabase()
 {
-	sqlite3_finalize(sqlIconPack);
-	sqlite3_finalize(sqlSoundPack);
-	sqlite3_finalize(sqlDefaultCaptureProfile);
 	sqlite3_close(settings);
 }
 
