@@ -14,6 +14,7 @@
 #include "ts3_functions.h"
 #include "plugin.h"
 #include "sqlite3.h"
+
 #include <sstream>
 #include <string>
 
