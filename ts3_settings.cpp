@@ -34,17 +34,22 @@ bool TS3Settings::CheckAndHandle(int returnCode)
 
 bool TS3Settings::GetValueForQuery(std::string query, std::string& result)
 {
+	// Prepare the statement
 	sqlite3_stmt* sql;
 	if(CheckAndHandle(sqlite3_prepare_v2(settings, query.c_str(), query.length(), &sql, NULL)))
 		return false;
+
+	// Get the value
 	if(sqlite3_step(sql) != SQLITE_ROW) return false;
 	if(sqlite3_column_count(sql) != 1) return false;
 	if(sqlite3_column_type(sql, 0) != SQLITE_TEXT) return false;
 	result = std::string(reinterpret_cast<const char*>(
 		sqlite3_column_text(sql, 0)
 	));
-	if(CheckAndHandle(sqlite3_reset(sql))) return false;
+
+	// Finalize the statement
 	if(CheckAndHandle(sqlite3_finalize(sql))) return false;
+
 	return true;
 }
 

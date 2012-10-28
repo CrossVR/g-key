@@ -55,10 +55,9 @@ void GKeyFunctions::ErrorMessage(uint64 scHandlerID, char* message)
 		ss << "[img]" << infoIcon << "[/img][color=red]" << timeStr << "[color=transparent]_[/color]" << message << "[/color]";
 		ts3Functions.printMessage(scHandlerID, ss.str().c_str(), PLUGIN_MESSAGE_TARGET_SERVER);
 	}
-	// Else create a simplified styled message
 	else
 	{
-		// Format and print the error message
+		// Format a simplified styled error message
 		std::stringstream ss;
 		ss << "[color=red]" << message << "[/color]";
 		ts3Functions.printMessage(scHandlerID, ss.str().c_str(), PLUGIN_MESSAGE_TARGET_SERVER);
