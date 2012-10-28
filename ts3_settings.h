@@ -2,6 +2,7 @@
 
 #include "sqlite3.h"
 #include <string>
+#include <vector>
 
 class TS3Settings
 {
@@ -10,6 +11,7 @@ private:
 
 	inline bool CheckAndLog(int returnCode);
 	bool GetValueFromQuery(std::string query, std::string& result);
+	bool GetValuesFromQuery(std::string query, std::vector<std::string>& result);
 public:
 	TS3Settings(void);
 	~TS3Settings(void);
@@ -23,5 +25,6 @@ public:
 	bool GetIconPack(std::string& result);
 	bool GetSoundPack(std::string& result);
 	bool GetPreProcessorData(std::string profile, std::string& result);
+	bool GetEnabledPlugins(std::vector<std::string>& result);
 };
 

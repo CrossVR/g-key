@@ -27,6 +27,7 @@
 
 #include <sstream>
 #include <string>
+#include <vector>
 
 struct TS3Functions ts3Functions;
 GKeyFunctions gkeyFunctions;
@@ -71,6 +72,10 @@ static HANDLE hMutex = NULL;
 // PTT Delay Timer
 static HANDLE hPttDelayTimer = (HANDLE)NULL;
 static LARGE_INTEGER dueTime;
+
+// Module proc definitions
+typedef const char* (WINAPI *CommandKeywordProc)();
+typedef int (WINAPI *ProcessCommandProc)(uint64, const char*);
 
 /*********************************** Plugin error handlers ************************************/
 
@@ -123,6 +128,55 @@ VOID CALLBACK PTTDelayCallback(LPVOID lpArgToCompletionRoutine,DWORD dwTimerLowV
 }
 
 /*********************************** Plugin functions ************************************/
+
+bool ExecutePluginCommand(uint64 scHandlerID, char* keyword, char* command)
+{
+	// Get the plugin list
+	std::vector<std::string> plugins;
+	if(!ts3Settings.GetEnabledPlugins(plugins)) return false;
+
+	// Iterate the plugins looking for the one that can provide the keyword
+	for(std::vector<std::string>::iterator it=plugins.begin(); it!=plugins.end(); it++)
+	{
+		// Get the module handle
+		HMODULE pluginModule = GetModuleHandle(it->c_str());
+		
+		// Module not found, try to guess the correct module name
+		if(pluginModule == NULL)
+		{
+			#ifdef _WIN64
+				char* suffixes[] = { "_win64", "_amd64", "_64" };
+			#else
+			#ifdef _WIN32
+				char* suffixes[] = { "_win32", "_x86", "_32" };
+			#endif
+			#endif
+			for(int i=0; pluginModule == NULL && i<sizeof(suffixes); i++)
+			{
+				std::string moduleName = (*it) + suffixes[i];
+				pluginModule = GetModuleHandle(moduleName.c_str());
+			}
+		}
+
+		// If the module was found
+		if(pluginModule != NULL)
+		{
+			// Check if the keyword matches
+			CommandKeywordProc pCommandKeyword = (CommandKeywordProc)GetProcAddress(pluginModule, "ts3plugin_commandKeyword");
+			if(pCommandKeyword != NULL && !strcmp(pCommandKeyword(), keyword))
+			{
+				// Execute the command
+				ProcessCommandProc pProcessCommand = (ProcessCommandProc)GetProcAddress(pluginModule, "ts3plugin_processCommand");
+				if(pProcessCommand != NULL)
+				{
+					pProcessCommand(scHandlerID, command);
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
 
 bool SetInfoIcon()
 {
@@ -649,6 +703,25 @@ void ParseCommand(char* cmd, char* arg)
 			gkeyFunctions.SetMasterVolume(scHandlerID, value);
 		}
 	}
+	else if(!strcmp(cmd, "TS3_PLUGIN_COMMAND"))
+	{
+		if(!IsArgumentEmpty(scHandlerID, arg))
+		{
+			char* keyword = arg;
+			char* command = strchr(arg, ' ');
+			if(*keyword == '/') keyword++; // Skip the slash
+			if(command != NULL)
+			{
+				// Split the string by inserting a NULL-terminator
+				*command = (char)NULL;
+				command++;
+
+				// Execute the command
+				if(!IsArgumentEmpty(scHandlerID, command))
+					ExecutePluginCommand(scHandlerID, keyword, command);
+			}
+		}
+	}
 	/***** Error handler *****/
 	else
 	{
@@ -810,7 +883,7 @@ const char* ts3plugin_name() {
 
 /* Plugin version */
 const char* ts3plugin_version() {
-    return "0.5.9";
+    return "0.6.0";
 }
 
 /* Plugin API version. Must be the same as the clients API major version, else the plugin fails to load. */

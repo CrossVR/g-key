@@ -76,6 +76,31 @@ bool TS3Settings::GetValueFromQuery(std::string query, std::string& result)
 	return true;
 }
 
+bool TS3Settings::GetValuesFromQuery(std::string query, std::vector<std::string>& result)
+{
+	// Prepare the statement
+	sqlite3_stmt* sql;
+	if(CheckAndLog(sqlite3_prepare_v2(settings, query.c_str(), (int)query.length(), &sql, NULL)))
+		return false;
+
+	// Get the values
+	if(sqlite3_step(sql) != SQLITE_ROW) return false;
+	if(sqlite3_column_count(sql) != 1) return false;
+	if(sqlite3_column_type(sql, 0) != SQLITE_TEXT) return false;
+	do
+	{
+		result.push_back(std::string(reinterpret_cast<const char*>(
+			sqlite3_column_text(sql, 0)
+		)));
+	}
+	while(sqlite3_step(sql) == SQLITE_ROW);
+
+	// Finalize the statement
+	if(CheckAndLog(sqlite3_finalize(sql))) return false;
+
+	return true;
+}
+
 std::string TS3Settings::GetValueFromData(std::string data, std::string key)
 {
 	std::string result;
@@ -105,4 +130,9 @@ bool TS3Settings::GetPreProcessorData(std::string profile, std::string& result)
 	std::stringstream ss;
 	ss << "SELECT value FROM Profiles WHERE key='Capture/" << profile << "/PreProcessing'";
 	return GetValueFromQuery(ss.str(), result);
+}
+
+bool TS3Settings::GetEnabledPlugins(std::vector<std::string>& result)
+{
+	return GetValuesFromQuery("SELECT key FROM Plugins WHERE value='true'", result);
 }
