@@ -56,39 +56,39 @@ public:
 	uint64 GetChannelIDFromPath(uint64 scHandlerID, char* path);
 
 	// Communication
-	int SetPushToTalk(uint64 scHandlerID, bool shouldTalk);
-	int SetVoiceActivation(uint64 scHandlerID, bool shouldActivate);
-	int SetContinuousTransmission(uint64 scHandlerID, bool shouldActivate);
-	int SetInputMute(uint64 scHandlerID, bool shouldMute);
-	int SetOutputMute(uint64 scHandlerID, bool shouldMute);
+	bool SetPushToTalk(uint64 scHandlerID, bool shouldTalk);
+	bool SetVoiceActivation(uint64 scHandlerID, bool shouldActivate);
+	bool SetContinuousTransmission(uint64 scHandlerID, bool shouldActivate);
+	bool SetInputMute(uint64 scHandlerID, bool shouldMute);
+	bool SetOutputMute(uint64 scHandlerID, bool shouldMute);
 
 	// Whispering
-	int SetWhisperList(uint64 scHandlerID, bool shouldWhisper);
+	bool SetWhisperList(uint64 scHandlerID, bool shouldWhisper);
 	void WhisperListClear(uint64 scHandlerID);
 	void WhisperAddClient(uint64 scHandlerID, anyID client);
 	void WhisperAddChannel(uint64 scHandlerID, uint64 channel);
-	int SetReplyList(uint64 scHandlerID, bool shouldReply);
+	bool SetReplyList(uint64 scHandlerID, bool shouldReply);
 	void ReplyListClear(uint64 scHandlerID);
 	void ReplyAddClient(uint64 scHandlerID, anyID client);
 
 	// Server interaction
-	int SetActiveServer(uint64 handle);
-	int SetAway(uint64 scHandlerID, bool isAway, char* msg = "");
-	int SetGlobalAway(bool isAway, char* msg = NULL);
-	int JoinChannel(uint64 scHandlerID, uint64 channel);
-	int ServerKickClient(uint64 scHandlerID, anyID client);
-	int ChannelKickClient(uint64 scHandlerID, anyID client);
-	int JoinChannelRelative(uint64 scHandlerID, bool next);
-	inline int JoinNextChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, true); }
-	inline int JoinPrevChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, false); }
-	int SetActiveServerRelative(uint64 scHandlerID, bool next);
-	inline int SetNextActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, true); }
-	inline int SetPrevActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, false); }
+	bool SetActiveServer(uint64 handle);
+	bool SetAway(uint64 scHandlerID, bool isAway, char* msg = "");
+	bool SetGlobalAway(bool isAway, char* msg = NULL);
+	bool JoinChannel(uint64 scHandlerID, uint64 channel);
+	bool ServerKickClient(uint64 scHandlerID, anyID client);
+	bool ChannelKickClient(uint64 scHandlerID, anyID client);
+	bool JoinChannelRelative(uint64 scHandlerID, bool next);
+	inline bool JoinNextChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, true); }
+	inline bool JoinPrevChannel(uint64 scHandlerID) { return JoinChannelRelative(scHandlerID, false); }
+	bool SetActiveServerRelative(uint64 scHandlerID, bool next);
+	inline bool SetNextActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, true); }
+	inline bool SetPrevActiveServer(uint64 scHandlerID) { return SetActiveServerRelative(scHandlerID, false); }
 
 	// Miscellaneous
-	int SetMasterVolume(uint64 scHandlerID, float value);
-	int MuteClient(uint64 scHandlerID, anyID client);
-	int UnmuteClient(uint64 scHandlerID, anyID client);
+	bool SetMasterVolume(uint64 scHandlerID, float value);
+	bool MuteClient(uint64 scHandlerID, anyID client);
+	bool UnmuteClient(uint64 scHandlerID, anyID client);
 };
 
 #endif

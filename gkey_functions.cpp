@@ -261,7 +261,7 @@ anyID GKeyFunctions::GetClientIDByVariable(uint64 scHandlerID, char* value, size
 	return result;
 }
 
-int GKeyFunctions::SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
+bool GKeyFunctions::SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 {
 	unsigned int error;
 
@@ -279,7 +279,7 @@ int GKeyFunctions::SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
-			return 1;
+			return false;
 		}
 		vadActive = !strcmp(vad, "true");
 		ts3Functions.freeMemory(vad);
@@ -295,7 +295,7 @@ int GKeyFunctions::SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
-			return 1;
+			return false;
 		}
 		inputActive = !input; // We want to know when it is active, not when it is inactive 
 	}
@@ -311,7 +311,7 @@ int GKeyFunctions::SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
 	// Activate the input, restore the input setting afterwards
@@ -325,7 +325,7 @@ int GKeyFunctions::SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
 	// Update the client
@@ -334,10 +334,10 @@ int GKeyFunctions::SetPushToTalk(uint64 scHandlerID, bool shouldTalk)
 	// Commit the change
 	pttActive = shouldTalk;
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
+bool GKeyFunctions::SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
 {
 	unsigned int error;
 
@@ -351,7 +351,7 @@ int GKeyFunctions::SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
 	// Activate the input, restore the input setting afterwards
@@ -365,7 +365,7 @@ int GKeyFunctions::SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
 	// Update the client
@@ -375,10 +375,10 @@ int GKeyFunctions::SetVoiceActivation(uint64 scHandlerID, bool shouldActivate)
 	vadActive = shouldActivate;
 	inputActive = shouldActivate;
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::SetContinuousTransmission(uint64 scHandlerID, bool shouldActivate)
+bool GKeyFunctions::SetContinuousTransmission(uint64 scHandlerID, bool shouldActivate)
 {
 	unsigned int error;
 
@@ -393,7 +393,7 @@ int GKeyFunctions::SetContinuousTransmission(uint64 scHandlerID, bool shouldActi
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
 	// Update the client
@@ -402,10 +402,10 @@ int GKeyFunctions::SetContinuousTransmission(uint64 scHandlerID, bool shouldActi
 	// Commit the change
 	inputActive = shouldActivate;
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::SetInputMute(uint64 scHandlerID, bool shouldMute)
+bool GKeyFunctions::SetInputMute(uint64 scHandlerID, bool shouldMute)
 {
 	unsigned int error;
 
@@ -419,13 +419,13 @@ int GKeyFunctions::SetInputMute(uint64 scHandlerID, bool shouldMute)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::SetOutputMute(uint64 scHandlerID, bool shouldMute)
+bool GKeyFunctions::SetOutputMute(uint64 scHandlerID, bool shouldMute)
 {
 	unsigned int error;
 
@@ -439,13 +439,13 @@ int GKeyFunctions::SetOutputMute(uint64 scHandlerID, bool shouldMute)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::SetGlobalAway(bool isAway, char* msg)
+bool GKeyFunctions::SetGlobalAway(bool isAway, char* msg)
 {
 	unsigned int error;
 	uint64* servers;
@@ -461,7 +461,7 @@ int GKeyFunctions::SetGlobalAway(bool isAway, char* msg)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	
 	handle = servers[0];
@@ -472,10 +472,10 @@ int GKeyFunctions::SetGlobalAway(bool isAway, char* msg)
 	}
 
 	ts3Functions.freeMemory(servers);
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::SetAway(uint64 scHandlerID, bool isAway, char* msg)
+bool GKeyFunctions::SetAway(uint64 scHandlerID, bool isAway, char* msg)
 {
 	unsigned int error;
 	
@@ -503,10 +503,10 @@ int GKeyFunctions::SetAway(uint64 scHandlerID, bool isAway, char* msg)
 
 	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::JoinChannel(uint64 scHandlerID, uint64 channel)
+bool GKeyFunctions::JoinChannel(uint64 scHandlerID, uint64 channel)
 {
 	unsigned int error;
 	anyID self;
@@ -520,7 +520,7 @@ int GKeyFunctions::JoinChannel(uint64 scHandlerID, uint64 channel)
 			ts3Functions.logMessage(errorMsg, LogLevel_DEBUG, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	if((error = ts3Functions.requestClientMove(scHandlerID, self, channel, "", NULL)) != ERROR_ok)
 	{
@@ -531,13 +531,13 @@ int GKeyFunctions::JoinChannel(uint64 scHandlerID, uint64 channel)
 			ts3Functions.logMessage(errorMsg, LogLevel_DEBUG, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
+bool GKeyFunctions::SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 {
 	unsigned int error;
 	WhisperIterator list;
@@ -566,7 +566,7 @@ int GKeyFunctions::SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
 	if(shouldWhisper)
@@ -579,7 +579,7 @@ int GKeyFunctions::SetWhisperList(uint64 scHandlerID, bool shouldWhisper)
 	ts3Functions.flushClientSelfUpdates(scHandlerID, NULL);
 	whisperActive = shouldWhisper;
 
-	return 0;
+	return true;
 }
 
 void GKeyFunctions::WhisperListClear(uint64 scHandlerID)
@@ -624,7 +624,7 @@ void GKeyFunctions::WhisperAddChannel(uint64 scHandlerID, uint64 channel)
 	if(whisperActive) SetWhisperList(scHandlerID, true);
 }
 
-int GKeyFunctions::SetReplyList(uint64 scHandlerID, bool shouldReply)
+bool GKeyFunctions::SetReplyList(uint64 scHandlerID, bool shouldReply)
 {
 	unsigned int error;
 	ReplyIterator list;
@@ -652,7 +652,7 @@ int GKeyFunctions::SetReplyList(uint64 scHandlerID, bool shouldReply)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
 	if(shouldReply)
@@ -665,7 +665,7 @@ int GKeyFunctions::SetReplyList(uint64 scHandlerID, bool shouldReply)
 	replyActive = shouldReply;
 
 	if(!shouldReply) return SetWhisperList(scHandlerID, true);
-	return 0;
+	return true;
 }
 
 void GKeyFunctions::ReplyListClear(uint64 scHandlerID)
@@ -692,7 +692,7 @@ void GKeyFunctions::ReplyAddClient(uint64 scHandlerID, anyID client)
 	if(replyActive) SetReplyList(scHandlerID, true);
 }
 
-int GKeyFunctions::SetActiveServer(uint64 handle)
+bool GKeyFunctions::SetActiveServer(uint64 handle)
 {
 	unsigned int error;
 
@@ -705,13 +705,13 @@ int GKeyFunctions::SetActiveServer(uint64 handle)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::MuteClient(uint64 scHandlerID, anyID client)
+bool GKeyFunctions::MuteClient(uint64 scHandlerID, anyID client)
 {
 	unsigned int error;
 
@@ -724,7 +724,7 @@ int GKeyFunctions::MuteClient(uint64 scHandlerID, anyID client)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	if(ts3Functions.requestClientVariables(scHandlerID, client, NULL) != ERROR_ok)
 	{
@@ -737,10 +737,10 @@ int GKeyFunctions::MuteClient(uint64 scHandlerID, anyID client)
 		}
 	}
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::UnmuteClient(uint64 scHandlerID, anyID client)
+bool GKeyFunctions::UnmuteClient(uint64 scHandlerID, anyID client)
 {
 	unsigned int error;
 
@@ -753,7 +753,7 @@ int GKeyFunctions::UnmuteClient(uint64 scHandlerID, anyID client)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	if(ts3Functions.requestClientVariables(scHandlerID, client, NULL) != ERROR_ok)
 	{
@@ -766,10 +766,10 @@ int GKeyFunctions::UnmuteClient(uint64 scHandlerID, anyID client)
 		}
 	}
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::ServerKickClient(uint64 scHandlerID, anyID client)
+bool GKeyFunctions::ServerKickClient(uint64 scHandlerID, anyID client)
 {
 	unsigned int error;
 
@@ -782,13 +782,13 @@ int GKeyFunctions::ServerKickClient(uint64 scHandlerID, anyID client)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::ChannelKickClient(uint64 scHandlerID, anyID client)
+bool GKeyFunctions::ChannelKickClient(uint64 scHandlerID, anyID client)
 {
 	unsigned int error;
 
@@ -801,13 +801,13 @@ int GKeyFunctions::ChannelKickClient(uint64 scHandlerID, anyID client)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::SetMasterVolume(uint64 scHandlerID, float value)
+bool GKeyFunctions::SetMasterVolume(uint64 scHandlerID, float value)
 {
 	unsigned int error;
 	char str[6];
@@ -825,13 +825,13 @@ int GKeyFunctions::SetMasterVolume(uint64 scHandlerID, float value)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
-int GKeyFunctions::JoinChannelRelative(uint64 scHandlerID, bool next)
+bool GKeyFunctions::JoinChannelRelative(uint64 scHandlerID, bool next)
 {
 	unsigned int error;
 	anyID self;
@@ -839,7 +839,7 @@ int GKeyFunctions::JoinChannelRelative(uint64 scHandlerID, bool next)
 	Channel root;
 
 	// Get channel hierarchy
-	if(Channel::GetChannelHierarchy(scHandlerID, &root) != 0) return 1;
+	if(Channel::GetChannelHierarchy(scHandlerID, &root) != 0) return false;
 
 	// Get own channel
 	if((error = ts3Functions.getClientID(scHandlerID, &self)) != ERROR_ok)
@@ -851,7 +851,7 @@ int GKeyFunctions::JoinChannelRelative(uint64 scHandlerID, bool next)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	if((error = ts3Functions.getChannelOfClient(scHandlerID, self, &ownId)) != ERROR_ok)
 	{
@@ -862,7 +862,7 @@ int GKeyFunctions::JoinChannelRelative(uint64 scHandlerID, bool next)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	
 	// Find own channel in hierarchy
@@ -907,14 +907,14 @@ int GKeyFunctions::JoinChannelRelative(uint64 scHandlerID, bool next)
 				ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 				ts3Functions.freeMemory(errorMsg);
 			}
-			return 1;
+			return false;
 		}
-		return 0;
+		return true;
 	}
-	return 1;
+	return false;
 }
 
-int GKeyFunctions::SetActiveServerRelative(uint64 scHandlerID, bool next)
+bool GKeyFunctions::SetActiveServerRelative(uint64 scHandlerID, bool next)
 {
 	unsigned int error;
 	uint64* servers;
@@ -931,7 +931,7 @@ int GKeyFunctions::SetActiveServerRelative(uint64 scHandlerID, bool next)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 
 	// Find active server in the list
@@ -964,12 +964,12 @@ int GKeyFunctions::SetActiveServerRelative(uint64 scHandlerID, bool next)
 			ts3Functions.freeMemory(errorMsg);
 		}
 		ts3Functions.freeMemory(servers);
-		return 1;
+		return false;
 	}
 	if(!result) SetActiveServer(*server);
 
 	ts3Functions.freeMemory(servers);
-	return 0;
+	return true;
 }
 
 uint64 GKeyFunctions::GetChannelIDFromPath(uint64 scHandlerID, char* path)
@@ -1006,7 +1006,7 @@ uint64 GKeyFunctions::GetChannelIDFromPath(uint64 scHandlerID, char* path)
 			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
 			ts3Functions.freeMemory(errorMsg);
 		}
-		return 1;
+		return false;
 	}
 	return parent;
 }
