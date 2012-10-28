@@ -37,7 +37,25 @@ bool TS3Settings::CheckAndLog(int returnCode)
 	return false;
 }
 
-bool TS3Settings::GetValueForQuery(std::string query, std::string& result)
+bool TS3Settings::OpenDatabase(std::string path)
+{
+	if(settings != NULL) CloseDatabase();
+
+	if(CheckAndLog(sqlite3_open(path.c_str(), &settings)))
+	{
+		CloseDatabase();
+		return false;
+	}
+
+	return true;
+}
+
+void TS3Settings::CloseDatabase()
+{
+	sqlite3_close(settings);
+}
+
+bool TS3Settings::GetValueFromQuery(std::string query, std::string& result)
 {
 	// Prepare the statement
 	sqlite3_stmt* sql;
@@ -58,24 +76,6 @@ bool TS3Settings::GetValueForQuery(std::string query, std::string& result)
 	return true;
 }
 
-bool TS3Settings::OpenDatabase(std::string path)
-{
-	if(settings != NULL) CloseDatabase();
-
-	if(CheckAndLog(sqlite3_open(path.c_str(), &settings)))
-	{
-		CloseDatabase();
-		return false;
-	}
-
-	return true;
-}
-
-void TS3Settings::CloseDatabase()
-{
-	sqlite3_close(settings);
-}
-
 std::string TS3Settings::GetValueFromData(std::string data, std::string key)
 {
 	std::string result;
@@ -92,17 +92,17 @@ std::string TS3Settings::GetValueFromData(std::string data, std::string key)
 
 bool TS3Settings::GetIconPack(std::string& result)
 {
-	return GetValueForQuery("SELECT value FROM Application WHERE key='IconPack'", result);
+	return GetValueFromQuery("SELECT value FROM Application WHERE key='IconPack'", result);
 }
 
 bool TS3Settings::GetSoundPack(std::string& result)
 {
-	return GetValueForQuery("SELECT value FROM Notifications WHERE key='SoundPack'", result);
+	return GetValueFromQuery("SELECT value FROM Notifications WHERE key='SoundPack'", result);
 }
 
 bool TS3Settings::GetPreProcessorData(std::string profile, std::string& result)
 {
 	std::stringstream ss;
 	ss << "SELECT value FROM Profiles WHERE key='Capture/" << profile << "/PreProcessing'";
-	return GetValueForQuery(ss.str(), result);
+	return GetValueFromQuery(ss.str(), result);
 }

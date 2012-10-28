@@ -9,7 +9,7 @@ private:
 	sqlite3* settings;
 
 	inline bool CheckAndLog(int returnCode);
-	bool GetValueForQuery(std::string query, std::string& result);
+	bool GetValueFromQuery(std::string query, std::string& result);
 public:
 	TS3Settings(void);
 	~TS3Settings(void);
