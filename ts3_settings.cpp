@@ -100,11 +100,6 @@ bool TS3Settings::GetSoundPack(std::string& result)
 	return GetValueForQuery("SELECT value FROM Notifications WHERE key='SoundPack'", result);
 }
 
-bool TS3Settings::GetDefaultCaptureProfile(std::string& result)
-{
-	return GetValueForQuery("SELECT value FROM Profiles WHERE key='DefaultCaptureProfile'", result);
-}
-
 bool TS3Settings::GetPreProcessorData(std::string profile, std::string& result)
 {
 	std::stringstream ss;

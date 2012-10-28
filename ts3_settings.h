@@ -22,7 +22,6 @@ public:
 	/* Queries */
 	bool GetIconPack(std::string& result);
 	bool GetSoundPack(std::string& result);
-	bool GetDefaultCaptureProfile(std::string& result);
 	bool GetPreProcessorData(std::string profile, std::string& result);
 };
 
