@@ -30,7 +30,7 @@
 
 bool GKeyFunctions::CheckAndLog(unsigned int returnCode, char* message)
 {
-	if(returnCode)
+	if(returnCode != ERROR_ok)
 	{
 		char* errorMsg;
 		if(ts3Functions.getErrorMessage(returnCode, &errorMsg) == ERROR_ok)
