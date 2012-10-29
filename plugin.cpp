@@ -144,13 +144,15 @@ bool ExecutePluginCommand(uint64 scHandlerID, char* keyword, char* command)
 		// Module not found, try to guess the correct module name
 		if(pluginModule == NULL)
 		{
-			#ifdef _WIN64
-				char* suffixes[] = { "_win64", "_amd64", "_64" };
-			#else
-			#ifdef _WIN32
-				char* suffixes[] = { "_win32", "_x86", "_32" };
+			// A list of suffixes a plugin can have based on the architecture (64bit vs 32bit).
+			// For some reason the linux and mac suffixes are not ignored on windows.
+			#ifdef ARCH_X86_32
+				char* suffixes[] = { "_win32", "_x86", "_32", "_linux_x86", "_mac" };
 			#endif
+			#ifdef ARCH_X86_64
+				char* suffixes[] = { "_win64", "_amd64", "_64", "_linux_amd64", "_mac" };
 			#endif
+
 			for(int i=0; pluginModule == NULL && i<sizeof(suffixes); i++)
 			{
 				std::string moduleName = (*it) + suffixes[i];
