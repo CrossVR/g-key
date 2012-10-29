@@ -145,12 +145,12 @@ bool ExecutePluginCommand(uint64 scHandlerID, char* keyword, char* command)
 		if(pluginModule == NULL)
 		{
 			// A list of suffixes a plugin can have based on the architecture (64bit vs 32bit).
-			// For some reason the linux and mac suffixes are not ignored on windows.
+			// For some reason the linux, mac and powerpc suffixes are not ignored on windows.
 			#ifdef ARCH_X86_32
-				char* suffixes[] = { "_win32", "_x86", "_32", "_linux_x86", "_mac" };
+				char* suffixes[] = { "_win32", "_x86", "_32", "_i386", "_linux_x86", "_mac", "_ppc" };
 			#endif
 			#ifdef ARCH_X86_64
-				char* suffixes[] = { "_win64", "_amd64", "_64", "_linux_amd64", "_mac" };
+				char* suffixes[] = { "_win64", "_amd64", "_64", "_linux_amd64", "_mac", "_ppc" };
 			#endif
 
 			for(int i=0; pluginModule == NULL && i<sizeof(suffixes); i++)
