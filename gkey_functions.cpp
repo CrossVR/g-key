@@ -637,3 +637,37 @@ bool GKeyFunctions::ConnectToBookmark(char* label, PluginConnectTab connectTab, 
 	ts3Functions.freeMemory(bookmarks);
 	return ret;
 }
+
+std::string GKeyFunctions::GetDefaultPlaybackProfile()
+{
+	char** profiles;
+	int defaultProfile;
+	if(CheckAndLog(ts3Functions.getProfileList(PLUGIN_GUI_SOUND_PLAYBACK, &defaultProfile, &profiles), "Error retrieving playback profiles"))
+		return std::string();
+
+	std::string profile = profiles[defaultProfile];
+	ts3Functions.freeMemory(profiles);
+	return profile;
+}
+
+std::string GKeyFunctions::GetDefaultCaptureProfile()
+{
+	char** profiles;
+	int defaultProfile;
+	if(CheckAndLog(ts3Functions.getProfileList(PLUGIN_GUI_SOUND_CAPTURE, &defaultProfile, &profiles), "Error retrieving capture profiles"))
+		return std::string();
+
+	std::string profile = profiles[defaultProfile];
+	ts3Functions.freeMemory(profiles);
+	return profile;
+}
+
+int GKeyFunctions::GetConnectionStatus(uint64 scHandlerID)
+{
+	int status;
+
+	if(CheckAndLog(ts3Functions.getConnectionStatus(scHandlerID, &status), "Error retrieving connection status"))
+		return STATUS_DISCONNECTED; // Assume we're not connected
+
+	return status;
+}

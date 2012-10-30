@@ -56,6 +56,9 @@ public:
 	uint64 GetChannelIDByVariable(uint64 scHandlerID, char* value, size_t flag);
 	anyID GetClientIDByVariable(uint64 scHandlerID, char* value, size_t flag);
 	uint64 GetChannelIDFromPath(uint64 scHandlerID, char* path);
+	std::string GetDefaultPlaybackProfile();
+	std::string GetDefaultCaptureProfile();
+	int GetConnectionStatus(uint64 scHandlerID);
 
 	// Communication
 	bool SetPushToTalk(uint64 scHandlerID, bool shouldTalk);

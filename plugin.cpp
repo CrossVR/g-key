@@ -81,21 +81,7 @@ typedef int (WINAPI *ProcessCommandProc)(uint64, const char*);
 
 bool IsConnected(uint64 scHandlerID)
 {
-	int status;
-	unsigned int error;
-	if((error = ts3Functions.getConnectionStatus(scHandlerID, &status)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-		{
-			ts3Functions.logMessage("Error retrieving connection status", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-			return false; // Assume we're not connected
-		}
-	}
-
-	if(status == STATUS_DISCONNECTED)
+	if(gkeyFunctions.GetConnectionStatus(scHandlerID) == STATUS_DISCONNECTED)
 	{
 		gkeyFunctions.ErrorMessage(scHandlerID, "Not connected to server");
 		return false;
@@ -231,31 +217,13 @@ bool SetErrorSound()
 
 bool PTTDelay()
 {
-	// Get default capture profile
-	std::string profile;
-	char** profiles;
-	int defaultProfile;
-	unsigned int error;
-	if((error = ts3Functions.getProfileList(PLUGIN_GUI_SOUND_CAPTURE, &defaultProfile, &profiles)) != ERROR_ok)
-	{
-		char* errorMsg;
-		if(ts3Functions.getErrorMessage(error, &errorMsg) == ERROR_ok)
-		{
-			ts3Functions.logMessage("Error retrieving capture profiles", LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.logMessage(errorMsg, LogLevel_WARNING, "G-Key Plugin", 0);
-			ts3Functions.freeMemory(errorMsg);
-			return false;
-		}
-	}
-	profile = profiles[defaultProfile];
-	ts3Functions.freeMemory(profiles);
-	
-	// Get preprocessor data
+	// Get default capture profile and preprocessor data
 	std::string data;
-	if(!ts3Settings.GetPreProcessorData(profile, data)) return false;
+	if(!ts3Settings.GetPreProcessorData(gkeyFunctions.GetDefaultCaptureProfile(), data)) return false;
 	if(ts3Settings.GetValueFromData(data, "delay_ptt") != "true") return false;
 	int msecs = atoi(ts3Settings.GetValueFromData(data, "delay_ptt_msecs").c_str());
 
+	// If a delay is configured, set the PTT delay timer
 	if(msecs > 0)
 	{
 		dueTime.QuadPart = -(msecs * TIMER_MSEC);
