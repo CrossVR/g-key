@@ -231,7 +231,7 @@ bool SetErrorSound()
 
 bool PTTDelay()
 {
-	// Get default capture profile and preprocessor data
+	// Get default capture profile
 	std::string profile;
 	char** profiles;
 	int defaultProfile;
