@@ -1,0 +1,7 @@
+/bin
+/Debug
+/plugins
+/ipch
+*.user
+*.sdf
+
