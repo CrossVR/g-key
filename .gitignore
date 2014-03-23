@@ -1,5 +1,6 @@
 /bin
 /Debug
+/Release
 /plugins
 /ipch
 *.user
