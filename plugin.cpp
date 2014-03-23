@@ -33,7 +33,7 @@ struct TS3Functions ts3Functions;
 GKeyFunctions gkeyFunctions;
 TS3Settings ts3Settings;
 
-#define PLUGIN_API_VERSION 19
+#define PLUGIN_API_VERSION 20
 
 #define PATH_BUFSIZE 512
 #define COMMAND_BUFSIZE 128
