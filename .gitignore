@@ -4,4 +4,5 @@
 /ipch
 *.user
 *.sdf
-
+*.opensdf
+*.suo
